@@ -1,0 +1,43 @@
+0.5 2012-09-23
+---
+
+* added doPostFile() to upload and download Files (for example the phonebook) to and from the box
+* added sample script to reboot (thanks to godghost)
+* added sample script to download/upload phonebook (CAUTION: the upload will overwrite your current phonebook)!
+* restructured code in folders
+
+
+0.4.1 2012-03-15:
+---
+
+* added a new script fritzbox_guestlan_on_off.php to switch the new Guest-LAN on and off
+* tested all builtin scripts with new FRITZ!OS 05.20
+
+
+0.4 2011-05-15:
+---
+
+* added support for the new .lua forms like the WLAN guest access settings
+
+
+0.3 2010-05-19:
+---
+
+* added a doGetRequest method in the API
+* some minor changes
+* a new module for downloading the foncalls list
+
+
+0.2 2010-04-07:
+---
+
+* added a capability to use the Fritz!Box remote admin mode
+  Important limitation: does not check the certificate, so the password is sent to any computer responding at the configured address.
+  Feel free to hack the cURL calls to accept only a given certrificate
+
+
+0.1:
+---
+
+* First release
+
