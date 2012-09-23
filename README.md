@@ -1,6 +1,6 @@
 # FritzBox! PHP API
 
-Provides a interface to your FritzBox! using the webinterface. Thus, no modification the to firmware (aka FritzOS) is required!
+Provides an interface to your FritzBox! using the webinterface. Thus, no modification the to firmware (aka FritzOS) is required!
 
 ### Requirements
 * PHP 5 (tested with 5.3)
