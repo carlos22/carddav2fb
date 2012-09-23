@@ -1,6 +1,6 @@
 # FritzBox! PHP API
 
-This is a simple curl wrapper which provides a interface to your FritzBox! whithout any modification the to firmware (aka FritzOS).
+Provides a interface to your FritzBox! using the webinterface. Thus, no modification the to firmware (aka FritzOS) is required!
 
 ### Requirements
 * PHP 5 (tested with 5.3)
@@ -15,7 +15,7 @@ Install on Debian/Ubuntu: sudo apt-get install php5-cli php5-curl
 * Enable/Disable Guest (W)LAN
 * Ring a Phone
 * Reboot
-* Download/Upload the Phonebook (tested with 71xx)
+* Import/Export the Phonebook (tested with 71xx)
 
 [IPF discussion thread](http://www.ip-phone-forum.de/showthread.php?t=196309)
 
