@@ -19,7 +19,7 @@ Install on Debian/Ubuntu: sudo apt-get install php5-cli php5-curl
 
 [IPF discussion thread](http://www.ip-phone-forum.de/showthread.php?t=196309)
 
-AUTOHORS: [Gregor Nathanael Meyer](http://spackmat.de/spackblog), Karl Glatz, (maybe others)
+AUTHORS: [Gregor Nathanael Meyer](http://spackmat.de/spackblog), Karl Glatz, (maybe others)
 
 ----------
 
