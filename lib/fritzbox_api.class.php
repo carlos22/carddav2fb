@@ -186,8 +186,8 @@ class fritzbox_api {
       curl_setopt($ch, CURLOPT_USERPWD, $this->remote_config_user . ':' . $this->remote_config_password);
     }
     
-    curl_setopt($ch, CURLOPT_VERBOSE, TRUE); 
-    //curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (compatible; MSIE 6.0)");
+    // enable for debugging:
+    //curl_setopt($ch, CURLOPT_VERBOSE, TRUE); 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     
     // if filefileds not specified ('@/path/to/file.xml;type=text/xml' works fine)
@@ -209,7 +209,6 @@ class fritzbox_api {
 	// curl error
 	if(curl_errno($ch)) {
 		$this->error(curl_error($ch)." (".curl_errno($ch).")");
-		//throw new Exception("curl error: ". curl_error($ch));
 	}
 
     // finger out an error message, if given

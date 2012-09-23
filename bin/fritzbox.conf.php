@@ -19,13 +19,16 @@ $logging     = 'console'; // output to the console
 #$logging     = 'silent';  // do not output anything, be careful with this logging mode
 #$logging     = 'tam.log'; // the path to a writeable logfile
 
-# the newline character for the logfile (does not need to be changed in most cases)
-$newline = (PHP_OS == 'WINNT') ? "\r\n" : "\n";
+# the newline character for the logfile (does not need to be changed in most cases) [note should be a constant!]
+$newline = PHP_EOL;
+// for pre php 5.0.2 use this:
+//$newline = (PHP_OS == 'WINNT') ? "\r\n" : "\n";
+
 
 
 ############## module specific config ###############
 
 # set the path for the call list for the foncalls module
 $foncallslist_path = dirname(__FILE__) . '/foncallsdaten.xml';
-$fonbook_ul_path = dirname(__FILE__) . '/example_pb.xml';
-$fonbook_dl_path = dirname(__FILE__) . '/exported_pb.xml';
+$fonbook_import_path = dirname(__FILE__) . '/example_pb.xml';
+$fonbook_export_path = dirname(__FILE__) . '/exported_pb.xml';
