@@ -1,0 +1,9 @@
+[submodule "lib/vCard-parser"]
+	path = lib/vCard-parser
+	url = git://github.com/nuovo/vCard-parser.git
+[submodule "lib/CardDAV-PHP"]
+	path = lib/CardDAV-PHP
+	url = https://github.com/graviox/CardDAV-PHP/
+[submodule "lib/fritzbox_api_php"]
+	path = lib/fritzbox_api_php
+	url = https://github.com/carlos22/fritzbox_api_php.git
