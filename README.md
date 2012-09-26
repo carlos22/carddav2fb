@@ -1,4 +1,4 @@
-# Import CardDAV contacts to a FritzBox!
+# Import CardDAV contacts into FritzBox!
 
 CAUTION: This script will overwrite your current contacts without any warning!
 
