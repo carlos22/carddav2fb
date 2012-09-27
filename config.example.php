@@ -20,4 +20,3 @@ $config['carddav'][0] = array(
 //	'user' => 'user', 
 //	'pw' => 'password'
 //);
-

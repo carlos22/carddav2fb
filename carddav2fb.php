@@ -21,7 +21,13 @@ setlocale(LC_ALL, 'de_DE.UTF8');
 require_once('lib/CardDAV-PHP/carddav.php');
 require_once('lib/vCard-parser/vCard.php');
 require_once('lib/fritzbox_api_php/lib/fritzbox_api.class.php');
-require('config.php')
+
+if(is_file('config.php')) {
+	require('config.php');
+} else {
+	print 'ERROR: No config.php found, please take a look at config.example.php and create a config.php file!'.PHP_EOL;
+	exit(1);
+}
 
 // ---------------------------------------------
 
