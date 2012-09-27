@@ -18,7 +18,7 @@ Open `config.example.php`, adapt it to your needs and save it as `config.php`
 
 Install PHP and PHP-Curl
 
-	sudo apt-get install php-cli php-curl
+	sudo apt-get install php5-cli php5-curl
 
 Open a Terminal and just run `php /path/to/carddav2fb/carddav2fb.php`
 
