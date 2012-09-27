@@ -35,21 +35,35 @@ if(is_file('config.php')) {
 
 $client = new CardDAV2FB($config);
 
+
 // read vcards from webdav
+print 'Get all entires from CardDAV server(s)... ';
 $client->get_carddav_entries();
+print 'Done.'.PHP_EOL;
+
+flush(); // in case this script runs by php-cgi
 
 // transform them to a fritzbox compatible xml file
+print 'Transform to FritzBox XML File... ';
 $client->build_fb_xml();
+print 'Done.'.PHP_EOL;
+
+flush(); // in case this script runs by php-cgi
 
 // upload the xml file to the fritz box (CAUTION: this will overwrite all current entries in the phonebook!!)
-$client->upload_to_fb();
+print 'Upload to fritzbox at '.$config['fritzbox_url'].'...';
+$ul_msg = $client->upload_to_fb();
+print 'Done.'.PHP_EOL;
+print 'FritzBox: '.$ul_msg.PHP_EOL;
+
+flush(); // in case this script runs by php-cgi
 
 
 class CardDAV2FB {
 	
-	public $entries = array(); /*change to private!*/
-	public $fbxml = "";
-	public $config = null;
+	protected $entries = array();
+	protected $fbxml = "";
+	protected $config = null;
 	
 	public function __construct($config) {
 		$this->config = $config;
@@ -162,9 +176,18 @@ class CardDAV2FB {
 		
 		return $text;
 	}
+	
+	public function _parse_fb_result($text) {
+			preg_match("/\<h2\>([^\<]+)\<\/h2\>/", $text, $matches);
+			
+			if($matches)
+				return $matches[1];
+			else
+				return "Error while uploading xml to fritzbox";
+	}
 
 	public function upload_to_fb() {
-		
+		$msg = "";
 		try
 		{
 		  $fritz = new fritzbox_api($this->config['fritzbox_pw'], $this->config['fritzbox_url']);
@@ -179,14 +202,16 @@ class CardDAV2FB {
 			 )
 			);
 
-		  print $fritz->doPostFile($formfields, $filefileds);   // send the command
+		  $raw_result =  $fritz->doPostFile($formfields, $filefileds);   // send the command
+		  $msg = $this->_parse_fb_result($raw_result);
 		  $fritz = null;                     					// destroy the object to log out
 		}
 		catch (Exception $e)
 		{
-		  echo $e->getMessage();     // show the error message in anything failed
+		  print $e->getMessage();     // show the error message in anything failed
+		  print PHP_EOL;
 		}
-		
+		return $msg;
 	}
 }
 
