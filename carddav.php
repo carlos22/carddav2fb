@@ -613,11 +613,11 @@ class carddav_backend
 
 		if ($content_type !== null)
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type, 'Depth: 0'));
 		}
 		else
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array());
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Depth: 0'));
 		}
 
 		$complete_response	= curl_exec($this->curl);
