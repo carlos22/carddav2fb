@@ -161,6 +161,20 @@ class carddav_backend
 	 * @var	resource
 	 */
 	private $curl;
+	
+	/**
+	 * Follow redirects (Location Header)
+	 * 
+	 * @var boolean
+	 */
+	private $follow_redirects = true;
+	
+	/**
+	 * Maximum redirects to follow
+	 *
+	 * @var integer
+	 */
+	private $follow_redirects_count = 3;
 
 	/**
 	 * Debug on or off
@@ -244,6 +258,19 @@ class carddav_backend
 		$this->username	= $username;
 		$this->password	= $password;
 		$this->auth		= $username . ':' . $password;
+	}
+	
+	/**
+	 * Sets wether to follow redirects and if yes how often
+	 *
+	 * @param	boolean	$follow_redirects
+	 * @param	integer	$follow_redirects_count
+	 * @return	void
+	 */
+	public function set_follow_redirects($follow_redirects, $follow_redirects_count = 3)
+	{
+		$this->follow_redirects	= $follow_redirects && $follow_redirects_count > 0;
+		$this->follow_redirects_count = $follow_redirects_count > 0 ? $follow_redirects_count : 0;
 	}
 
 	/**
@@ -580,6 +607,13 @@ class carddav_backend
 			{
 				curl_setopt($this->curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 				curl_setopt($this->curl, CURLOPT_USERPWD, $this->auth);
+			}
+			
+			/* allow to follow redirects if activated */
+			curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, $this->follow_redirects);
+			if ($this->follow_redirects)
+			{
+				curl_setopt($this->curl, CURLOPT_MAXREDIRS, $this->follow_redirects_count);
 			}
 		}
 	}
