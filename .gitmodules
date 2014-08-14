@@ -1,6 +1,6 @@
 [submodule "lib/vCard-parser"]
 	path = lib/vCard-parser
-	url = git://github.com/nuovo/vCard-parser.git
+	url = https://github.com/nuovo/vCard-parser.git
 [submodule "lib/CardDAV-PHP"]
 	path = lib/CardDAV-PHP
 	url = https://github.com/graviox/CardDAV-PHP/
