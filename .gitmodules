@@ -4,3 +4,6 @@
 [submodule "lib/fritzbox_api_php"]
 	path = lib/fritzbox_api_php
 	url = https://github.com/carlos22/fritzbox_api_php.git
+[submodule "lib/vCard-parser"]
+	path = lib/vCard-parser
+	url = https://github.com/nuovo/vCard-parser.git
