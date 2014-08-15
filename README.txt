@@ -1,32 +1,11 @@
-# FritzBox! PHP API
-
-Provides an interface to your FritzBox! using the webinterface. Thus, no modification the to firmware (aka FritzOS) is required!
-
-### Requirements
-* PHP 5 (tested with 5.3)
-* PHP-curl 
-
-Install on Debian/Ubuntu: sudo apt-get install php5-cli php5-curl
-
-###Sample Scripts
-
-* Enable/Disable TAM
-* Download Phone call list
-* Enable/Disable Guest (W)LAN
-* Ring a Phone
-* Reboot
-* Import/Export the Phonebook (tested with 71xx)
-
-[IPF discussion thread](http://www.ip-phone-forum.de/showthread.php?t=196309)
-
-AUTHORS: [Gregor Nathanael Meyer](http://spackmat.de/spackblog), Karl Glatz, (maybe others)
-
-----------
-
 ### Important! ###
 Do not use Windows Notepad as it will break the files due to their UTF-8 coding and UNIX linebreaks. Download a serious editor like Notepad++ instead.
 Also do not use or modify this scripts, if you do not know, what you do. This script is itended for advanced users
 
+
+### Upgrade advisory for version 0.5.0 and up ####
+
+Version 0.5.0 introduced a new config format with graceful default values, so check the new config file fritzbox_user.conf.php
 
 
 ### Basic usage advisory ####
@@ -42,7 +21,7 @@ To use "fritzbox_tam_on_off.php", you have to call it in a terminal, it will the
 
 ### Usage on a Windows system ###
 
-The script works fine on my Windows Vista machine and a simply extraced PHP 5.3.0 distribution (get it at http://windows.php.net/download/, PHP 5.4.0 works as well). The cURL extension and the mbstring extenstion must be enabled in the php.ini and the correct timezone must be set. To do this, copy the php.ini-production to php.ini and uncomment/change the following directives:
+The script works fine on my Windows 7 machine and a simply extraced PHP 5.3 distribution (get it at http://windows.php.net/download/, PHP 5.4 works as well). The cURL extension and the mbstring extenstion must be enabled in the php.ini and the correct timezone must be set. To do this, copy the php.ini-production to php.ini and uncomment/change the following directives:
 
 extension_dir = "ext"
 extension=php_curl.dll
@@ -51,11 +30,11 @@ date.timezone = Europe/Berlin
 
 After you have done that, you can call the script in a terminal:
 
-  C:\>path\to\php.exe path\to\fritzbox_tam_on_off.php
+  C:\>"path\to\php.exe" "path\to\fritzbox_tam_on_off.php"
   
 i.e. if you extracted PHP to c:\php and the Fritz!Box PHP API to a subfolder named fritz_api, you call it this way:
   C:\>cd php
-  C:\php>php fritz_api\fritzbox_tam_on_off.php
+  C:\php>"php.exe" "fritz_api\fritzbox_tam_on_off.php"
   
 If you use the Windows taskplanner, configure the logger to a logfile or to silent mode and call via php-win.exe instead of php.exe. This will prevent the terminal from being opened.
 
@@ -65,7 +44,7 @@ If you use the Windows taskplanner, configure the logger to a logfile or to sile
 
 If you use UNIX, you should be familiar with calling a PHP script via the PHP-CLI. If you don't have the PHP-CLI installed, you can edit the $argv part in "fritz_tam_on_off.php" to work with PHP-CGI and $_GET or you hardcode the necessary arguments.
 
-Ensure that the cURL and the mbstring extensions are available and a valid timezone is set. The script was tested on a Ubuntu Server machine with PHP 5.2.
+Ensure that the cURL and the mbstring extensions are available and a valid timezone is set. The script was tested on a Ubuntu Server machine with PHP 5.3.
 
 
 
