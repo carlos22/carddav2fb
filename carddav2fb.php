@@ -106,6 +106,13 @@ class CardDAV2FB {
 
 				$name = $this->_concat($name_arr['Prefixes'],$this->_concat($this->_concat($name_arr['FirstName'],$name_arr['AdditionalNames']),$name_arr['LastName']));
 
+				// if name is empty we take org instead
+				if(empty($name))
+				{
+					$name_arr = $vcard_obj->org[0];
+					$name = $name_arr['Name'];
+				}
+
 				if ($vcard_obj->photo) {
 					$photo = str_replace(array('&',' ','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù'),
 							     array('_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u'),$name);
