@@ -8,7 +8,11 @@ Features:
 
 **CAUTION: This script will overwrite your current contacts in the FritzBox without any warning!**
 
-## Installation
+### Information
+
+This version of carddav2fb is a forked version from carlos22 with updates applied being published at http://www.ip-phone-forum.de/showthread.php?t=267477. In addition to being compatible to newer Fritz!OS versions it also features two fixes regarding OSX generated vCards.
+
+### Installation
 
  1. Use git to checkout carddav2fb from github
 
