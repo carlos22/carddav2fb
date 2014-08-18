@@ -2,14 +2,15 @@
 
 // CONFIG
 $config['fritzbox_ip'] = 'fritz.box';
+$config['fritzbox_ip_ftp'] = 'fritz.box';
 $config['fritzbox_user'] = 'fb_username';
 $config['fritzbox_pw'] = 'fb_password';
 $config['phonebook_number'] = '0';
-$config['phonebook_name'] = 'FBF_Name';
+$config['phonebook_name'] = 'Telefonbuch';
 //$config['output_file'] = '/media/usbdisk/share/phonebook.xml';
 //$config['group_filter'] = array('Arzt','Familie','Freunde','Friseur','Geschäftlich','Hotline','Notruf','Restaurant','Shops');
 $config['group_vip'] = 'VIP';
-//$config['usb_disk'] = 'USBDISK2-0-01';
+//$config['usb_disk'] = 'Generic-FlashDisk-01';
 
 // multiple carddav adressbooks could be specified and will be merged together.
 
