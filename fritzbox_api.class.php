@@ -14,7 +14,7 @@
  * @package  Fritz!Box PHP tools
  */
 
-/* A simple usage examplername'] = $this->config->getItem('remote_config_user');
+/* A simple usage example
  *
  * try
  * { 
@@ -68,10 +68,38 @@ class fritzbox_api {
 	// init the config object
 	$this->config = new fritzbox_api_config();
     
-	$this->config->setItem('fritzbox_ip',$fritzbox_ip);
-	$this->config->setItem('fritzbox_url','http://'.$this->config->getItem('fritzbox_ip'));
-	$this->config->setItem('username',$user_name);
-	$this->config->setItem('password',$password);
+	// try autoloading the config
+	if ( file_exists(__DIR__ . '/fritzbox_user.conf.php') && is_readable(__DIR__ . '/fritzbox_user.conf.php') )
+	{
+    require_once(__DIR__ . '/fritzbox_user.conf.php');
+	}
+
+  $this->config->setItem('fritzbox_ip',$fritzbox_ip);
+  $this->config->setItem('fritzbox_url','http://'.$this->config->getItem('fritzbox_ip'));
+  if($user_name != false)
+  {
+    $this->config->setItem('username',$user_name);
+  }
+  if($password != false)
+  {
+    $this->config->setItem('password',$password);
+  }
+
+	// make some config consistency checks
+	if ( $this->config->getItem('enable_remote_config') === true )
+	{
+    if ( !$this->config->getItem('remote_config_user') || !$this->config->getItem('remote_config_password') )
+    {
+      $this->error('ERROR: Remote config mode enabled, but no username or no password provided');
+    }
+    $this->config->setItem('fritzbox_url', 'https://' . $this->config->getItem('fritzbox_ip'));
+  }
+  else
+  {
+    $this->config->setItem('fritzbox_url', 'http://' . $this->config->getItem('fritzbox_ip'));
+    $this->config->setItem('old_remote_config_user', null);
+    $this->config->setItem('old_remote_config_password', null);
+  }
     
 	$this->sid = $this->initSID();
   }
@@ -114,6 +142,17 @@ class fritzbox_api {
     }
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_POST, 1);
+    if ( $this->config->getItem('enable_remote_config') )
+    {
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+      // support for pre FRITZ!OS 5.50 remote config
+      if ( !$this->config->getItem('use_lua_login_method') )
+      {
+        curl_setopt($ch, CURLOPT_USERPWD, $this->config->getItem('remote_config_user') . ':' . $this->config->getItem('remote_config_password'));
+      }
+    }
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($formfields));
     $output = curl_exec($ch);
     curl_close($ch);
@@ -249,6 +288,15 @@ class fritzbox_api {
     curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . $getpage . http_build_query($params));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HTTPGET, 1);
+    if ( $this->config->getItem('enable_remote_config') )
+    {
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      // support for pre FRITZ!OS 5.50 remote config
+      if ( !$this->config->getItem('use_lua_login_method') )
+      {
+        curl_setopt($ch, CURLOPT_USERPWD, $this->config->getItem('remote_config_user') . ':' . $this->config->getItem('remote_config_password'));
+      }
+    }
     $output = curl_exec($ch);
     curl_close($ch);
     return $output;
@@ -297,12 +345,28 @@ class fritzbox_api {
       $formfields = array(
         'getpage' => $loginpage,
       );
+      if ( $this->config->getItem('use_lua_login_method') )
+      {
+        if ( $this->config->getItem('enable_remote_config') )
+        {
+          $formfields['username'] = $this->config->getItem('remote_config_user');
+          $response = $challenge . '-' . md5(mb_convert_encoding($challenge . '-' . $this->config->getItem('remote_config_password'), "UCS-2LE", "UTF-8"));
+        }
+        else
+        {
           if ( $this->config->getItem('username') )
           {
             $formfields['username'] = $this->config->getItem('username');
           }
           $response = $challenge . '-' . md5(mb_convert_encoding($challenge . '-' . $this->config->getItem('password'), "UCS-2LE", "UTF-8"));
+        }
         $formfields['response'] = $response;
+      }
+      else
+      {
+        $response = $challenge . '-' . md5(mb_convert_encoding($challenge . '-' . $this->config->getItem('password'), "UCS-2LE", "UTF-8"));
+        $formfields['login:command/response'] = $response;
+      }
       $output = $this->doPostForm($formfields);
       
       // finger out the SID from the response
