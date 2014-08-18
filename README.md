@@ -15,10 +15,9 @@ Install on Debian/Ubuntu: sudo apt-get install php5-cli php5-curl
 * Enable/Disable Guest (W)LAN
 * Ring a Phone
 * Reboot
-* Export the Phonebook
-* **Import the Phonebook (only tested with FB 71xx) [not available in the original version]**
+* Import/Export the Phonebook (tested with 71xx)
 
-**Newer Version available at**: [IPF discussion thread](http://www.ip-phone-forum.de/showthread.php?t=196309)
+[IPF discussion thread](http://www.ip-phone-forum.de/showthread.php?t=196309)
 
 AUTHORS: [Gregor Nathanael Meyer](http://spackmat.de/spackblog), Karl Glatz, (maybe others)
 
