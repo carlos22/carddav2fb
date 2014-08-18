@@ -6,31 +6,40 @@
  * new in v0.2: Can handle remote config mode via https://example.dyndns.org
  * new in v0.3: New method doGetRequest handles GET-requests
  * new in v0.4: Added support for the new .lua forms like the WLAN guest access settings
+ * new in v5.0: added support for the new .lua-loginpage in newest Fritz!OS firmwares and refactored the code
  * 
  * @author   Gregor Nathanael Meyer <Gregor [at] der-meyer.de>
  * @license  http://creativecommons.org/licenses/by-sa/3.0/de/ Creative Commons cc-by-sa
- * @version  0.4 2011-05-15
+ * @version  0.5.0b7 2013-01-02
  * @package  Fritz!Box PHP tools
  */
 
-/* A simple usage example
+/* A simple usage examplername'] = $this->config->getItem('remote_config_user');
  *
- * require_once('fritzbox_api.class.php');
  * try
- * {
- *   $fritz = new fritzbox_api('password', 'fritz-box');
+ * { 
+ *   // load the fritzbox_api class
+ *   require_once('fritzbox_api.class.php');
+ *   $fritz = new fritzbox_api();
+ 
+ *   // init the output message
+ *   $message = date('Y-m-d H:i') . ' ';
+ *   
+ *   // update the setting
  *   $formfields = array(
- *     'getpage'                  => '../html/de/menus/menu2.html', // the getpage parameter is mandatory
- *     'tam:settings/TAM0/Active' => 1, // enables the first answering machine, any POST-field from the Web-UI can be used
+ *     'telcfg:command/Dial'      => '**610',
  *   );
- *   $fritz->doPostForm($formfields);   // send the command
- *   $fritz = null;                     // destroy the object to log out
+ *   $fritz->doPostForm($formfields);
+ *   $message .= 'Phone ' . $dial . ' ringed.';
  * }
  * catch (Exception $e)
  * {
- *   echo $e->getMessage();             // schow the error message in anything failed
+ *   $message .= $e->getMessage();
  * }
  *
+ * // log the result
+ * $fritz->logMessage($message);
+ * $fritz = null; // destroy the object to log out
  */
  
 /**
@@ -39,29 +48,9 @@
  */
 class fritzbox_api {
   /**
-    * @var  string  the Fritz!Box password, set by the constructor
+    * @var  object  config object
     */
-  protected $password;
-  
-  /**
-    * @var  bool    enable remote config mode, set by the constructor
-    */
-  protected $enable_remote_config;
-  
-  /**
-    * @var  string  username for remote config mode, set by the constructor
-    */
-  protected $remote_config_user;
-  
-  /**
-    * @var  string  password for remote config mode, set by the constructor
-    */
-  protected $remote_config_password;
-  
-  /**
-    * @var  string  the Fritz!Box base URL, set by the constructor
-    */
-  protected $fritzbox_url;
+  public $config = array();
   
   /**
     * @var  string  the session ID, set by method initSID() after login
@@ -73,36 +62,18 @@ class fritzbox_api {
     * the constructor, initializes the object and calls the login method
     * 
     * @access public
-    * @param  string $password                the Fritz!Box password, optional, defaults to null
-    * @param  string $fritzbox_ip             the Fritz!Box IP address or DNS name, optional, defaults to fritz.box
-    * @param  bool   $enable_remote_config    set true to enable remote config, optional, defaults to false
-    * @param  string $remote_config_user      the remote config username, mandatory, if remote config is used
-    * @param  string $remote_config_password  the remote config password, mandatory, if remote config is used
     */
-  public function __construct($password = null, $fritzbox_ip = 'fritz.box', $enable_remote_config = false, $remote_config_user = null, $remote_config_password = null)
+  public function __construct($password = false,$user_name = false,$fritzbox_ip = 'fritz.box')
   {
-    $this->password = $password;
+	// init the config object
+	$this->config = new fritzbox_api_config();
     
-    if ( $enable_remote_config === true )
-    {
-      if ( !isset($remote_config_user) || !isset($remote_config_password) )
-      {
-        $this->error('ERROR: Remote config mode enabled, but no username or no password provided');
-      }
-      $this->fritzbox_url            = 'https://' . $fritzbox_ip;
-      $this->enable_remote_config    = true;
-      $this->remote_config_user      = $remote_config_user;
-      $this->remote_config_password  = $remote_config_password;
-    }
-    else
-    {
-      $this->fritzbox_url            = 'http://' . $fritzbox_ip;
-      $this->enable_remote_config    = false;
-      $this->remote_config_user      = null;
-      $this->remote_config_password  = null;
-    }
+	$this->config->setItem('fritzbox_ip',$fritzbox_ip);
+	$this->config->setItem('fritzbox_url','http://'.$this->config->getItem('fritzbox_ip'));
+	$this->config->setItem('username',$user_name);
+	$this->config->setItem('password',$password);
     
-    $this->sid = $this->initSID();
+	$this->sid = $this->initSID();
   }
   
   
@@ -121,16 +92,15 @@ class fritzbox_api {
     * do a POST request on the box
     * the main cURL wrapper handles the command
     * 
-    * @access public
     * @param  array  $formfields    an associative array with the POST fields to pass
     * @return string                the raw HTML code returned by the Fritz!Box
     */
   public function doPostForm($formfields = array())
-  {  
+  {
     $ch = curl_init();
-    if ( strpos($formfields['getpage'], '.lua') > 0 )
+    if ( isset($formfields['getpage']) && strpos($formfields['getpage'], '.lua') > 0 )
     {
-      curl_setopt($ch, CURLOPT_URL, $this->fritzbox_url . $formfields['getpage'] . '?sid=' . $this->sid);
+      curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . $formfields['getpage'] . '?sid=' . $this->sid);
       unset($formfields['getpage']);
     }
     else
@@ -140,30 +110,16 @@ class fritzbox_api {
       {
         $formfields['sid'] = $this->sid;
       }   
-      curl_setopt($ch, CURLOPT_URL, $this->fritzbox_url . '/cgi-bin/webcm');
+      curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . '/cgi-bin/webcm');
     }
-    curl_setopt($ch, CURLOPT_POST, 1);
-    if ( $this->enable_remote_config )
-    {
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-      curl_setopt($ch, CURLOPT_USERPWD, $this->remote_config_user . ':' . $this->remote_config_password);
-    }
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($formfields));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($formfields));
     $output = curl_exec($ch);
     curl_close($ch);
     return $output;
   }
-  
-    /**
-    * upload a file to the box (via POST) [all files are uploaded to the 'firmwarecfg' cgi-program] 
-    * the main cURL wrapper handles the command
-    * 
-    * @access public
-    * @param  array  $formfields    an associative array with the POST fields to pass
-    * @param  array  $filefileds    an associative array with the file data (key: content) and type (key: type)
-    * @return string                the raw HTML code returned by the Fritz!Box
-    */
+
   public function doPostFile($formfields = array(), $filefileds = array())
   {  
     $ch = curl_init();
@@ -176,15 +132,8 @@ class fritzbox_api {
 		$formfields = array_merge(array('sid' => $this->sid), $formfields);
 		//$formfields['sid'] = $this->sid;
     }   
-    curl_setopt($ch, CURLOPT_URL, $this->fritzbox_url . '/cgi-bin/firmwarecfg'); 
+    curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . '/cgi-bin/firmwarecfg'); 
     curl_setopt($ch, CURLOPT_POST, 1);
-    
-    // remote config?
-    if ( $this->enable_remote_config )
-    {
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-      curl_setopt($ch, CURLOPT_USERPWD, $this->remote_config_user . ':' . $this->remote_config_password);
-    }
     
     // enable for debugging:
     //curl_setopt($ch, CURLOPT_VERBOSE, TRUE); 
@@ -221,8 +170,7 @@ class fritzbox_api {
     curl_close($ch);
     return $output;
   }
-  
-  
+
   private function _create_custom_file_post_header($postFields, $fileFields) {
 		// form field separator
 		$delimiter = '-------------' . uniqid();
@@ -273,13 +221,10 @@ class fritzbox_api {
 		return array('delimiter' => $delimiter, 'data' => $data);
 	}
   
-  
-  
   /**
     * do a GET request on the box
     * the main cURL wrapper handles the command
     * 
-    * @access public
     * @param  array  $params    an associative array with the GET params to pass
     * @return string            the raw HTML code returned by the Fritz!Box
     */
@@ -301,14 +246,9 @@ class fritzbox_api {
     {
       $getpage = '/cgi-bin/webcm?';
     }
-    curl_setopt($ch, CURLOPT_URL, $this->fritzbox_url . $getpage . http_build_query($params));
-    curl_setopt($ch, CURLOPT_HTTPGET, 1);
-    if ( $this->enable_remote_config )
-    {
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-      curl_setopt($ch, CURLOPT_USERPWD, $this->remote_config_user . ':' . $this->remote_config_password);
-    }
+    curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . $getpage . http_build_query($params));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPGET, 1);
     $output = curl_exec($ch);
     curl_close($ch);
     return $output;
@@ -320,25 +260,30 @@ class fritzbox_api {
     * newer firmwares (xx.04.74 and newer) need a challenge-response mechanism to prevent Cross-Site Request Forgery attacks
     * see http://www.avm.de/de/Extern/Technical_Note_Session_ID.pdf for details
     * 
-    * @access protected
     * @return string                a valid SID, if the login was successful, otherwise throws an Exception with an error message
     */
   protected function initSID()
   {
-    // read the current status
-    $ch = curl_init($this->fritzbox_url . '/cgi-bin/webcm?getpage=../html/login_sid.xml');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    if ( $this->enable_remote_config )
+    // determine, wich login type we have to use
+    if ( $this->config->getItem('use_lua_login_method') == true )
     {
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-      curl_setopt($ch, CURLOPT_USERPWD, $this->remote_config_user . ':' . $this->remote_config_password);
+      $loginpage = '/login_sid.lua';
     }
-    $output = curl_exec($ch);
-    curl_close($ch);
-    $session_status_simplexml = simplexml_load_string($output);
+    else
+    {
+      $loginpage = '../html/login_sid.xml';
+    }
+    
+    // read the current status
+    $session_status_simplexml = simplexml_load_string($this->doGetRequest(array('getpage' => $loginpage)));
+    
+    if ( !is_object($session_status_simplexml) || get_class($session_status_simplexml) != 'SimpleXMLElement' )
+    {
+      $this->error('Response of initialization call ' . $loginpage . ' in ' . __FUNCTION__ . ' was not xml-formatted.');
+    }
     
     // perhaps we already have a SID (i.e. when no password is set)
-    if ($session_status_simplexml->iswriteaccess == 1)
+    if ( $session_status_simplexml->SID != '0000000000000000' )
     {
       return $session_status_simplexml->SID;
     }
@@ -347,31 +292,33 @@ class fritzbox_api {
     {
       // the challenge-response magic, pay attention to the mb_convert_encoding()
       $challenge = $session_status_simplexml->Challenge;
-      $response = $challenge . '-' . md5(mb_convert_encoding($challenge . '-' . $this->password, "UCS-2LE", "UTF-8"));
       
       // do the login
       $formfields = array(
-        'getpage'                => '../html/de/menus/menu2.html',
-        'login:command/response' => $response,
+        'getpage' => $loginpage,
       );
+          if ( $this->config->getItem('username') )
+          {
+            $formfields['username'] = $this->config->getItem('username');
+          }
+          $response = $challenge . '-' . md5(mb_convert_encoding($challenge . '-' . $this->config->getItem('password'), "UCS-2LE", "UTF-8"));
+        $formfields['response'] = $response;
       $output = $this->doPostForm($formfields);
       
-      // finger out an error message, if given
-      preg_match('@<p class="errorMessage">(.*?)</p>@is', $output, $matches);
-      if (isset($matches[1]))
+      // finger out the SID from the response
+      $session_status_simplexml = simplexml_load_string($output);
+      if ( !is_object($session_status_simplexml) || get_class($session_status_simplexml) != 'SimpleXMLElement' )
       {
-        $this->error(str_replace('&nbsp;', ' ', $matches[1]));
+        $this->error('Response of login call to ' . $loginpage . ' in ' . __FUNCTION__ . ' was not xml-formatted.');
       }
       
-      // finger out the SID from the response
-      preg_match('@<input type="hidden" name="sid" value="([A-Fa-f0-9]{16})" id="uiPostSid">@i', $output, $matches);
-      if (isset($matches[1]) && $matches[1] != '0000000000000000')
+      if ( $session_status_simplexml->SID != '0000000000000000' )
       {
-        return $matches[1];
+        return (string)$session_status_simplexml->SID;
       }
       else
       {
-        $this->error('ERROR: Login failed with an unknown response');
+        $this->error('ERROR: Login failed with an unknown response.');
       }
     }
   }
@@ -380,38 +327,135 @@ class fritzbox_api {
   /**
     * the logout method just sends a logout command to the Fritz!Box
     * 
-    * @access protected
     */
   protected function logout()
   {
-    $formfields = array(
-      'getpage'                 => '../html/de/menus/menu2.html',
-      'security:command/logout' => 'logout',
-    );
-    $this->doPostForm($formfields);
+    if ( $this->config->getItem('use_lua_login_method') == true )
+    {
+      $this->doGetRequest(array('getpage' => '/home/home.lua', 'logout' => '1'));
+    }
+    else
+    {
+      $formfields = array(
+        'getpage'                 => '../html/de/menus/menu2.html',
+        'security:command/logout' => 'logout',
+      );
+      $this->doPostForm($formfields);
+    }
   }
   
   
   /**
     * the error method just throws an Exception
     * 
-    * @access protected
     * @param  string   $message     an error message for the Exception
     */
-  protected function error($message = null)
+  public function error($message = null)
   {
-    throw new Exception("ERROR: ".$message."\n");
+    throw new Exception($message);
   }
   
   
   /**
     * a getter for the session ID
     * 
-    * @access public
     * @return string                $this->sid
     */
   public function getSID()
   {
     return $this->sid;
+  }
+  
+  /**
+    * log a message
+    * 
+    * @param  $message  string  the message to log
+    */
+  public function logMessage($message)
+  {
+    if ( $this->config->getItem('newline') == false )
+    {
+      $this->config->setItem('newline', (PHP_OS == 'WINNT') ? "\r\n" : "\n");
+    }
+  
+    if ( $this->config->getItem('logging') == 'console' )
+    {
+      echo $message;
+    }
+    else if ( $this->config->getItem('logging') == 'silent' || $this->config->getItem('logging') == false )
+    {
+      // do nothing
+    }
+    else
+    {
+      if ( is_writable($this->config->getItem('logging')) || is_writable(dirname($this->config->getItem('logging'))) )
+      {
+        file_put_contents($this->config->getItem('logging'), $message . $this->config->getItem('newline'), FILE_APPEND);
+      }
+      else
+      {
+        echo('Error: Cannot log to non-writeable file or dir: ' . $this->config->getItem('logging'));
+      }
+    }
+  }
+}
+
+class fritzbox_api_config {
+  protected $config = array();
+
+  public function __construct()
+  {
+    # use the new .lua login method in current (end 2012) labor and newer firmwares (Fritz!OS 5.50 and up)
+    $this->setItem('use_lua_login_method', true);
+    
+    # set to your Fritz!Box IP address or DNS name (defaults to fritz.box), for remote config mode, use the dyndns-name like example.dyndns.org
+    $this->setItem('fritzbox_ip', 'fritz.box');
+
+    # if needed, enable remote config here
+    #$this->setItem('enable_remote_config', true);
+    #$this->setItem('remote_config_user', 'test');
+    #$this->setItem('remote_config_password', 'test123');
+
+    # set to your Fritz!Box username, if login with username is enabled (will be ignored, when remote config is enabled)
+    $this->setItem('username', false);
+    
+    # set to your Fritz!Box password (defaults to no password)
+    $this->setItem('password', false);
+
+    # set the logging mechanism (defaults to console logging)
+    $this->setItem('logging', 'console'); // output to the console
+    #$this->setItem('logging', 'silent');  // do not output anything, be careful with this logging mode
+    #$this->setItem('logging', 'tam.log'); // the path to a writeable logfile
+
+    # the newline character for the logfile (does not need to be changed in most cases)
+    $this->setItem('newline', (PHP_OS == 'WINNT') ? "\r\n" : "\n");
+  }
+  
+  /* gets an item from the config
+   *
+   * @param  $item   string  the item to get
+   * @return         mixed   the value of the item
+   */
+  public function getItem($item = 'all')
+  {
+    if ( $item == 'all' )
+    {
+      return $this->config;
+    }
+    elseif ( isset($this->config[$item]) )
+    {
+      return $this->config[$item];
+    }
+    return false;
+  }
+  
+  /* sets an item into the config
+   *
+   * @param  $item   string  the item to set
+   * @param  $value  mixed   the value to store into the item
+   */
+  public function setItem($item, $value)
+  {
+    $this->config[$item] = $value;
   }
 }
