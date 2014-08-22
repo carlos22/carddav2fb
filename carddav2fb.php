@@ -17,7 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *
- * version 1.3 2014-08-18
+ * version 1.4 2014-08-22
  *
  */
 error_reporting(E_ALL);
@@ -112,8 +112,8 @@ class CardDAV2FB {
 
 			// DEBUG: writes an XML file of the addressbook to the server from which it will be execute
 			/*
-			$filename = basename($conf['url']) . ".xml";
-			print PHP_EOL."Speichere gesamtes Adressbuch als XML-Datei: ".$filename."\n";
+			$filename = $conf['user']."-".basename($conf['url']) . ".xml";
+			print PHP_EOL."Save whole addressbook as xml file: ".$filename;
 			file_put_contents($filename, $xmldata);
 			*/
 
@@ -225,7 +225,15 @@ class CardDAV2FB {
 						}
 						else {
 							$phone_number = $t['Value'];
+
 							$typearr_lower = unserialize(strtolower(serialize($t['Type'])));
+
+							// find out priority
+							if (in_array("pref", $typearr_lower)) {
+								$prio = 1;
+							}
+
+							// set the proper type
 							if (in_array("work", $typearr_lower)) {
 								$type = "work";
 							}
@@ -234,7 +242,9 @@ class CardDAV2FB {
 							}
 							elseif (in_array("home", $typearr_lower)) {
 								$type = "home";
-								$prio = 1;
+							}
+							elseif (in_array("other", $typearr_lower)) {
+								$type = "other";
 							}
 							else {
 								continue;
