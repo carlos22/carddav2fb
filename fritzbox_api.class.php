@@ -1,12 +1,12 @@
 <?php
 /**
- * Fritz!Box API - A simple wrapper for automatted changes in the Fritz!Box Web-UI
+ * Fritz!Box API - A simple wrapper for automated changes in the Fritz!Box Web-UI
  * 
  * handles the new secured login/session system and implements a cURL wrapper
  * new in v0.2: Can handle remote config mode via https://example.dyndns.org
  * new in v0.3: New method doGetRequest handles GET-requests
  * new in v0.4: Added support for the new .lua forms like the WLAN guest access settings
- * new in v5.0: added support for the new .lua-loginpage in newest Fritz!OS firmwares and refactored the code
+ * new in v0.5: added support for the new .lua-loginpage in newest Fritz!OS firmwares and refactored the code
  * 
  * @author   Gregor Nathanael Meyer <Gregor [at] der-meyer.de>
  * @license  http://creativecommons.org/licenses/by-sa/3.0/de/ Creative Commons cc-by-sa
@@ -21,7 +21,7 @@
  *   // load the fritzbox_api class
  *   require_once('fritzbox_api.class.php');
  *   $fritz = new fritzbox_api();
- 
+ *
  *   // init the output message
  *   $message = date('Y-m-d H:i') . ' ';
  *   
@@ -69,38 +69,40 @@ class fritzbox_api {
 	$this->config = new fritzbox_api_config();
     
 	// try autoloading the config
-	if ( file_exists(__DIR__ . '/fritzbox_user.conf.php') && is_readable(__DIR__ . '/fritzbox_user.conf.php') )
-	{
-    require_once(__DIR__ . '/fritzbox_user.conf.php');
+	if (file_exists(__DIR__ . '/fritzbox_user.conf.php') && is_readable(__DIR__ . '/fritzbox_user.conf.php') ) {
+		require_once(__DIR__ . '/fritzbox_user.conf.php');
 	}
 
-  $this->config->setItem('fritzbox_ip',$fritzbox_ip);
-  $this->config->setItem('fritzbox_url','http://'.$this->config->getItem('fritzbox_ip'));
-  if($user_name != false)
-  {
-    $this->config->setItem('username',$user_name);
-  }
-  if($password != false)
-  {
-    $this->config->setItem('password',$password);
-  }
+	// set FRITZ!Box-IP and URL
+	$this->config->setItem('fritzbox_ip',$fritzbox_ip);
+
+	// check if login on local network (fritz.box) or via a dynamic DNS-host
+	if ($fritzbox_ip != 'fritz.box'){
+		$this->config->setItem('enable_remote_config',true);
+		$this->config->setItem('remote_config_user',$user_name);
+		$this->config->setItem('remote_config_password',$password);
+		$this->config->setItem('fritzbox_url', 'https://'.$this->config->getItem('fritzbox_ip'));
+	} else {
+		$this->config->setItem('enable_remote_config',false);
+		if($user_name != false){
+			$this->config->setItem('username',$user_name);
+		}
+		if($password != false){
+			$this->config->setItem('password',$password);
+		}
+		$this->config->setItem('fritzbox_url', 'http://' . $this->config->getItem('fritzbox_ip'));
+	}
 
 	// make some config consistency checks
-	if ( $this->config->getItem('enable_remote_config') === true )
-	{
-    if ( !$this->config->getItem('remote_config_user') || !$this->config->getItem('remote_config_password') )
-    {
-      $this->error('ERROR: Remote config mode enabled, but no username or no password provided');
-    }
-    $this->config->setItem('fritzbox_url', 'https://' . $this->config->getItem('fritzbox_ip'));
-  }
-  else
-  {
-    $this->config->setItem('fritzbox_url', 'http://' . $this->config->getItem('fritzbox_ip'));
-    $this->config->setItem('old_remote_config_user', null);
-    $this->config->setItem('old_remote_config_password', null);
-  }
-    
+	if ( $this->config->getItem('enable_remote_config') === true ){
+		if ( !$this->config->getItem('remote_config_user') || !$this->config->getItem('remote_config_password') ){
+		  $this->error('ERROR: Remote config mode enabled, but no username or no password provided');
+		}
+	}
+	else {
+		$this->config->setItem('old_remote_config_user', null);
+		$this->config->setItem('old_remote_config_password', null);
+	}
 	$this->sid = $this->initSID();
   }
   
@@ -126,6 +128,7 @@ class fritzbox_api {
   public function doPostForm($formfields = array())
   {
     $ch = curl_init();
+
     if ( isset($formfields['getpage']) && strpos($formfields['getpage'], '.lua') > 0 )
     {
       curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . $formfields['getpage'] . '?sid=' . $this->sid);
@@ -142,16 +145,26 @@ class fritzbox_api {
     }
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_POST, 1);
-    if ( $this->config->getItem('enable_remote_config') )
+    if ( $this->config->getItem('enable_remote_config') == true )
     {
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+		// set name of SSL-certificate (must be same as remote-hostname (dynDNS) of FRITZ!Box) and remove port in address if alternate port is given
+		if (strpos($this->config->getItem('fritzbox_ip'),":")){
+			$ssl_cert_fritzbox = explode(":", $this->config->getItem('fritzbox_ip'));
+			$ssl_cert_fritzbox = $ssl_cert_fritzbox[0];
+		} else {
+			$ssl_cert_fritzbox = $this->config->getItem('fritzbox_ip');
+		}
 
-      // support for pre FRITZ!OS 5.50 remote config
-      if ( !$this->config->getItem('use_lua_login_method') )
-      {
-        curl_setopt($ch, CURLOPT_USERPWD, $this->config->getItem('remote_config_user') . ':' . $this->config->getItem('remote_config_password'));
-      }
+		// set SSL-options and path to certificate
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 2);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_CAINFO, '/etc/ssl/certs/'.$ssl_cert_fritzbox.'.pem');
+		curl_setopt($ch, CURLOPT_CAPATH, '/etc/ssl/certs');
+
+		// support for pre FRITZ!OS 5.50 remote config
+		if (!$this->config->getItem('use_lua_login_method')){
+		curl_setopt($ch, CURLOPT_USERPWD, $this->config->getItem('remote_config_user') . ':' . $this->config->getItem('remote_config_password'));
+		}
     }
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($formfields));
     $output = curl_exec($ch);
@@ -291,6 +304,8 @@ class fritzbox_api {
     if ( $this->config->getItem('enable_remote_config') )
     {
       curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
       // support for pre FRITZ!OS 5.50 remote config
       if ( !$this->config->getItem('use_lua_login_method') )
       {
