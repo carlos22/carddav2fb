@@ -265,10 +265,16 @@ class carddav_backend
 	 */
 	public function get($include_vcards = true, $raw = false)
 	{
+		// for owncloud&co. Doesn't work with OpenXchange/Appsuite
 		$result = $this->query($this->url, 'PROPFIND');
-		//$content = '<?xml version="1.0" encoding="utf-8"><D:sync-collection xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav"><D:sync-token></D:sync-token><D:prop><D:getcontenttype/><D:getetag/><D:allprop/><C:address-data><C:allprop/></C:address-data></D:prop><C:filter/></D:sync-collection>';
-		//$content_type = 'application/xml';
+
+		// for OpenXchange/Appsuite
+		$content = '<?xml version="1.0" encoding="UTF-8" ?><D:sync-collection xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav"><D:sync-token></D:sync-token><D:prop><D:getcontenttype/><D:getetag/><D:allprop/><C:address-data><C:allprop/></C:address-data></D:prop><C:filter/></D:sync-collection>';
+		$content_type = 'application/xml';
 		//$result = $this->query($this->url, 'REPORT', $content, $content_type);
+
+		// DEBUG: print the response of the carddav-server
+		//print_r($result);
 
 		switch ($result['http_code'])
 		{
