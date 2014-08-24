@@ -26,7 +26,9 @@ This version of carddav2fb is a forked version from carlos22 with updates applie
 Now you should have everything setup and checked out to a 'carddav2fb' directory.
 
 ### Configuration
-Open `config.example.php`, adapt it to your needs and save it as `config.php`
+1. Make sure you have `System -> FRITZ!Box-Users -> Login via Username+Password` in your FRITZ!Box activated.
+2. Make sure you have a separate user created under `System -> FRITZ!Box-Users` which has access to all NAS content and settings.
+3. Copy `config.example.php` to `config.php` and adapt it to your needs including setting the FRITZ!Box user settings.
 
 ### Usage
 
