@@ -216,7 +216,7 @@ class CardDAV2FB {
 					foreach($vcard_obj->tel as $t) {
 
 						$prio = 0;
-						if (empty($t['Type'])) {
+						if (!is_array($t) || empty($t['Type'])) {
 							$type = "mobile";
 							$phone_number = $t;
 						} else {
