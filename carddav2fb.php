@@ -190,7 +190,17 @@ class CardDAV2FB {
 						echo PHP_EOL.$message_successful."Successful upload of photo: ".$file; 
 						unlink($file);
 					} else {
-						echo PHP_EOL.$message_error."While uploading file ".$file." an error occurred.".PHP_EOL;
+						// retry when a fault occurs.
+						echo PHP_EOL.$message_error."While uploading file ".$file." an error occurred. - retrying".PHP_EOL;
+						$conn_id = ftp_ssl_connect($ftp_server);
+						$login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
+						ftp_pasv($conn_id, true);
+						if (ftp_put($conn_id, $remote_path."/".$file, $remote_file, FTP_BINARY)) {
+							echo PHP_EOL.$message_successful."Successful upload of photo: ".$file; 
+							unlink($file);
+						} else {
+						  echo PHP_EOL.$message_error."While uploading file ".$file." an error occurred. - giving up".PHP_EOL;
+						}
 					}
 				}
 
