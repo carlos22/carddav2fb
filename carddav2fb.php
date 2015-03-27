@@ -17,7 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *
- * version 1.5 2014-08-25
+ * version 1.6 2015-03-28
  *
  */
 error_reporting(E_ALL);
