@@ -105,6 +105,7 @@ class CardDAV2FB {
 		// perform an ftps-connection to copy over the photos to a specified directory
 		$ftp_server = $this->config['fritzbox_ip_ftp'];
 		$conn_id = ftp_ssl_connect($ftp_server);
+		ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
 		$login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
 		ftp_pasv($conn_id, true);
 
