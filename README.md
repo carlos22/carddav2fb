@@ -36,7 +36,7 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 
 1. Install PHP and PHP-Curl
 
-		sudo apt-get install php5-cli php5-curl
+		sudo apt-get install php5-cli php5-curl php5-ftp
 
 2. Open a Terminal and execute
 
