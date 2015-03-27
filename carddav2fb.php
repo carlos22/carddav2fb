@@ -249,6 +249,9 @@ class CardDAV2FB {
 							elseif (in_array("home", $typearr_lower)) {
 								$type = "home";
 							}
+							elseif (in_array("fax", $typearr_lower)) {
+								$type = "fax_work";
+							}
 							elseif (in_array("other", $typearr_lower)) {
 								$type = "other";
 							}
