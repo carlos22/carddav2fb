@@ -626,7 +626,7 @@ class carddav_backend
 		}
 		else
 		{
-			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array());
+			curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Depth: 1'));
 		}
 
 		$complete_response	= curl_exec($this->curl);
