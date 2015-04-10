@@ -34,15 +34,15 @@ $config['group_vip'] = 'VIP';
 // first
 $config['carddav'][0] = array(
   // URL of first CardDAV address book on cloud storage
-	'url' => 'https://raspserver/owncloud/remote.php/carddav/addressbooks/fritzbox/fb_contacts', 
+  'url' => 'https://raspserver/owncloud/remote.php/carddav/addressbooks/fritzbox/fb_contacts',
   // user name/password for CardDAV access
-	'user' => 'oc_username', 
-	'pw' => 'oc_password'
+  'user' => 'oc_username',
+  'pw' => 'oc_password'
 );
 
 // second
 //$config['carddav'][1] = array(
-//	'url' => 'https://raspserver/owncloud/remote.php/carddav/addressbooks/fritzbox/fb_contacts_second', 
-//	'user' => 'oc_username', 
-//	'pw' => 'oc_password'
+//  'url' => 'https://raspserver/owncloud/remote.php/carddav/addressbooks/fritzbox/fb_contacts_second',
+//  'user' => 'oc_username',
+//  'pw' => 'oc_password'
 //);
