@@ -4,7 +4,7 @@
  * inspired by http://www.wehavemorefun.de/fritzbox/Hochladen_eines_MySQL-Telefonbuchs
  * 
  * Requirements: 
- *   php5, php-curl (Debian/Ubuntu install shortcut: sudo apt-get install php5-cli php5-curl)
+ *   php5, php5-curl, php5-ftp
  * 
  * used libraries: 
  *  *  vCard-parser <https://github.com/nuovo/vCard-parser> (LICNECE: unknown)
@@ -17,7 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *
- * version 1.6 2015-03-28
+ * version 1.7 2015-04-10
  *
  */
 error_reporting(E_ALL);
@@ -30,8 +30,16 @@ require_once('lib/fritzbox_api_php/fritzbox_api.class.php');
 if ($argc == 2) {
 	$config_file_name = $argv[1];
 } else {
-	$config_file_name = 'config.php';
+	$config_file_name = __DIR__ . '/config.php';
 }
+
+// default/fallback config options
+$config['tmp_dir'] = sys_get_temp_dir();
+$config['fritzbox_ip'] = 'fritz.box';
+$config['fritzbox_ip_ftp'] = 'fritz.box';
+$config['phonebook_number'] = '0';
+$config['phonebook_name'] = 'Telefonbuch';
+$config['usb_disk'] = '';
 
 if(is_file($config_file_name)) {
 	require($config_file_name);
@@ -80,6 +88,19 @@ class CardDAV2FB {
 		$this->config = $config;
 	}
 
+  // Source: https://php.net/manual/de/function.tempnam.php#61436
+  public function tempdir($dir, $prefix='', $mode=0700) {
+    if (substr($dir, -1) != '/') {
+      $dir .= '/';
+    }
+
+    do {
+      $path = $dir.$prefix.mt_rand(0, 9999999);
+    } while (!mkdir($path, $mode));
+
+    return $path;
+  }
+
 	public function base64_to_jpeg( $inputfile, $outputfile ) {
 	    /* read data (binary) */
 	    $ifp = fopen( $inputfile, "rb" );
@@ -108,6 +129,8 @@ class CardDAV2FB {
 		ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
 		$login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
 		ftp_pasv($conn_id, true);
+
+    $tmpdir = $this->tempdir($this->config['tmp_dir']);
 
 		foreach($this->config['carddav'] as $conf) {
 			$carddav = new carddav_backend($conf['url']);
@@ -152,8 +175,8 @@ class CardDAV2FB {
 
 				// format filename of contact photo; remove special letters
 				if ($vcard_obj->photo) {
-					$photo = str_replace(array(',','&',' ','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í'),
-										 array('','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i'),$name);
+					$photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í'),
+										 array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i'),$name);
 				} else {
 					$photo = '';
 				}
@@ -173,7 +196,7 @@ class CardDAV2FB {
 				if ($vcard_obj->photo) {
 					// get photos, rename and save as xml
 					$photo_jpg = $vcard_obj->photo;
-					$tempfile = basename($photo).".xml";
+					$tempfile = $tmpdir . '/' . basename($photo).".xml";
 					echo PHP_EOL.$message_info."Saving image as XML: ".$tempfile;
 					file_put_contents($tempfile, $photo_jpg[0]['Value']);
 
@@ -185,6 +208,11 @@ class CardDAV2FB {
 					$file = $photo.".jpg";
 					$remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
 					$remote_file = $photo.".jpg";
+
+          // create remote path if it doesn't exist
+          if (ftp_nlist($conn_id, $remote_path) == false) {
+            ftp_mkdir($conn_id, $remote_path);
+          }
 
 					// upload photo file. If successful delete afterwards
 					if (ftp_put($conn_id, $remote_path."/".$file, $remote_file, FTP_BINARY)) {
@@ -302,6 +330,9 @@ class CardDAV2FB {
 		
 		// close ftp connection
 		ftp_close($conn_id);
+
+    // remove temporary directory
+    rmdir($tmpdir);
 
 		$this->entries = $entries;
 	}
