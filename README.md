@@ -3,7 +3,7 @@
 Features:
 
 * Allows to import CardDAV contacts (e.g. from 'owncloud') to an AVM FritzBox
-* No modification of the FirtzBox firmware (aka FritzOS) required
+* No modification of the FRITZ!Box firmware (aka FritzOS) required
 * Multiple CardDAV accounts and "folders" can be specified 
 
 **CAUTION: This script will overwrite your current contacts in the FritzBox without any warning!**
@@ -27,8 +27,11 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 
 ### Configuration
 1. Make sure you have `System -> FRITZ!Box-Users -> Login via Username+Password` in your FRITZ!Box activated.
-2. Make sure you have a separate user created under `System -> FRITZ!Box-Users` which has access to all NAS content and settings.
-3. Copy `config.example.php` to `config.php` and adapt it to your needs including setting the FRITZ!Box user settings.
+2. Make sure you have a separate user created under `System -> FRITZ!Box-Users` for which the following access rights have been granted: 
+  * `FRITZ!Box settings` (required to upload telephone book data)
+  * `Access to NAS content` (required to upload photos via ftp).
+3. Make sure the telephone book you are going to update via carddav2fb exists on the FRITZ!Box, otherwise the upload will fail.
+4. Copy `config.example.php` to `config.php` and adapt it to your needs including setting the FRITZ!Box user settings.
 
 ### Usage
 
