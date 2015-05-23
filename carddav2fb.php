@@ -17,7 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *
- * version 1.7 2015-04-10
+ * version 1.8 2015-05-23
  *
  */
 error_reporting(E_ALL);
@@ -49,47 +49,56 @@ if(is_file($config_file_name)) {
 }
 
 // ---------------------------------------------
-
 // MAIN
+print "carddav2fb.php - CardDAV to FRITZ!Box upload tool" . PHP_EOL;
+print "Copyright (c) 2012-2015 Karl Glatz, Martin Rost, Jens Maus" . PHP_EOL . PHP_EOL;
 
 $client = new CardDAV2FB($config);
 
-
 // read vcards from webdav
-print 'Get all entries from CardDAV server(s)... ';
+print 'Retrieving VCards from all CardDAV server(s):' . PHP_EOL;
 $client->get_carddav_entries();
-print 'Done.'.PHP_EOL;
+print 'Done.' . PHP_EOL;
 
 flush(); // in case this script runs by php-cgi
 
 // transform them to a fritzbox compatible xml file
-print 'Transform to FritzBox XML File... ';
+print 'Converting VCards to FritzBox XML format:' . PHP_EOL;
 $client->build_fb_xml();
-print 'Done.'.PHP_EOL;
+print 'Done.' . PHP_EOL;
 
 flush(); // in case this script runs by php-cgi
 
 // upload the XML-file to the FRITZ!Box (CAUTION: this will overwrite all current entries in the phone book!!)
-print 'Upload to FRITZ!Box at '.$config['fritzbox_ip'].'...';
-$ul_msg = $client->upload_to_fb();
-print 'Done.'.PHP_EOL;
-print 'FritzBox: '.$ul_msg.PHP_EOL;
+print 'Upload data to FRITZ!Box @ ' . $config['fritzbox_ip'] . PHP_EOL;
+$client->upload_to_fb();
+print 'Done.' . PHP_EOL;
 
 flush(); // in case this script runs by php-cgi
 
-
+// ---------------------------------------------
+// Class definition
 class CardDAV2FB {
 
   protected $entries = array();
   protected $fbxml = "";
   protected $config = null;
+  protected $tmpdir = null;
 
   public function __construct($config) {
     $this->config = $config;
+
+    // create a temp directory where we store photos
+    $this->tmpdir = $this->mktemp($this->config['tmp_dir']);
+  }
+
+  public function __destruct() {
+    // remote temp directory
+    $this->rmtemp($this->tmpdir);
   }
 
   // Source: https://php.net/manual/de/function.tempnam.php#61436
-  public function tempdir($dir, $prefix='', $mode=0700) {
+  public function mktemp($dir, $prefix='', $mode=0700) {
     if (substr($dir, -1) != '/') {
       $dir .= '/';
     }
@@ -101,13 +110,26 @@ class CardDAV2FB {
     return $path;
   }
 
+  public function rmtemp($dir) {
+    if (is_dir($dir)) {
+      $objects = scandir($dir);
+      foreach ($objects as $object) {
+        if ($object != "." && $object != "..") {
+          if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else unlink($dir."/".$object);
+        }
+      }
+      reset($objects);
+      rmdir($dir);
+    }
+  }
+
   public function base64_to_jpeg( $inputfile, $outputfile ) {
-      /* read data (binary) */
-      $ifp = fopen( $inputfile, "rb" );
-      $imageData = fread( $ifp, filesize( $inputfile ) );
-      fclose( $ifp );
-      /* encode & write data (binary) */
-      $ifp = fopen( $outputfile, "wb" );
+    /* read data (binary) */
+    $ifp = fopen( $inputfile, "rb" );
+    $imageData = fread( $ifp, filesize( $inputfile ) );
+    fclose( $ifp );
+    /* encode & write data (binary) */
+    $ifp = fopen( $outputfile, "wb" );
     fwrite( $ifp, base64_decode( $imageData ) );
     fclose( $ifp );
     /* return output filename */
@@ -117,35 +139,17 @@ class CardDAV2FB {
   public function get_carddav_entries() {
     $entries = array();
 
-    // format output of messages (info, debug, error)
-    $message_info = "[\033[32m INFO \033[0m] ";
-    $message_successful = "[\033[32m OK \033[0m] ";
-    $message_debug = "[\033[36m DEBUG \033[0m] ";
-    $message_error = "[\033[31m ERROR \033[0m] ";
-
-    // perform an ftps-connection to copy over the photos to a specified directory
-    $ftp_server = $this->config['fritzbox_ip_ftp'];
-    $conn_id = ftp_ssl_connect($ftp_server);
-    ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
-    $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-    ftp_pasv($conn_id, true);
-
-    $tmpdir = $this->tempdir($this->config['tmp_dir']);
-
     foreach($this->config['carddav'] as $conf) {
+      print " " . $conf['url'] . PHP_EOL;
       $carddav = new carddav_backend($conf['url']);
       $carddav->set_auth($conf['user'], $conf['pw']);
       $xmldata =  $carddav->get();
 
-      // convert everything to utf-8 (for OpenXchange/Appsuite)
-      //$xmldata = utf8_encode($xmldata);
-
-      // DEBUG: writes an XML-file of the addressbook to the server from where the script is executed
-      /*
-      $filename = $conf['user']."_".basename($conf['url']) . ".xml";
-      print PHP_EOL."Save whole addressbook as xml file: ".$filename;
-      file_put_contents($filename, $xmldata);
-      */
+      // identify if we received UTF-8 encoded data from the
+      // CardDAV server and if not reencode it since the FRITZ!Box
+      // requires UTF-8 encoded data
+      if(iconv('utf-8', 'utf-8//IGNORE', $xmldata) != $xmldata)
+        $xmldata = utf8_encode($xmldata);
 
       // read raw_vcard data from xml response
       $raw_vcards = array();
@@ -157,6 +161,8 @@ class CardDAV2FB {
         $value = (string)$vcard_element->vcard->__toString();
         $raw_vcards[$id] = $value;
       }
+
+      print "  " . count($raw_vcards) . " VCards retrieved" . PHP_EOL;
 
       // parse raw_vcards
       $result = array();
@@ -191,47 +197,6 @@ class CardDAV2FB {
 
         // e-mail addresses
         $email_add = array();
-
-        // retrieve photos, save them as jpg and put them via ftp to the FRITZ!Box
-        if ($vcard_obj->photo) {
-          // get photos, rename and save as xml
-          $photo_jpg = $vcard_obj->photo;
-          $tempfile = $tmpdir . '/' . basename($photo).".xml";
-          echo PHP_EOL.$message_info."Saving image as XML: ".$tempfile;
-          file_put_contents($tempfile, $photo_jpg[0]['Value']);
-
-          // convert base64 representation to jpg and delete tempfile afterwards
-          $this->base64_to_jpeg($tempfile, $photo.".jpg");
-          unlink($tempfile);
-
-          // copy photos via ftp to the FRITZ!Box
-          $file = $photo.".jpg";
-          $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
-          $remote_file = $photo.".jpg";
-
-          // create remote path if it doesn't exist
-          if (ftp_nlist($conn_id, $remote_path) == false) {
-            ftp_mkdir($conn_id, $remote_path);
-          }
-
-          // upload photo file. If successful delete afterwards
-          if (ftp_put($conn_id, $remote_path."/".$file, $remote_file, FTP_BINARY)) {
-            echo PHP_EOL.$message_successful."Successful upload of photo: ".$file;
-            unlink($file);
-          } else {
-            // retry when a fault occurs.
-            echo PHP_EOL.$message_error."While uploading file ".$file." an error occurred. - retrying".PHP_EOL;
-            $conn_id = ftp_ssl_connect($ftp_server);
-            $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-            ftp_pasv($conn_id, true);
-            if (ftp_put($conn_id, $remote_path."/".$file, $remote_file, FTP_BINARY)) {
-              echo PHP_EOL.$message_successful."Successful upload of photo: ".$file;
-              unlink($file);
-            } else {
-              echo PHP_EOL.$message_error."While uploading file ".$file." an error occurred. - giving up".PHP_EOL;
-            }
-          }
-        }
 
         if (in_array($this->config['group_vip'],$categories)) {
           $vip = 1;
@@ -323,16 +288,10 @@ class CardDAV2FB {
               $email_add[] = array("type"=>$type_email, "value" => $email);
             }
           }
-          $entries[] = array("realName" => $name, "telephony" => $phone_no, "email" => $email_add, "vip" => $vip, "photo" => $photo);
+          $entries[] = array("realName" => $name, "telephony" => $phone_no, "email" => $email_add, "vip" => $vip, "photo" => $photo, "photo_data" => $vcard_obj->photo);
         }
       }
     }
-
-    // close ftp connection
-    ftp_close($conn_id);
-
-    // remove temporary directory
-    rmdir($tmpdir);
 
     $this->entries = $entries;
   }
@@ -360,10 +319,7 @@ class CardDAV2FB {
         $person = $contact->addChild("person");
         $person->addChild("realName", $this->_convert_text($entry['realName']));
 
-        // contact photo: set path to contact photo on fritzbox
-        if (($entry['photo']) and (array_key_exists('usb_disk',$this->config))) {
-            $person->addChild("imageURL","file:///var/media/ftp/".$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
-        }
+        echo " VCard: " . utf8_decode($entry['realName']) . PHP_EOL;
 
         // telephone: put the phonenumbers into the fritzbox xml file
         $telephony = $contact->addChild("telephony");
@@ -375,6 +331,14 @@ class CardDAV2FB {
           $num->addAttribute("prio", $tel['prio']);
           $num->addAttribute("id", $id);
           $id++;
+
+          print "  Added phone: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
+        }
+
+        // output a warning if no telephone number was found
+        if($id == 0)
+        {
+          print "  WARNING: no phone entry found. VCard will be ignored." . PHP_EOL;
         }
 
         // email: put the email addresses into the fritzbox xml file
@@ -385,7 +349,28 @@ class CardDAV2FB {
           $mail_adr->addAttribute("classifier", $mail['type']);
           $mail_adr->addAttribute("id", $id);
           $id++;
+
+          print "  Added email: " . $mail['value'] . " (" . $mail['type'] . ")" . PHP_EOL;
         }
+
+        // check for a photo being part of the VCard
+        if(($entry['photo']) and ($entry['photo_data'])) {
+          // get photo, rename, base64 convert and save as jpg
+          $photo = $entry['photo'];
+          $photo_data = $entry['photo_data'][0]['Value'];
+          $photo_file = $this->tmpdir . '/' . basename($photo) . ".jpg";
+          file_put_contents($photo_file . ".b64", $photo_data);
+
+          // convert base64 representation to jpg and delete tempfile afterwards
+          $this->base64_to_jpeg($photo_file . ".b64", $photo_file);
+          unlink($photo_file . ".b64");
+
+          // add contact photo to xml
+          $person->addChild("imageURL","file:///var/media/ftp/".$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
+
+          print "  Added photo: " . basename($photo_file) . PHP_EOL;
+        }
+
 
         $contact->addChild("services");
         $contact->addChild("setup");
@@ -402,7 +387,6 @@ class CardDAV2FB {
   }
 
   public function _concat ($text1,$text2) {
-
     if ($text1 == '') {
       return $text2;
     }
@@ -416,16 +400,62 @@ class CardDAV2FB {
   }
 
   public function _parse_fb_result($text) {
-      preg_match("/\<h2\>([^\<]+)\<\/h2\>/", $text, $matches);
-
-      if($matches)
-        return $matches[1];
-      else
-        return "Error while uploading xml to fritzbox";
+    preg_match("/\<h2\>([^\<]+)\<\/h2\>/", $text, $matches);
+    if($matches)
+      return $matches[1];
+    else
+      return "Error while uploading xml to fritzbox";
   }
 
   public function upload_to_fb() {
 
+    // now we upload the photo jpgs first being stored in the
+    // temp directory.
+
+    // perform an ftps-connection to copy over the photos to a specified directory
+    $ftp_server = $this->config['fritzbox_ip_ftp'];
+    $conn_id = ftp_ssl_connect($ftp_server);
+    ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
+    $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
+    ftp_pasv($conn_id, true);
+
+    // create remote photo path on FRITZ!Box if it doesn't exist
+    $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
+    if(ftp_nlist($conn_id, $remote_path) == false)
+    {
+      ftp_mkdir($conn_id, $remote_path);
+    }
+
+    // now iterate through all jpg files in tempdir and upload them
+    $dir = new DirectoryIterator($this->tmpdir);
+    foreach($dir as $fileinfo)
+    {
+      if(!$fileinfo->isDot())
+      {
+        if($fileinfo->getExtension() == "jpg")
+        {
+          $file = $fileinfo->getFilename();
+          print " FTP-Upload: " . $file . PHP_EOL;
+          if(!ftp_put($conn_id, $remote_path."/".$file, $fileinfo->getPathname(), FTP_BINARY))
+          {
+            // retry when a fault occurs.
+            print "  WARNING: an error occurred while uploading file ".$fileinfo->getFilename()." - retrying" . PHP_EOL;
+            $conn_id = ftp_ssl_connect($ftp_server);
+            $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
+            ftp_pasv($conn_id, true);
+            if(!ftp_put($conn_id, $remote_path."/".$file, $fileinfo->getPathname(), FTP_BINARY))
+            {
+              print "  ERROR: an error occurred while uploading file ".$fileinfo->getFilename()." - giving up" . PHP_EOL;
+            }
+          }
+        }
+      }
+    }
+
+    // close ftp connection
+    ftp_close($conn_id);
+
+    // if the user wants to save the xml to a separate file, we do so now
     if (array_key_exists('output_file',$this->config)) {
       $output = fopen($this->config['output_file'], 'w');
       if ($output) {
@@ -435,8 +465,8 @@ class CardDAV2FB {
       return 0;
     };
 
-    $msg = "";
-
+    // lets post the phonebook xml to the FRITZ!Box
+    print " Uploading Phonebook XML" . PHP_EOL;
     try
     {
       $fritz = new fritzbox_api($this->config['fritzbox_pw'],$this->config['fritzbox_user'],$this->config['fritzbox_ip']);
@@ -454,14 +484,13 @@ class CardDAV2FB {
       $raw_result =  $fritz->doPostFile($formfields, $filefileds);   // send the command
       $msg = $this->_parse_fb_result($raw_result);
       $fritz = null;  // destroy the object to log out
+
+      print "  FRITZ!Box returned message: '" . $msg . "'" . PHP_EOL;
     }
     catch (Exception $e)
     {
-      print $e->getMessage();     // show the error message in anything failed
-      print PHP_EOL;
+      print "  ERROR: " . $e->getMessage() . PHP_EOL;     // show the error message in anything failed
     }
-    return $msg;
   }
-
 }
 ?>
