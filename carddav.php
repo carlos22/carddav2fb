@@ -86,6 +86,7 @@ namespace christian-putzke\CardDAV-PHP;
  * SabreDAV:                 https://example.com/addressbooks/{resource|principal|username}/{collection}/
  * ownCloud:                 https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/
  * SOGo:                     https://example.com/SOGo/dav/{resource|principal|username}/Contacts/{collection}/
+ * Google (direct):					https://google.com/m8/carddav/principals/__uids__/{username}/lists/default/
  *
  *
  * @author Christian Putzke <christian.putzke@graviox.de>
@@ -127,6 +128,13 @@ class CarddavBackend
      * @var     array
      */
     private $url_parts = null;
+
+    /**
+     * VCard File URL Extension
+     * 
+     * @var string
+     */
+    private $url_vcard_extension = '.vcf';
 
     /**
      * Authentication string
@@ -243,8 +251,34 @@ class CarddavBackend
         }
 
         $this->url_parts = parse_url($this->url);
+
+        // workaround for providers that don't use the default .vcf extension
+        if (strpos($this->url, "google.com"))
+        {
+          $this->setVcardExtension("");
+        }
     }
 
+    /**
+     * Sets the CardDAV vcard url extension
+     *
+     * Most providers do requests handling Vcards with .vcf, however
+     * this isn't always the case and some providers (such as Google)
+     * returned a 404 if the .vcf extension is used - or the other
+     * way around, returning 404 unless .vcf is used.
+     *
+     * Both approaches are technically correct, see rfc635
+     * http://tools.ietf.org/html/rfc6352
+     *
+     *
+     * @param string  $extension  File extension
+     * @return  void
+     */
+    public function setVcardExtension($extension)
+    {
+      $this->url_vcard_extension = $extension;
+    }
+ 
     /**
      * Sets authentication information
      *
@@ -328,8 +362,8 @@ class CarddavBackend
     */
     public function getVcard($vcard_id)
     {
-        $vcard_id   = str_replace('.vcf', null, $vcard_id);
-        $result     = $this->query($this->url . $vcard_id . '.vcf', 'GET');
+        $vcard_id   = str_replace($this->url_vcard_extension, null, $vcard_id);
+        $result     = $this->query($this->url . $vcard_id . $this->url_vcard_extension, 'GET');
 
         switch ($result['http_code'])
         {
@@ -352,7 +386,7 @@ class CarddavBackend
      */
     public function getXmlVcard($vcard_id)
     {
-        $vcard_id = str_replace('.vcf', null, $vcard_id);
+        $vcard_id = str_replace($this->url_vcard_extension, null, $vcard_id);
 
         $xml = new XMLWriter();
         $xml->openMemory();
@@ -365,7 +399,7 @@ class CarddavBackend
                     $xml->writeElement('D:getetag');
                     $xml->writeElement('D:getlastmodified');
                 $xml->endElement();
-                $xml->writeElement('D:href', $this->url_parts['path'] . $vcard_id . '.vcf');
+                $xml->writeElement('D:href', $this->url_parts['path'] . $vcard_id . $this->url_vcard_extension);
             $xml->endElement();
         $xml->endDocument();
 
@@ -432,7 +466,7 @@ class CarddavBackend
      */
     public function delete($vcard_id)
     {
-        $result = $this->query($this->url . $vcard_id . '.vcf', 'DELETE');
+        $result = $this->query($this->url . $vcard_id . $this->url_vcard_extension, 'DELETE');
 
         switch ($result['http_code'])
         {
@@ -459,7 +493,7 @@ class CarddavBackend
             $vcard_id   = $this->generateVcardId();
         }
         $vcard  = $this->cleanVcard($vcard);
-        $result = $this->query($this->url . $vcard_id . '.vcf', 'PUT', $vcard, 'text/vcard');
+        $result = $this->query($this->url . $vcard_id . $this->url_vcard_extension, 'PUT', $vcard, 'text/vcard');
 
         switch($result['http_code'])
         {
@@ -521,7 +555,7 @@ class CarddavBackend
             foreach ($xml->response as $response) {
                 if (preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) {
                     $id = basename($response->href);
-                    $id = str_replace('.vcf', null, $id);
+                    $id = str_replace($this->url_vcard_extension, null, $id);
 
                     if (!empty($id)) {
                         $simplified_xml->startElement('element');
@@ -680,7 +714,7 @@ class CarddavBackend
             $carddav = new CarddavBackend($this->url);
             $carddav->setAuth($this->username, $this->password);
 
-            $result = $carddav->query($this->url . $vcard_id . '.vcf', 'GET');
+            $result = $carddav->query($this->url . $vcard_id . $this->url_vcard_extension, 'GET');
 
             if ($result['http_code'] !== 404) {
                 $vcard_id = $this->generateVcardId();
