@@ -1,16 +1,17 @@
-## CardDAV contacts import for AVM FritzBox
+## CardDAV contacts import for AVM FRITZ!Box
 
 Features:
 
-* Allows to import CardDAV contacts (e.g. from 'owncloud') to an AVM FritzBox
-* No modification of the FRITZ!Box firmware (aka FritzOS) required
-* Multiple CardDAV accounts and "folders" can be specified 
+* Allows to import CardDAV-based VCard contacts (e.g. from 'owncloud') to a phonebook in a AVM FRITZ!Box
+* CardDAV import includes photo images specified in VCards
+* No modification of FRITZ!Box firmware (aka FRITZ!OS) required
+* Definition of multiple CardDAV accounts and "folders" possible
 
 **CAUTION: This script will overwrite your current contacts in the FritzBox without any warning!**
 
 ### Information
 
-This version of carddav2fb is a forked version from carlos22 with updates applied being published at http://www.ip-phone-forum.de/showthread.php?t=267477. In addition to being compatible to newer Fritz!OS versions it also features two fixes regarding OSX generated vCards.
+This version of carddav2fb is a forked version from carlos22 (https://github.com/carlos22/carddav2fb) with certain updates applied which had been published at http://www.ip-phone-forum.de/showthread.php?t=267477. In addition to being compatible to newer FRITZ!OS versions it also features a bunch of bug fixes.
 
 ### Installation
 
@@ -37,11 +38,11 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 
 #### Ubuntu
 
-1. Install PHP and PHP-Curl
+1. Install PHP5, PHP-curl and PHP-ftp module:
 
 		sudo apt-get install php5-cli php5-curl php5-ftp
 
-2. Open a Terminal and execute
+2. Open a Terminal and execute:
 
 		php carddav2fb.php
 
@@ -64,3 +65,6 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	  'user' => '<USERNAME>',
 	  'pw' => '<PASSWORD>'
 	);
+
+### LICENSE
+
