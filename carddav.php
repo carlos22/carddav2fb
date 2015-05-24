@@ -630,7 +630,7 @@ class CarddavBackend
         }
 
         if ($content_type !== null) {
-            curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type));
+            curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Content-type: '.$content_type, 'Depth: 1'));
         } else {
             curl_setopt($this->curl, CURLOPT_HTTPHEADER, array('Depth: 1'));
         }
