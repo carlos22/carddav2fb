@@ -93,8 +93,8 @@ namespace christian-putzke\CardDAV-PHP;
  * @copyright Christian Putzke
  * @link http://www.graviox.de/
  * @link https://twitter.com/cputzke/
- * @since 20.07.2011
- * @version 0.6
+ * @since 24.05.2015
+ * @version 0.7
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  *
  */
@@ -106,7 +106,7 @@ class CarddavBackend
      *
      * @constant    string
      */
-    const VERSION = '0.6';
+    const VERSION = '0.7';
 
     /**
      * User agent displayed in http requests
