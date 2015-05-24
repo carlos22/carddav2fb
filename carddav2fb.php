@@ -171,12 +171,12 @@ class CardDAV2FB {
 
         // name
         $name_arr = $vcard_obj->n[0];
-        $name = $this->_concat($this->_concat($name_arr['LastName'],$name_arr['FirstName']),$name_arr['AdditionalNames']);
+        $name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
 
         // if name is empty we take organization instead
         if(empty($name)) {
           $name_arr = $vcard_obj->org[0];
-          $name = $name_arr['Name'];
+          $name = $name_arr['name'];
         }
 
         // format filename of contact photo; remove special letters
@@ -220,13 +220,13 @@ class CardDAV2FB {
           foreach($vcard_obj->tel as $t) {
 
             $prio = 0;
-            if (!is_array($t) || empty($t['Type'])) {
+            if (!is_array($t) || empty($t['type'])) {
               $type = "mobile";
               $phone_number = $t;
             } else {
-              $phone_number = $t['Value'];
+              $phone_number = $t['value'];
 
-              $typearr_lower = unserialize(strtolower(serialize($t['Type'])));
+              $typearr_lower = unserialize(strtolower(serialize($t['type'])));
 
               // find out priority
               if (in_array("pref", $typearr_lower)) {
@@ -262,12 +262,12 @@ class CardDAV2FB {
           // request email address and type
           if ($vcard_obj->email){
             foreach($vcard_obj->email as $e) {
-              if (empty($e['Type'])) {
+              if (empty($e['type'])) {
                 $type_email = "work";
                 $email = $e;
               } else {
-                $email = $e['Value'];
-                $typearr_lower = unserialize(strtolower(serialize($e['Type'])));
+                $email = $e['value'];
+                $typearr_lower = unserialize(strtolower(serialize($e['type'])));
                 if (in_array("work", $typearr_lower)) {
                   $type_email = "work";
                 }
@@ -357,7 +357,7 @@ class CardDAV2FB {
         if(($entry['photo']) and ($entry['photo_data'])) {
           // get photo, rename, base64 convert and save as jpg
           $photo = $entry['photo'];
-          $photo_data = $entry['photo_data'][0]['Value'];
+          $photo_data = $entry['photo_data'][0]['value'];
           $photo_file = $this->tmpdir . '/' . basename($photo) . ".jpg";
           file_put_contents($photo_file . ".b64", $photo_data);
 
