@@ -1,40 +1,39 @@
-<?php
-namespace christian-putzke\CardDAV-PHP;
+<?php namespace CardDavPHP;
 
 /**
  * CardDAV PHP
  *
  * Simple CardDAV query
  * --------------------
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * echo $carddav->get();
  *
  *
  * Simple vCard query
  * ------------------
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * echo $carddav->getVcard('0126FFB4-2EB74D0A-302EA17F');
  *
  *
  * XML vCard query
  * ------------------
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * echo $carddav->getXmlVcard('0126FFB4-2EB74D0A-302EA17F');
  *
  *
  * Check CardDAV server connection
  * -------------------------------
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * var_dump($carddav->checkConnection());
  *
  *
  * CardDAV delete query
  * --------------------
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * $carddav->delete('0126FFB4-2EB74D0A-302EA17F');
  *
@@ -49,7 +48,7 @@ namespace christian-putzke\CardDAV-PHP;
  * EMAIL;TYPE=OTHER:christian.putzke@graviox.de
  * END:VCARD';
  *
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * $vcard_id = $carddav->add($vcard);
  *
@@ -64,14 +63,14 @@ namespace christian-putzke\CardDAV-PHP;
  * EMAIL;TYPE=OTHER:christian.putzke@graviox.de
  * END:VCARD';
  *
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->setAuth('username', 'password');
  * $carddav->update($vcard, '0126FFB4-2EB74D0A-302EA17F');
  *
  *
  * CardDAV debug
  * -------------
- * $carddav = new CarddavBackend('https://davical.example.com/user/contacts/');
+ * $carddav = new CardDavBackend('https://davical.example.com/user/contacts/');
  * $carddav->enableDebug();
  * $carddav->setAuth('username', 'password');
  * $carddav->get();
@@ -86,7 +85,7 @@ namespace christian-putzke\CardDAV-PHP;
  * SabreDAV:                 https://example.com/addressbooks/{resource|principal|username}/{collection}/
  * ownCloud:                 https://example.com/apps/contacts/carddav.php/addressbooks/{resource|principal|username}/{collection}/
  * SOGo:                     https://example.com/SOGo/dav/{resource|principal|username}/Contacts/{collection}/
- * Google (direct):					https://google.com/m8/carddav/principals/__uids__/{username}/lists/default/
+ * Google (direct):		 			 https://google.com/m8/carddav/principals/__uids__/{username}/lists/default/
  *
  *
  * @author Christian Putzke <christian.putzke@graviox.de>
@@ -99,7 +98,7 @@ namespace christian-putzke\CardDAV-PHP;
  *
  */
 
-class CarddavBackend
+class CardDavBackend
 {
     /**
      * CardDAV PHP Version
@@ -535,7 +534,7 @@ class CarddavBackend
         $response = $this->cleanResponse($response);
 
         try {
-            $xml = new SimpleXMLElement($response);
+            $xml = new \SimpleXMLElement($response);
         } catch (Exception $e) {
             throw new Exception(
                 "The XML response seems to be malformed and can't be simplified!",
@@ -544,7 +543,7 @@ class CarddavBackend
             );
         }
 
-        $simplified_xml = new XMLWriter();
+        $simplified_xml = new \XMLWriter();
         $simplified_xml->openMemory();
         $simplified_xml->setIndent(4);
 
@@ -711,7 +710,7 @@ class CarddavBackend
         }
 
         try {
-            $carddav = new CarddavBackend($this->url);
+            $carddav = new CardDavBackend($this->url);
             $carddav->setAuth($this->username, $this->password);
 
             $result = $carddav->query($this->url . $vcard_id . $this->url_vcard_extension, 'GET');
@@ -739,3 +738,5 @@ class CarddavBackend
         }
     }
 }
+
+?>
