@@ -141,8 +141,8 @@ class CardDAV2FB {
 
     foreach($this->config['carddav'] as $conf) {
       print " " . $conf['url'] . PHP_EOL;
-      $carddav = new carddav_backend($conf['url']);
-      $carddav->set_auth($conf['user'], $conf['pw']);
+      $carddav = new CardDavPHP\CardDavBackend($conf['url']);
+      $carddav->setAuth($conf['user'], $conf['pw']);
       $xmldata =  $carddav->get();
 
       // identify if we received UTF-8 encoded data from the
