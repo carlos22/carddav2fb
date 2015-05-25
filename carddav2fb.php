@@ -17,7 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *
- * version 1.8 2015-05-23
+ * version 1.9 2015-05-25
  *
  */
 error_reporting(E_ALL);
@@ -50,7 +50,7 @@ if(is_file($config_file_name)) {
 
 // ---------------------------------------------
 // MAIN
-print "carddav2fb.php - CardDAV to FRITZ!Box upload tool" . PHP_EOL;
+print "carddav2fb.php - CardDAV to FRITZ!Box conversion tool" . PHP_EOL;
 print "Copyright (c) 2012-2015 Karl Glatz, Martin Rost, Jens Maus" . PHP_EOL . PHP_EOL;
 
 $client = new CardDAV2FB($config);
