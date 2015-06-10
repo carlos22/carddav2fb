@@ -37,12 +37,15 @@ $config['carddav'][0] = array(
   'url' => 'https://raspserver/owncloud/remote.php/carddav/addressbooks/fritzbox/fb_contacts',
   // user name/password for CardDAV access
   'user' => 'oc_username',
-  'pw' => 'oc_password'
+  'pw' => 'oc_password',
+  // vcf extension
+  'extension' => '.vcf'
 );
 
 // second
 //$config['carddav'][1] = array(
 //  'url' => 'https://raspserver/owncloud/remote.php/carddav/addressbooks/fritzbox/fb_contacts_second',
 //  'user' => 'oc_username',
-//  'pw' => 'oc_password'
+//  'pw' => 'oc_password',
+//  'extension' => '.vcf'
 //);

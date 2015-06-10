@@ -17,7 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *
- * version 1.9 2015-05-25
+ * version 1.10 2015-06-11
  *
  */
 error_reporting(E_ALL);
@@ -143,6 +143,14 @@ class CardDAV2FB {
       print " " . $conf['url'] . PHP_EOL;
       $carddav = new CardDavPHP\CardDavBackend($conf['url']);
       $carddav->setAuth($conf['user'], $conf['pw']);
+
+      // set the vcard extension in case the user
+      // defined it in the config
+      if(isset($conf['extension'])) {
+        $carddav->setVcardExtension($conf['extension']);
+      }
+
+      // retrieve data from the CardDAV server now
       $xmldata =  $carddav->get();
 
       // identify if we received UTF-8 encoded data from the
@@ -409,6 +417,16 @@ class CardDAV2FB {
 
   public function upload_to_fb() {
 
+    // if the user wants to save the xml to a separate file, we do so now
+    if (array_key_exists('output_file',$this->config)) {
+      $output = fopen($this->config['output_file'], 'w');
+      if ($output) {
+        fwrite($output, $this->fbxml);
+        fclose($output);
+      }
+      return 0;
+    };
+
     // now we upload the photo jpgs first being stored in the
     // temp directory.
 
@@ -454,16 +472,6 @@ class CardDAV2FB {
 
     // close ftp connection
     ftp_close($conn_id);
-
-    // if the user wants to save the xml to a separate file, we do so now
-    if (array_key_exists('output_file',$this->config)) {
-      $output = fopen($this->config['output_file'], 'w');
-      if ($output) {
-        fwrite($output, $this->fbxml);
-        fclose($output);
-      }
-      return 0;
-    };
 
     // lets post the phonebook xml to the FRITZ!Box
     print " Uploading Phonebook XML" . PHP_EOL;
