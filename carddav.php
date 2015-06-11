@@ -346,7 +346,7 @@ class CardDavBackend
                 }
         }
 
-        throw new Exception(
+        throw new \Exception(
             "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET
         );
@@ -371,7 +371,7 @@ class CardDavBackend
                 return $result['response'];
         }
 
-        throw new Exception(
+        throw new \Exception(
             "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET_VCARD
         );
@@ -412,7 +412,7 @@ class CardDavBackend
 
         }
 
-        throw new Exception(
+        throw new \Exception(
             "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET_XML_VCARD
         );
@@ -473,7 +473,7 @@ class CardDavBackend
                 return true;
         }
 
-        throw new Exception(
+        throw new \Exception(
             "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_DELETE
         );
@@ -500,7 +500,7 @@ class CardDavBackend
                 return $vcard_id;
         }
 
-        throw new Exception(
+        throw new \Exception(
             "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_ADD
         );
@@ -518,7 +518,7 @@ class CardDavBackend
         try {
             return $this->add($vcard, $vcard_id);
         } catch (Exception $e) {
-            throw new Exception($e->getMessage(), self::EXCEPTION_WRONG_HTTP_STATUS_CODE_UPDATE);
+            throw new \Exception($e->getMessage(), self::EXCEPTION_WRONG_HTTP_STATUS_CODE_UPDATE);
         }
     }
 
@@ -536,7 +536,7 @@ class CardDavBackend
         try {
             $xml = new \SimpleXMLElement($response);
         } catch (Exception $e) {
-            throw new Exception(
+            throw new \Exception(
                 "The XML response seems to be malformed and can't be simplified!",
                 self::EXCEPTION_MALFORMED_XML_RESPONSE,
                 $e
@@ -721,7 +721,7 @@ class CardDavBackend
 
             return $vcard_id;
         } catch (Exception $e) {
-            throw new Exception($e->getMessage(), self::EXCEPTION_COULD_NOT_GENERATE_NEW_VCARD_ID);
+            throw new \Exception($e->getMessage(), self::EXCEPTION_COULD_NOT_GENERATE_NEW_VCARD_ID);
         }
     }
 
