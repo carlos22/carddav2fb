@@ -552,7 +552,8 @@ class CardDavBackend
 
         if (!empty($xml->response)) {
             foreach ($xml->response as $response) {
-                if (preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) {
+              if ((preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) &&
+                  !$response->propstat->prop->resourcetype->collection) {
                     $id = basename($response->href);
                     $id = str_replace($this->url_vcard_extension, null, $id);
 
