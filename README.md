@@ -15,15 +15,10 @@ This version of carddav2fb is a forked version from carlos22 (https://github.com
 
 ## Installation
 
- 1. Use git to checkout carddav2fb from github
+ Checkout the carddav2fb sources including its related subprojects using the following command:
 
 		git clone https://github.com/jens-maus/carddav2fb.git
 
- 2. Initialize the git submodules
-
-		cd carddav2fb
-		git submodule init
-		git submodule update
 Now you should have everything setup and checked out to a 'carddav2fb' directory.
 
 ### Configuration
