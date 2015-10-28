@@ -1,0 +1,79 @@
+0.5.0b7 2013-01-02:
+---
+
+* added a parameter to the constructor of the api to load a different config file (i.e. new frizbox_api('alt') loads fritzbox_user_alt.conf.php
+* fixed the logfile-logging in all bundled scripts
+
+
+0.5.0b6 2012-12-23:
+---
+
+* added a username config item to login with a local user, when user-based login is enabled in the box config
+
+
+0.5.0b5 2012-12-18:
+---
+
+* fixed the remoteconfig login code to work with new user system
+* fixed the logger calls to echo the message, when the logger is not initialized
+
+
+0.5.0b4 2012-12-16:
+---
+
+* fixed a typo in the remoteconfig login code
+
+
+0.5.0b3 2012-12-09:
+---
+
+* changed fritzbox_get_foncallslist.php to work with new firmwares, moved old method to fritzbox_get_foncallslist_xml.php
+
+
+0.5.0b3 2012-12-07:
+---
+
+* fixed internal SID login/logut-handling
+
+
+0.5.0b1 2012-12-05:
+---
+
+* added support for the new .lua-loginpage in newest Fritz Labor firmwares
+* refactored the whole codebase, introduced a new autoloaded config object, so check the new config file fritzbox_user.conf.php
+
+
+0.4.1 2012-03-15:
+---
+
+* added a new script fritzbox_guestlan_on_off.php to switch the new Guest-LAN on and off
+* tested all builtin scripts with new FRITZ!OS 05.20
+
+
+0.4 2011-05-15:
+---
+
+* added support for the new .lua forms like the WLAN guest access settings
+
+
+0.3 2010-05-19:
+---
+
+* added a doGetRequest method in the API
+* some minor changes
+* a new module for downloading the foncalls list
+
+
+0.2 2010-04-07:
+---
+
+* added a capability to use the Fritz!Box remote admin mode
+  Important limitation: does not check the certificate, so the password is sent to any computer responding at the configured address.
+  Feel free to hack the cURL calls to accept only a given certrificate
+
+
+0.1:
+---
+
+* First release
+

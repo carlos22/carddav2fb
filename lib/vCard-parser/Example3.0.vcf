@@ -1,0 +1,36 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Gump;Forrest
+FN:Forrest Gump
+ORG:Bubba Gump Shrimp Co.
+TITLE:Shrimp Man
+PHOTO;VALUE=URL;TYPE=GIF:http://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Example_svg.svg/200px-Example_svg.svg.png
+TEL;TYPE=WORK,VOICE:(111) 555-1212
+TEL;TYPE=HOME,VOICE:(404) 555-1212
+TEL;TYPE=HOME,TYPE=VOICE:(404) 555-1213
+ADR;TYPE=WORK:;;100 Waters Edge;Baytown;LA;30314;United States of America
+LABEL;TYPE=WORK:100 Waters Edge\nBaytown, LA 30314\nUnited States of America
+ADR;TYPE=HOME:;;42 Plantation St.;Baytown;LA;30314;United States of America
+LABEL;TYPE=HOME:42 Plantation St.\nBaytown, LA 30314\nUnited States of America
+EMAIL;TYPE=PREF,INTERNET:forrestgump@example.com
+AGENT;VALUE=uri:
+ CID:JQPUBLIC.part3.960129T083020.xyzMail@host3.com
+AGENT:BEGIN:VCARD
+ VERSION:3.0
+ N:Gump;Forrest
+ FN:Forrest Gump
+ ORG:Bubba Gump Shrimp Co.
+ TITLE:Shrimp Man
+ PHOTO;VALUE=URL;TYPE=GIF:http://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Example_svg.svg/200px-Example_svg.svg.png
+ TEL;TYPE=WORK,VOICE:(111) 555-1212
+ TEL;TYPE=HOME,VOICE:(404) 555-1212
+ TEL;TYPE=HOME,TYPE=VOICE:(404) 555-1213
+ ADR;TYPE=WORK:;;100 Waters Edge;Baytown;LA;30314;United States of America
+ LABEL;TYPE=WORK:100 Waters Edge\nBaytown, LA 30314\nUnited States of America
+ ADR;TYPE=HOME:;;42 Plantation St.;Baytown;LA;30314;United States of America
+ LABEL;TYPE=HOME:42 Plantation St.\nBaytown, LA 30314\nUnited States of America
+ EMAIL;TYPE=PREF,INTERNET:forrestgump@example.com
+ REV:20080424T195243Z
+ END:VCARD
+REV:20080424T195243Z
+END:VCARD
