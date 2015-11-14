@@ -13,7 +13,7 @@ Features:
 
 This version of carddav2fb is a forked version from carlos22 (https://github.com/carlos22/carddav2fb) with certain updates applied which had been published at http://www.ip-phone-forum.de/showthread.php?t=267477. In addition to being compatible to newer FRITZ!OS versions it also features a bunch of bug fixes.
 
-## Installation
+## Requirements
 
 PHP version 5.3.6 or higher is required.
 
