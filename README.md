@@ -15,6 +15,10 @@ This version of carddav2fb is a forked version from carlos22 (https://github.com
 
 ## Installation
 
+PHP version 5.3.6 or higher is required.
+
+## Installation
+
  Checkout the carddav2fb sources including its related subprojects using the following command:
 
 		git clone https://github.com/jens-maus/carddav2fb.git
