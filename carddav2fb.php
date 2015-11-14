@@ -23,6 +23,13 @@
 error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
+$php_min_version = '5.3.6';
+
+if (version_compare(PHP_VERSION, $php_min_version) < 0) {
+  print 'ERROR: PHP version '.$php_min_version.' is required. Found version: ' . PHP_VERSION . PHP_EOL;
+  exit(1);
+}
+
 require_once('lib/CardDAV-PHP/carddav.php');
 require_once('lib/vCard-parser/vCard.php');
 require_once('lib/fritzbox_api_php/fritzbox_api.class.php');
