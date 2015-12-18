@@ -44,7 +44,7 @@ if ($argc == 2) {
 $config['tmp_dir'] = sys_get_temp_dir();
 $config['fritzbox_ip'] = 'fritz.box';
 $config['fritzbox_ip_ftp'] = 'fritz.box';
-$config['fritzbox_force_local_config'] = false;
+$config['fritzbox_force_local_login'] = false;
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 $config['usb_disk'] = '';
@@ -488,7 +488,7 @@ class CardDAV2FB {
       $fritz = new fritzbox_api($this->config['fritzbox_pw'],
         $this->config['fritzbox_user'],
         $this->config['fritzbox_ip'],
-        $this->config['fritzbox_force_local_config']);
+        $this->config['fritzbox_force_local_login']);
       $formfields = array(
       'PhonebookId' => $this->config['phonebook_number']
       );
@@ -508,8 +508,7 @@ class CardDAV2FB {
     }
     catch (Exception $e)
     {
-//      print "  ERROR: " . $e->getMessage() . PHP_EOL;     // show the error message in anything failed
-      print "  ERROR: " . $e . PHP_EOL;     // show the error message in anything failed
+      print "  ERROR: " . $e->getMessage() . PHP_EOL;     // show the error message in anything failed
     }
   }
 }
