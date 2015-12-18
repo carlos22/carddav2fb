@@ -63,7 +63,7 @@ class fritzbox_api {
     * 
     * @access public
     */
-  public function __construct($password = false,$user_name = false,$fritzbox_ip = 'fritz.box')
+  public function __construct($password = false,$user_name = false,$fritzbox_ip = 'fritz.box',$force_local_config = false)
   {
 	// init the config object
 	$this->config = new fritzbox_api_config();
@@ -77,7 +77,7 @@ class fritzbox_api {
 	$this->config->setItem('fritzbox_ip',$fritzbox_ip);
 
 	// check if login on local network (fritz.box) or via a dynamic DNS-host
-	if ($fritzbox_ip != 'fritz.box'){
+	if ($fritzbox_ip != 'fritz.box' && !$force_local_config) {
 		$this->config->setItem('enable_remote_config',true);
 		$this->config->setItem('remote_config_user',$user_name);
 		$this->config->setItem('remote_config_password',$password);

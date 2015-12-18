@@ -372,7 +372,7 @@ class CardDavBackend
         }
 
         throw new \Exception(
-            "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
+            "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}:{$result['response']}:{$vcard_id}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET_VCARD
         );
     }
@@ -557,16 +557,21 @@ class CardDavBackend
                     $id = basename($response->href);
                     $id = str_replace($this->url_vcard_extension, null, $id);
 
-                    if (!empty($id)) {
-                        $simplified_xml->startElement('element');
-                            $simplified_xml->writeElement('id', $id);
-                            $simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-                            $simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+                    try {
+                        $vcardData = $this->getVcard($id);
+                        if (!empty($id)) {
+                            $simplified_xml->startElement('element');
+                                $simplified_xml->writeElement('id', $id);
+                                $simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
+                                $simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
 
-                        if ($include_vcards === true) {
-                            $simplified_xml->writeElement('vcard', $this->getVcard($id));
+                            if ($include_vcards === true) {
+                                $simplified_xml->writeElement('vcard', $vcardData);
+                            }
+                            $simplified_xml->endElement();
                         }
-                        $simplified_xml->endElement();
+                    } catch (\Exception $e) {
+                        print("Error fetching vCard: {$id}: {$e->getMessage()}\n");
                     }
                 } elseif (preg_match('/unix-directory/', $response->propstat->prop->getcontenttype)) {
                     if (isset($response->propstat->prop->href)) {
