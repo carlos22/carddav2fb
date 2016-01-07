@@ -146,6 +146,7 @@ class CardDAV2FB {
 
   public function get_carddav_entries() {
     $entries = array();
+    $imgseqfname = 1;
 
     foreach($this->config['carddav'] as $conf) {
       print " " . $conf['url'] . PHP_EOL;
@@ -197,8 +198,8 @@ class CardDAV2FB {
 
         // format filename of contact photo; remove special letters
         if ($vcard_obj->photo) {
-          $photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í'),
-                     array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i'),$name);
+        	$photo = $imgseqfname;
+        	$imgseqfname++;
         } else {
           $photo = '';
         }
@@ -382,7 +383,7 @@ class CardDAV2FB {
           unlink($photo_file . ".b64");
 
           // add contact photo to xml
-          $person->addChild("imageURL","file:///var/media/ftp/".$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
+          $person->addChild("imageURL","file:///var/InternerSpeicher/ftp/".$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
 
           print "  Added photo: " . basename($photo_file) . PHP_EOL;
         }
