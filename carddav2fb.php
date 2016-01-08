@@ -192,7 +192,7 @@ class CardDAV2FB {
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
         $name_arr = $vcard_obj->n[0];
-        $org_arr = $vcard_obj->org[0];
+        if (isset($vcard_obj->org[0]) {$org_arr = $vcard_obj->org[0];}
         $addnames = '';
         $prefix = '';
         $suffix = '';
@@ -218,9 +218,11 @@ class CardDAV2FB {
 			break;
         }
 
-        // if name is empty we take organization instead
-        if(empty($name)) {
-          $name = $org_arr['name'];
+        // if name is empty we take organization instead or write error msg
+        if(empty($name) AND isset($org_arr['name'])) {
+            $name = $org_arr['name'];
+        } else {
+        	$name = 'No name found!';
         }
 
         // format filename of contact photo; remove special letters
