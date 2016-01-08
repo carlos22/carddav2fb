@@ -195,9 +195,25 @@ class CardDAV2FB {
 			$name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
 			break;
    		case 1:
+			// nameformat: Firstname Lastname
+			$name_arr = $vcard_obj->n[0];
+			$name = '';
+			$name = $name_arr['firstname'].' '.$name_arr['lastname'];
+			break;
+		case 2:
 			// nameformat: Firstname Lastname (Additional Names)
 			$name_arr = $vcard_obj->n[0];
-			$name = $name_arr['firstname'].' '.$name_arr['lastname'].' ('.$name_arr['additionalnames'].')';
+			$addname = '';
+			if ($name_arr['additionalnames'] > '') { $addname = ' ('.$name_arr['additionalnames'].')';}
+			$name = $name_arr['firstname'].' '.$name_arr['lastname'].$addname;
+			break;
+		case 3:
+			// nameformat: Firstname Additional Names Lastname
+			$name_arr = $vcard_obj->n[0];
+			$name = '';
+			$addname = '';
+			if ($name_arr['additionalnames'] > '') { $addname = ' '.$name_arr['additionalnames'].' ';}
+			$name = $name_arr['firstname'].$addname.$name_arr['lastname'];
 			break;
         }
 
