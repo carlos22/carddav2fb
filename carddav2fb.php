@@ -219,8 +219,10 @@ class CardDAV2FB {
         }
 
         // if name is empty we take organization instead or write error msg
-        if(empty($name) AND isset($org_arr['name'])) {
+        if(empty($name) AND !isset($org_arr['name'])) {
             $name = $org_arr['name'];
+        } if (!empty($name)) {
+         // do nothing and keep name
         } else {
         	$name = 'No name found!';
         }
