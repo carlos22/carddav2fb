@@ -200,21 +200,21 @@ class CardDAV2FB {
         // Build name Parts if existing ans switch to true in config
         if (isset($name_arr['prefixes']) AND $this->config['prefix']) { $prefix = $name_arr['prefixes'];} //prefix
 		if (isset($name_arr['suffixes']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffixes'];} //suffix
-		if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'];}//additionalnames
-		if (isset($org_arr['name']) AND $this->config['orgname']) { $orgname = ' ('.$org_arr['name'].')';} //orgname
+		if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'].' ';}//additionalnames
+		if (isset($org_arr['name']) AND $this->config['orgname']) { $orgname = '('.$org_arr['name'].')';} //orgname
         
         switch ($this->config['fullname_format']) {
     	case 0:
 			// Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
-			$name = trim($prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.$orgname);
+			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.' '.$orgname));
 			break;
 		case 1:
 			// Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
-			$name = trim($prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.$orgname);
+			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.' '.$orgname));
 			break;
 		case 2:
 			// Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
-			$name = trim($prefix.' '.$name_arr['firstname'].' '.$addnames.$name_arr['lastname'].$suffix.$orgname);
+			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].$addnames.$name_arr['lastname'].$suffix.' '.$orgname));
 			break;
         }
 
