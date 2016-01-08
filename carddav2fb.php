@@ -48,7 +48,7 @@ $config['fritzbox_force_local_login'] = false;
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 $config['usb_disk'] = '';
-$config['fritzbox_path'] = 'file:///var/media/ftp/'
+$config['fritzbox_path'] = 'file:///var/media/ftp/';
 
 if(is_file($config_file_name)) {
   require($config_file_name);

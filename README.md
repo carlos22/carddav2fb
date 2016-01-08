@@ -58,6 +58,7 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	$config['fritzbox_pw'] = '<PASSWORD>';
 	$config['phonebook_number'] = '0';
 	$config['phonebook_name'] = 'Telefonbuch';
+	$config['fritzbox_path'] = 'file:///var/media/ftp/';
 	
 	// first
 	$config['carddav'][0] = array(
