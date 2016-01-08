@@ -244,7 +244,7 @@ class CardDAV2FB {
         // e-mail addresses
         $email_add = array();
 
-        if (in_array($this->config['group_vip'],$categories)) {
+        if (isset(in_array($this->config['group_vip'],$categories))) {
           $vip = 1;
         } else {
           $vip = 0;
