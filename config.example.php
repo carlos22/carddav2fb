@@ -17,6 +17,19 @@ $config['fritzbox_pw'] = 'fb_password';
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 
+// Fullname Format options
+// 'only if exist and switched to true here in config'
+// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
+// 1 =  'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
+// 2 =  'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
+$config['fullname_format'] = 0;
+
+// Fulnameparts
+$config['prefix'] = false; // include prefix if existing
+$config['suffix'] = false; // include suffix if existing
+$config['addnames'] = false; // include additionalnames if existing
+$config['orgname'] = false; // include organisation company name if existing
+
 // optional: write output to file instead of sending it to the Fritz!Box
 //$config['output_file'] = '/media/usbdisk/share/phonebook.xml';
 

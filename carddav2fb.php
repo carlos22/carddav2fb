@@ -49,7 +49,11 @@ $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 $config['usb_disk'] = '';
 $config['fritzbox_path'] = 'file:///var/media/ftp/';
-$config['fullname_format'] = 0; // 0 = lastname, firstname, addnames ; 1 = firstname, lastname, addnames
+$config['fullname_format'] = 0; // see config.example.php for options
+$config['prefix'] = false;
+$config['suffix'] = false;
+$config['addnames'] = false;
+$config['orgname'] = false;
 
 if(is_file($config_file_name)) {
   require($config_file_name);
@@ -187,31 +191,31 @@ class CardDAV2FB {
       $result = array();
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
+        $addnames = '';
+        $prefix = '';
+        $suffix = '';
+        $orgname = '';
+        // Build name Parts if existing ans switch to true in config
+        if ($name_arr['prefix'] > '' AND $this->config['prefix']) { $prefix = $name_arr['prefix'];} //prefix
+		if ($name_arr['suffix'] > '' AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffix'];} //suffix
+		if ($name_arr['additionalnames'] > '' AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'];}//additionalnames
+		if ($name_arr['name'] > '' AND $this->config['orgname']) { $orgname = ' ('.$name_arr['name'].')';} //orgname
         
         switch ($this->config['fullname_format']) {
     	case 0:
-			// nameformat: Lastname, Firstname, Additional Names
+			// Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
 			$name_arr = $vcard_obj->n[0];
-			$name = trim($this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']));
+			$name = trim($prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.$orgname);
 			break;
-   		case 1:
-			// nameformat: Firstname Lastname
+		case 1:
+			// Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
 			$name_arr = $vcard_obj->n[0];
-			$name = trim($name_arr['firstname'].' '.$name_arr['lastname']);
-			break;
-		case 2:
-			// nameformat: Firstname Lastname (Additional Names)
-			$name_arr = $vcard_obj->n[0];
-			$addname = '';
-			if ($name_arr['additionalnames'] > '') { $addname = ' ('.$name_arr['additionalnames'].')';}
-			$name = trim($name_arr['firstname'].' '.$name_arr['lastname'].$addname);
+			$name = trim($prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.$orgname);
 			break;
 		case 3:
-			// nameformat: Firstname Additional Names Lastname
+			// Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
 			$name_arr = $vcard_obj->n[0];
-			$addname = '';
-			if ($name_arr['additionalnames'] > '') { $addname = ' '.$name_arr['additionalnames'].' ';}
-			$name = trim($name_arr['firstname'].$addname.$name_arr['lastname']);
+			$name = trim($prefix.' '.$name_arr['firstname'].' '.$addnames.$name_arr['lastname'].$suffix.$orgname);
 			break;
         }
 
