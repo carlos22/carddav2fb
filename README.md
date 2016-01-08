@@ -6,12 +6,13 @@ Features:
 * CardDAV import includes photo images specified in VCards
 * No modification of FRITZ!Box firmware (aka FRITZ!OS) required
 * Definition of multiple CardDAV accounts and "folders" possible
+* Format of full name in FRITZ!Box phonebook can be designed
 
 **CAUTION: This script will overwrite your current contacts in the FritzBox without any warning!**
 
 ## Information
 
-This version of carddav2fb is a forked version from jens-maus (https://github.com/jens-maus/carddav2fb.git) and adding support for convenient image upload and different FRITZ!Box base paths for example for FRITZ!Box 7490 (UI) OS: 6.50. 
+This version of carddav2fb is a forked version from jens-maus (https://github.com/jens-maus/carddav2fb.git) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
 
 ## Requirements
 
@@ -59,8 +60,8 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	$config['phonebook_number'] = '0';
 	$config['phonebook_name'] = 'Telefonbuch';
 	$config['fritzbox_path'] = 'file:///var/media/ftp/';
-	// fullname format options
-	// 'only if exist and switched to true here in config'
+	// full name format options default 0
+	// parts in '' will only added if existing and switched to true in config
 	// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
 	// 1 =  'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
 	// 2 =  'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
