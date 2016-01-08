@@ -196,10 +196,10 @@ class CardDAV2FB {
         $suffix = '';
         $orgname = '';
         // Build name Parts if existing ans switch to true in config
-        if ($name_arr['prefix'] > '' AND $this->config['prefix']) { $prefix = $name_arr['prefix'];} //prefix
-		if ($name_arr['suffix'] > '' AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffix'];} //suffix
-		if ($name_arr['additionalnames'] > '' AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'];}//additionalnames
-		if ($name_arr['name'] > '' AND $this->config['orgname']) { $orgname = ' ('.$name_arr['name'].')';} //orgname
+        if (isset($name_arr['prefix']) AND $this->config['prefix']) { $prefix = $name_arr['prefix'];} //prefix
+		if (isset($name_arr['suffix']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffix'];} //suffix
+		if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'];}//additionalnames
+		if (isset($name_arr['name']) AND $this->config['orgname']) { $orgname = ' ('.$name_arr['name'].')';} //orgname
         
         switch ($this->config['fullname_format']) {
     	case 0:
