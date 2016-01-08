@@ -30,6 +30,9 @@ $config['group_vip'] = 'VIP';
 // '' -> use internal fritzbox storage
 //$config['usb_disk'] = 'Generic-FlashDisk-01';
 
+// many version Fritz!Box use 'file:///var/media/ftp/' others 'file:///var/InternerSpeicher/' to check just export an your current phonebook and have a look at any imageURL tag `<imageURL>file:///var/media/ftp/(HERE_config_from:usb_disk)/FRITZ/fonpix/9.jpg</imageURL>`. 
+$config['fritzbox_path'] = 'file:///var/media/ftp/'
+
 // multiple carddav adressbooks could be specified and will be merged together.
 
 // first

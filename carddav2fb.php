@@ -48,6 +48,7 @@ $config['fritzbox_force_local_login'] = false;
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 $config['usb_disk'] = '';
+$config['fritzbox_path'] = 'file:///var/media/ftp/'
 
 if(is_file($config_file_name)) {
   require($config_file_name);
@@ -383,7 +384,7 @@ class CardDAV2FB {
           unlink($photo_file . ".b64");
 
           // add contact photo to xml
-          $person->addChild("imageURL","file:///var/InternerSpeicher/ftp/".$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
+          $person->addChild("imageURL",$this->config['fritzbox_path'].$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
 
           print "  Added photo: " . basename($photo_file) . PHP_EOL;
         }
