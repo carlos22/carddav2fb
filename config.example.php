@@ -30,6 +30,9 @@ $config['suffix'] = false; // include suffix in fullname if existing
 $config['addnames'] = false; // include additionalnames in fullname if existing
 $config['orgname'] = false; // include organisation (company) in fullname if existing
 
+// Quickdial starting keyword in notes
+//$config['quickdial_keyword'] = 'Quickdial:'; // once activated you may add 'Quickdial:+49030123456:**709' to the contact note field and the number will set as quickdialnumber. You may add more quickdials for a single contact each in a new line
+
 // optional: write output to file instead of sending it to the Fritz!Box
 //$config['output_file'] = '/media/usbdisk/share/phonebook.xml';
 

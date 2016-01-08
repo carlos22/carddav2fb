@@ -54,6 +54,7 @@ $config['prefix'] = false;
 $config['suffix'] = false;
 $config['addnames'] = false;
 $config['orgname'] = false;
+$config['quickdial_keyword'] = 'Quickdial:'; // see config.example.php for options
 
 if(is_file($config_file_name)) {
   require($config_file_name);
@@ -189,6 +190,7 @@ class CardDAV2FB {
 
       // parse raw_vcards
       $result = array();
+      $quick_dial_arr = array();
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
         $name_arr = $vcard_obj->n[0];
@@ -243,6 +245,24 @@ class CardDAV2FB {
         } else {
           $categories = array('');
         }
+        
+        $quick_dial_for_nr = null;
+        $quick_dial_nr = null;
+        
+        // check for quickdial entry
+        if (isset($vcard_obj->note[0])){
+			$note = $vcard_obj->note[0];
+			$notes = explode ( $this->config['quickdial_keyword'], $note );
+			foreach ($notes as $linenr => $linecontent){
+				$found = strrpos ( $linecontent , ":**7");
+				if ( $found > 0) {
+					$pos_qd_start = strrpos($linecontent , ":**7" );
+					$quick_dial_for_nr = preg_replace("/[^0-9+]/", "",substr( $linecontent , 0, $pos_qd_start));
+					$quick_dial_nr = intval(substr ( $linecontent , $pos_qd_start+4, 3));
+					$quick_dial_arr[$quick_dial_for_nr]=$quick_dial_nr;
+				}
+			}
+		}
 
         // e-mail addresses
         $email_add = array();
@@ -269,11 +289,23 @@ class CardDAV2FB {
           foreach($vcard_obj->tel as $t) {
 
             $prio = 0;
+            $quickdial =null;
+            
             if (!is_array($t) || empty($t['type'])) {
               $type = "mobile";
-              $phone_number = $t;
+              $phone_number = $t;		  
             } else {
               $phone_number = $t['value'];
+              
+              $phone_number_clean = preg_replace("/[^0-9+]/", "",$phone_number);
+              foreach ($quick_dial_arr as $qd_phone_nr => $value){
+				  if ($qd_phone_nr == $phone_number_clean){
+							//Set quickdial
+							if ($value == 1) {print "\nWARNING: Quickdial value 1 (**701) is not possible but used! \n";}
+							if ($value >= 100) {print "\nWARNING: Quickdial value bigger than 99 (**799) is not possible but used! \n";}
+							$quickdial = $value;
+				  }
+			  }
 
               $typearr_lower = unserialize(strtolower(serialize($t['type'])));
 
@@ -305,7 +337,7 @@ class CardDAV2FB {
                 continue;
               }
             }
-            $phone_no[] =  array("type"=>$type, "prio"=>$prio, "value" => $this->_clear_phone_number($phone_number));
+            $phone_no[] =  array("type"=>$type, "prio"=>$prio, "quickdial"=>$quickdial, "value" => $this->_clear_phone_number($phone_number));
           }
 
           // request email address and type
@@ -379,6 +411,10 @@ class CardDAV2FB {
           $num->addAttribute("vanity","");
           $num->addAttribute("prio", $tel['prio']);
           $num->addAttribute("id", $id);
+          	if(isset($tel['quickdial'])){
+          	$num->addAttribute("quickdial",$tel['quickdial']);
+          	print "  Added quickdial: " . $tel['quickdial'] . " for: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
+          	}
           $id++;
 
           print "  Added phone: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
