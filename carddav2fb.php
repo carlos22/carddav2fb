@@ -212,7 +212,7 @@ class CardDAV2FB {
 			// Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
 			$name = trim($prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.$orgname);
 			break;
-		case 3:
+		case 2:
 			// Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
 			$name = trim($prefix.' '.$name_arr['firstname'].' '.$addnames.$name_arr['lastname'].$suffix.$orgname);
 			break;
