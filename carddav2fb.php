@@ -191,38 +191,36 @@ class CardDAV2FB {
       $result = array();
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
+        $name_arr = $vcard_obj->n[0];
+        $org_arr = $vcard_obj->org[0];
         $addnames = '';
         $prefix = '';
         $suffix = '';
         $orgname = '';
         // Build name Parts if existing ans switch to true in config
-        if (isset($name_arr['prefix']) AND $this->config['prefix']) { $prefix = $name_arr['prefix'];} //prefix
-		if (isset($name_arr['suffix']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffix'];} //suffix
+        if (isset($name_arr['prefixes']) AND $this->config['prefix']) { $prefix = $name_arr['prefixes'];} //prefix
+		if (isset($name_arr['suffixes']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffixes'];} //suffix
 		if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'];}//additionalnames
-		if (isset($name_arr['name']) AND $this->config['orgname']) { $orgname = ' ('.$name_arr['name'].')';} //orgname
+		if (isset($org_arr['name']) AND $this->config['orgname']) { $orgname = ' ('.$org_arr['name'].')';} //orgname
         
         switch ($this->config['fullname_format']) {
     	case 0:
 			// Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
-			$name_arr = $vcard_obj->n[0];
 			$name = trim($prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.$orgname);
 			break;
 		case 1:
 			// Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
-			$name_arr = $vcard_obj->n[0];
 			$name = trim($prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.$orgname);
 			break;
 		case 3:
 			// Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
-			$name_arr = $vcard_obj->n[0];
 			$name = trim($prefix.' '.$name_arr['firstname'].' '.$addnames.$name_arr['lastname'].$suffix.$orgname);
 			break;
         }
 
         // if name is empty we take organization instead
         if(empty($name)) {
-          $name_arr = $vcard_obj->org[0];
-          $name = $name_arr['name'];
+          $name = $org_arr['name'];
         }
 
         // format filename of contact photo; remove special letters
