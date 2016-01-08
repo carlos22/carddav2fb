@@ -192,6 +192,7 @@ class CardDAV2FB {
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
         $name_arr = $vcard_obj->n[0];
+        $org_arr = null;
         if (isset($vcard_obj->org[0])) {$org_arr = $vcard_obj->org[0];}
         $addnames = '';
         $prefix = '';
