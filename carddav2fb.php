@@ -189,16 +189,16 @@ class CardDAV2FB {
         $vcard_obj = new vCard(false, $v);
         
         switch ($this->config['fullname_format']) {
-    		case 0:
-        		// nameformat: Lastname, Firstname, Additional Names
-        		$name_arr = $vcard_obj->n[0];
-        		$name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
-        		break;
-   			case 1:
-        		// nameformat: Firstname Lastname (Additional Names)
-        		$name_arr = $vcard_obj->n[0];
-        		$name = $name_arr['firstname'].' '.$name_arr['lastname'].' ('$name_arr[['additionalnames'].')';
-        		break;
+    	case 0:
+			// nameformat: Lastname, Firstname, Additional Names
+			$name_arr = $vcard_obj->n[0];
+			$name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
+			break;
+   		case 1:
+			// nameformat: Firstname Lastname (Additional Names)
+			$name_arr = $vcard_obj->n[0];
+			$name = $name_arr['firstname'].' '.$name_arr['lastname'].' ('.$name_arr['additionalnames'].')';
+			break;
         }
 
         // if name is empty we take organization instead
