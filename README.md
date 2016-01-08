@@ -59,6 +59,18 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	$config['phonebook_number'] = '0';
 	$config['phonebook_name'] = 'Telefonbuch';
 	$config['fritzbox_path'] = 'file:///var/media/ftp/';
+	// fullname format options
+	// 'only if exist and switched to true here in config'
+	// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
+	// 1 =  'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
+	// 2 =  'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
+	$config['fullname_format'] = 0;
+
+	// fullname parts
+	$config['prefix'] = false; // include prefix in fullname if existing
+	$config['suffix'] = false; // include suffix in fullname if existing
+	$config['addnames'] = false; // include additionalnames in fullname if existing
+	$config['orgname'] = false; // include organisation (company) in fullname if existing
 	
 	// first
 	$config['carddav'][0] = array(
