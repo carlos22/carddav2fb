@@ -49,6 +49,7 @@ $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 $config['usb_disk'] = '';
 $config['fritzbox_path'] = 'file:///var/media/ftp/';
+$config['fullname_format'] = 0; // 0 = lastname, firstname, addnames ; 1 = firstname, lastname, addnames
 
 if(is_file($config_file_name)) {
   require($config_file_name);
@@ -186,10 +187,19 @@ class CardDAV2FB {
       $result = array();
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
-
-        // name
-        $name_arr = $vcard_obj->n[0];
-        $name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
+        
+        switch ($this->config['fullname_format']) {
+    		case 0:
+        		// nameformat: Lastname, Firstname, Additional Names
+        		$name_arr = $vcard_obj->n[0];
+        		$name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
+        		break;
+   			case 1:
+        		// nameformat: Firstname Lastname (Additional Names)
+        		$name_arr = $vcard_obj->n[0];
+        		$name = $name_arr['firstname'].' '.$name_arr['lastname'].' ('$name_arr[['additionalnames'].')';
+        		break;
+        }
 
         // if name is empty we take organization instead
         if(empty($name)) {
