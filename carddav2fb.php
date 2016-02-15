@@ -54,7 +54,8 @@ $config['prefix'] = false;
 $config['suffix'] = false;
 $config['addnames'] = false;
 $config['orgname'] = false;
-$config['quickdial_keyword'] = 'Quickdial:'; // see config.example.php for options
+$config['build_photos'] = true;
+$config['quickdial_keyword'] = 'Quickdial:';
 
 if(is_file($config_file_name)) {
   require($config_file_name);
@@ -205,7 +206,6 @@ class CardDAV2FB {
 		if (isset($name_arr['suffixes']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffixes'];} //suffix
 		if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'].' ';}//additionalnames
 		if (isset($org_arr['name']) AND $this->config['orgname']) { $orgname = '('.$org_arr['name'].')';} //orgname
-        
         switch ($this->config['fullname_format']) {
     	case 0:
 			// Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
@@ -220,14 +220,23 @@ class CardDAV2FB {
 			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].$addnames.$name_arr['lastname'].$suffix.' '.$orgname));
 			break;
         }
+        // if no first and lastname but orgname remove ()
+    	if(!isset($name_arr['firstname']) AND !isset($name_arr['lastname']) AND isset($org_arr['name'])){
+    		$name = $org_arr['name'];
+    	}
+    	
+        // if first is sign in name is an ( remove it and check if las is also ) and remove it
+        if(strrpos ( $name, "(") === 0) {
+        	$name=substr( $name , 1, strlen($name)-1);
+        	
+        	if(strrpos ( $name, ")") === strlen($name)-1) {
+        	$name=substr( $name , 0, strlen($name)-1);
+        	}
+        }
 
-        // if name is empty we take organization instead or write error msg
-        if(empty($name) AND !isset($org_arr['name'])) {
-            $name = $org_arr['name'];
-        } if (!empty($name)) {
-         // do nothing and keep name
-        } else {
-        	$name = 'No name found!';
+        if(empty($name)) {
+        	$name = 'No fullname, lastname or orgname found!';
+            $name = isset($org_arr['name']);
         }
 
         // format filename of contact photo; remove special letters
@@ -268,7 +277,7 @@ class CardDAV2FB {
         $email_add = array();
 
         if (in_array(isset($this->config['group_vip']),$categories)) {
-          $vip = 1;
+          $vip = 0;
         } else {
           $vip = 0;
         }
@@ -451,7 +460,7 @@ class CardDAV2FB {
           unlink($photo_file . ".b64");
 
           // add contact photo to xml
-          $person->addChild("imageURL",$this->config['fritzbox_path'].$this->config['usb_disk']."/FRITZ/fonpix/".$entry['photo'].".jpg");
+          $person->addChild("imageURL", $this->config['fritzbox_path'].$this->config['usb_disk']."FRITZ/fonpix/".$entry['photo'].".jpg");
 
           print "  Added photo: " . basename($photo_file) . PHP_EOL;
         }
