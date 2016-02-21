@@ -9,6 +9,7 @@ $config['fritzbox_ip_ftp'] = 'fritz.box';
 // user name/password to access Fritz!Box
 $config['fritzbox_user'] = 'fb_username';
 $config['fritzbox_pw'] = 'fb_password';
+//$config['fritzbox_force_local_login'] = true;
 
 // number of the internal phone book and its name
 // 0    - main phone book

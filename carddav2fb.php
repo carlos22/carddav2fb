@@ -23,6 +23,13 @@
 error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
+$php_min_version = '5.3.6';
+
+if (version_compare(PHP_VERSION, $php_min_version) < 0) {
+  print 'ERROR: PHP version '.$php_min_version.' is required. Found version: ' . PHP_VERSION . PHP_EOL;
+  exit(1);
+}
+
 require_once('lib/CardDAV-PHP/carddav.php');
 require_once('lib/vCard-parser/vCard.php');
 require_once('lib/fritzbox_api_php/fritzbox_api.class.php');
@@ -37,6 +44,7 @@ if ($argc == 2) {
 $config['tmp_dir'] = sys_get_temp_dir();
 $config['fritzbox_ip'] = 'fritz.box';
 $config['fritzbox_ip_ftp'] = 'fritz.box';
+$config['fritzbox_force_local_login'] = false;
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 $config['usb_disk'] = '';
@@ -477,7 +485,10 @@ class CardDAV2FB {
     print " Uploading Phonebook XML" . PHP_EOL;
     try
     {
-      $fritz = new fritzbox_api($this->config['fritzbox_pw'],$this->config['fritzbox_user'],$this->config['fritzbox_ip']);
+      $fritz = new fritzbox_api($this->config['fritzbox_pw'],
+        $this->config['fritzbox_user'],
+        $this->config['fritzbox_ip'],
+        $this->config['fritzbox_force_local_login']);
       $formfields = array(
       'PhonebookId' => $this->config['phonebook_number']
       );
