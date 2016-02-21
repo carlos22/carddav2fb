@@ -6,12 +6,13 @@ Features:
 * CardDAV import includes photo images specified in VCards
 * No modification of FRITZ!Box firmware (aka FRITZ!OS) required
 * Definition of multiple CardDAV accounts and "folders" possible
+* Format of full name in FRITZ!Box phonebook can be designed
 
 **CAUTION: This script will overwrite your current contacts in the FritzBox without any warning!**
 
 ## Information
 
-This version of carddav2fb is a forked version from carlos22 (https://github.com/carlos22/carddav2fb) with certain updates applied which had been published at http://www.ip-phone-forum.de/showthread.php?t=267477. In addition to being compatible to newer FRITZ!OS versions it also features a bunch of bug fixes.
+This version of carddav2fb is a forked version from jens-maus (https://github.com/jens-maus/carddav2fb.git) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
 
 ## Requirements
 
@@ -21,7 +22,7 @@ PHP version 5.3.6 or higher is required.
 
  Checkout the carddav2fb sources including its related subprojects using the following command:
 
-		git clone https://github.com/jens-maus/carddav2fb.git
+		git clone https://github.com/holzhannes/carddav2fb.git
 
 Now you should have everything setup and checked out to a 'carddav2fb' directory.
 
@@ -32,6 +33,7 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
   * `Access to NAS content` (required to upload photos via ftp).
 3. Make sure the telephone book you are going to update via carddav2fb exists on the FRITZ!Box, otherwise the upload will fail.
 4. Copy `config.example.php` to `config.php` and adapt it to your needs including setting the FRITZ!Box user settings.
+5. Copy as many `initializing images` from the folder `init-images` to your FRITZ!Box `fonpix` folder.
 
 ## Usage
 
@@ -57,7 +59,22 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	$config['fritzbox_pw'] = '<PASSWORD>';
 	$config['phonebook_number'] = '0';
 	$config['phonebook_name'] = 'Telefonbuch';
+	$config['fritzbox_path'] = 'file:///var/media/ftp/';
+	// full name format options default 0
+	// parts in '' will only added if existing and switched to true in config
+	// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
+	// 1 =  'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
+	// 2 =  'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
+	$config['fullname_format'] = 0;
+
+	// fullname parts
+	$config['prefix'] = false; // include prefix in fullname if existing
+	$config['suffix'] = false; // include suffix in fullname if existing
+	$config['addnames'] = false; // include additionalnames in fullname if existing
+	$config['orgname'] = false; // include organisation (company) in fullname if existing
 	
+	$config['quickdial_keyword'] = 'Quickdial:'; // once activated you may add 'Quickdial:+49030123456:**709' to the contact note field and the number will be set as quickdialnumber in your FRITZ!Box. It is possible to add more quickdials for one contact each in a new line
+
 	// first
 	$config['carddav'][0] = array(
 	  'url' => 'https://<HOSTNAME>/remote.php/carddav/addressbooks/<USERNAME>/contacts',

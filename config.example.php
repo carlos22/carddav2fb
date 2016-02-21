@@ -17,6 +17,22 @@ $config['fritzbox_pw'] = 'fb_password';
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
 
+// Fullname format options
+// 'only if exist and switched to true here in config'
+// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
+// 1 =  'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
+// 2 =  'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
+$config['fullname_format'] = 0;
+
+// Fullname parts
+$config['prefix'] = false; // include prefix in fullname if existing
+$config['suffix'] = false; // include suffix in fullname if existing
+$config['addnames'] = false; // include additionalnames in fullname if existing
+$config['orgname'] = false; // include organisation (company) in fullname if existing
+
+// Quickdial starting keyword in notes
+//$config['quickdial_keyword'] = 'Quickdial:'; // once activated you may add 'Quickdial:+49030123456:**709' to the contact note field and the number will set as quickdialnumber. You may add more quickdials for a single contact each in a new line
+
 // optional: write output to file instead of sending it to the Fritz!Box
 //$config['output_file'] = '/media/usbdisk/share/phonebook.xml';
 
@@ -29,6 +45,9 @@ $config['group_vip'] = 'VIP';
 // base path of USB storage of Fritz!Box under which the path 'FRITZ\fonpix' could be found
 // '' -> use internal fritzbox storage
 //$config['usb_disk'] = 'Generic-FlashDisk-01';
+
+// many version Fritz!Box use 'file:///var/media/ftp/' others 'file:///var/InternerSpeicher/' to check just export an your current phonebook and have a look at any imageURL tag `<imageURL>file:///var/media/ftp/(HERE_config_from:usb_disk)/FRITZ/fonpix/9.jpg</imageURL>`. 
+//$config['fritzbox_path'] = 'file:///var/media/ftp/';
 
 // multiple carddav adressbooks could be specified and will be merged together.
 
