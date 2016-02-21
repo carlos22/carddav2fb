@@ -16,8 +16,9 @@
  * Autors: Karl Glatz (original author)
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
+ *         Johannes Freiburger
  *
- * version 1.10 2015-09-06
+ * version 1.11 2016-02-21
  *
  */
 error_reporting(E_ALL);
@@ -67,7 +68,7 @@ if(is_file($config_file_name)) {
 // ---------------------------------------------
 // MAIN
 print "carddav2fb.php - CardDAV to FRITZ!Box conversion tool" . PHP_EOL;
-print "Copyright (c) 2012-2015 Karl Glatz, Martin Rost, Jens Maus" . PHP_EOL . PHP_EOL;
+print "Copyright (c) 2012-2016 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger" . PHP_EOL . PHP_EOL;
 
 $client = new CardDAV2FB($config);
 
@@ -241,7 +242,7 @@ class CardDAV2FB {
 
         // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
         if ($vcard_obj->photo) {
-        	if ($this->config['seq_photo_name'] == true){
+        	if (isset($this->config['seq_photo_name']) AND $this->config['seq_photo_name'] == true){
         		$photo = $imgseqfname;
         		$imgseqfname++;
         	} else {

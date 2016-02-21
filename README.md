@@ -12,7 +12,7 @@ Features:
 
 ## Information
 
-This version of carddav2fb is a forked version from jens-maus (https://github.com/jens-maus/carddav2fb.git) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
+This version of carddav2fb is a forked version from carlos22 (https://github.com/carlos22/carddav2fb) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
 
 ## Requirements
 
@@ -22,7 +22,7 @@ PHP version 5.3.6 or higher is required.
 
  Checkout the carddav2fb sources including its related subprojects using the following command:
 
-		git clone https://github.com/holzhannes/carddav2fb.git
+		git clone https://github.com/jens-maus/carddav2fb.git
 
 Now you should have everything setup and checked out to a 'carddav2fb' directory.
 
@@ -60,6 +60,7 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	$config['phonebook_number'] = '0';
 	$config['phonebook_name'] = 'Telefonbuch';
 	$config['fritzbox_path'] = 'file:///var/media/ftp/';
+
 	// full name format options default 0
 	// parts in '' will only added if existing and switched to true in config
 	// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
@@ -92,4 +93,4 @@ This script is using third-party libraries for downloading VCards from CardDAV s
 This script is released under Public Domain.
 
 ## Authors
-Copyright (c) 2012-2015 Karl Glatz, Martin Rost, Jens Maus
+Copyright (c) 2012-2016 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger
