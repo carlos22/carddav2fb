@@ -239,12 +239,17 @@ class CardDAV2FB {
             $name = isset($org_arr['name']);
         }
 
-        // format filename of contact photo; remove special letters
+        // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
         if ($vcard_obj->photo) {
-        	$photo = $imgseqfname;
-        	$imgseqfname++;
+        	if ($this->config['seq_photo_name'] == true){
+        		$photo = $imgseqfname;
+        		$imgseqfname++;
+        	} else {
+        		$photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í'),
+        		array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i'),$name);
+        	}
         } else {
-          $photo = '';
+           	$photo = '';
         }
 
         // phone
