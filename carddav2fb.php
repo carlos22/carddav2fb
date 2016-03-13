@@ -498,7 +498,7 @@ class CardDAV2FB {
     }
 
     // lets post the phonebook xml to the FRITZ!Box
-    print " Uploading Phonebook XML to " $this->config['fritzbox_ip'] . PHP_EOL;
+    print " Uploading Phonebook XML to " . $this->config['fritzbox_ip'] . PHP_EOL;
     try
     {
       $fritz = new fritzbox_api($this->config['fritzbox_pw'],
