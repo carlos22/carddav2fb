@@ -159,7 +159,9 @@ class CardDAV2FB {
       }
 
       // retrieve data from the CardDAV server now
+      print "Retrieve data from the CardDAV server: ";
       $xmldata =  $carddav->get();
+      print "- complete" . PHP_EOL;
 
       // identify if we received UTF-8 encoded data from the
       // CardDAV server and if not reencode it since the FRITZ!Box
