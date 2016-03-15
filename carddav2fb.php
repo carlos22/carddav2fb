@@ -330,10 +330,7 @@ class CardDAV2FB {
               }
 
               // set the proper type
-              if (in_array("work", $typearr_lower)) {
-                $type = "work";
-              }
-              elseif (in_array("cell", $typearr_lower)) {
+              if (in_array("cell", $typearr_lower)) {
                 $type = "mobile";
               }
               elseif (in_array("home", $typearr_lower)) {
@@ -341,6 +338,9 @@ class CardDAV2FB {
               }
               elseif (in_array("fax", $typearr_lower)) {
                 $type = "fax_work";
+              }
+              elseif (in_array("work", $typearr_lower)) {
+                $type = "work";
               }
               elseif (in_array("other", $typearr_lower)) {
                 $type = "other";
