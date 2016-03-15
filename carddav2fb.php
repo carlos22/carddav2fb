@@ -258,9 +258,9 @@ class CardDAV2FB {
         if ($vcard_obj->categories) {
           $categories = $vcard_obj->categories[0];
         } else {
-          $categories = array('');
+          $categories = array();
         }
-        
+
         $quick_dial_for_nr = null;
         $quick_dial_nr = null;
         
@@ -281,12 +281,7 @@ class CardDAV2FB {
 
         // e-mail addresses
         $email_add = array();
-
-        if (in_array(isset($this->config['group_vip']),$categories)) {
-          $vip = 0;
-        } else {
-          $vip = 0;
-        }
+        $vip = isset($this->config['group_vip']) && in_array((string)$this->config['group_vip'], $categories);
 
         if (array_key_exists('group_filter',$this->config)) {
           $add_entry = 0;
