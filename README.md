@@ -33,7 +33,6 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
   * `Access to NAS content` (required to upload photos via ftp).
 3. Make sure the telephone book you are going to update via carddav2fb exists on the FRITZ!Box, otherwise the upload will fail.
 4. Copy `config.example.php` to `config.php` and adapt it to your needs including setting the FRITZ!Box user settings.
-5. Copy as many `initializing images` from the folder `init-images` to your FRITZ!Box `fonpix` folder.
 
 ## Usage
 
