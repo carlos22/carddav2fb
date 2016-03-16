@@ -170,10 +170,11 @@ class CardDAV2FB
   {
     $entries = array();
     $imgseqfname = 1;
+    $snum = 0;
 
     foreach($this->config['carddav'] as $conf)
     {
-      print " " . $conf['url'] . PHP_EOL;
+      print " [" . $snum . "]: " . $conf['url'] . " ";
       $carddav = new CardDavPHP\CardDavBackend($conf['url']);
       $carddav->setAuth($conf['user'], $conf['pw']);
 
@@ -183,9 +184,7 @@ class CardDAV2FB
         $carddav->setVcardExtension($conf['extension']);
 
       // retrieve data from the CardDAV server now
-      print "Retrieve data from the CardDAV server: ";
       $xmldata =  $carddav->get();
-      print "- complete" . PHP_EOL;
 
       // identify if we received UTF-8 encoded data from the
       // CardDAV server and if not reencode it since the FRITZ!Box
@@ -204,7 +203,7 @@ class CardDAV2FB
         $raw_vcards[$id] = $value;
       }
 
-      print "  " . count($raw_vcards) . " VCards retrieved" . PHP_EOL;
+      print " " . count($raw_vcards) . " VCards retrieved." . PHP_EOL;
 
       // parse raw_vcards
       $result = array();
@@ -212,7 +211,9 @@ class CardDAV2FB
       foreach($raw_vcards as $v)
       {
         $vcard_obj = new vCard(false, $v);
-        $name_arr = $vcard_obj->n[0];
+        $name_arr = null;
+        if(isset($vcard_obj->n[0]))
+          $name_arr = $vcard_obj->n[0];
         $org_arr = null;
         if(isset($vcard_obj->org[0]))
           $org_arr = $vcard_obj->org[0];
@@ -423,6 +424,8 @@ class CardDAV2FB
           $entries[] = array("realName" => $name, "telephony" => $phone_no, "email" => $email_add, "vip" => $vip, "photo" => $photo, "photo_data" => $vcard_obj->photo);
         }
       }
+
+      $snum++;
     }
 
     $this->entries = $entries;
@@ -450,7 +453,7 @@ class CardDAV2FB
       $person = $contact->addChild("person");
       $person->addChild("realName", $this->_convert_text($entry['realName']));
 
-      echo " VCard: " . utf8_decode($entry['realName']) . PHP_EOL;
+      echo " VCard: '" . utf8_decode($entry['realName']) . "'" . PHP_EOL;
 
       // telephone: put the phonenumbers into the fritzbox xml file
       $telephony = $contact->addChild("telephony");
@@ -584,18 +587,20 @@ class CardDAV2FB
         {
           $file = $fileinfo->getFilename();
 
+          print " FTP-Upload '" . $file . "'...";
           if(! in_array($remote_path . "/" . $file, $all_existing_files))
           {
-            print " FTP-Upload: " . $file . PHP_EOL;
             if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
             {
               // retry when a fault occurs.
-              print "  WARNING: an error occurred while uploading file " . $fileinfo->getFilename() . " - retrying" . PHP_EOL;
+              print " retrying... ";
               $conn_id = ftp_ssl_connect($ftp_server);
               $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
               ftp_pasv($conn_id, true);
               if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
-                print "  ERROR: an error occurred while uploading file " . $fileinfo->getFilename() . " - giving up" . PHP_EOL;
+                print " ERROR: while uploading file " . $fileinfo->getFilename() . PHP_EOL;
+              else
+                print " ok." . PHP_EOL;
             }
 
             // cleanup old files
@@ -603,13 +608,13 @@ class CardDAV2FB
             {
               if(strpos($existing_file, $remote_path."/".substr($file, 0, -10)) !== false)
               {
-                print " FTP-Delete old version: " . $existing_file . PHP_EOL;
+                print " FTP-Delete: " . $existing_file . PHP_EOL;
                 ftp_delete($conn_id, $remote_path . "/" . basename($existing_file));
               }
             }
           }
           else
-            print " File exists -> skipping FTP-Upload: " . $file . PHP_EOL;
+            print " already exists." . PHP_EOL;
         }
       }
     }
@@ -623,15 +628,13 @@ class CardDAV2FB
     {
       $hostname = gethostbyaddr($hostname);
       if($hostname ==  $this->config['fritzbox_ip'])
-        print "  WARNING: Unable to get hostname for IP address (". $this->config['fritzbox_ip'] .") <" . $hostname . "<" . PHP_EOL;
+        print " WARNING: Unable to get hostname for IP address (". $this->config['fritzbox_ip'] .") <" . $hostname . "<" . PHP_EOL;
       else
       {
-        print "  INFO: Given IP address (". $this->config['fritzbox_ip'] .") has hostname ". $hostname . "." . PHP_EOL;
+        print " INFO: Given IP address (". $this->config['fritzbox_ip'] .") has hostname ". $hostname . "." . PHP_EOL;
         $this->config['fritzbox_ip'] = $hostname;
       }
     }
-    else
-      print "  INFO: Given value (". $hostname .") is no valid IP address" . PHP_EOL;
 
     // lets post the phonebook xml to the FRITZ!Box
     print " Uploading Phonebook XML to " . $this->config['fritzbox_ip'] . PHP_EOL;
@@ -641,8 +644,9 @@ class CardDAV2FB
         $this->config['fritzbox_user'],
         $this->config['fritzbox_ip'],
         $this->config['fritzbox_force_local_login']);
+
       $formfields = array(
-      'PhonebookId' => $this->config['phonebook_number']
+        'PhonebookId' => $this->config['phonebook_number']
       );
 
       $filefileds = array('PhonebookImportFile' => array(
