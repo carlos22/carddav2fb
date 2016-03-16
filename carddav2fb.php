@@ -458,9 +458,9 @@ class CardDAV2FB {
         // check for a photo being part of the VCard
         if(($entry['photo']) and ($entry['photo_data'])) {
           // get photo, rename, base64 convert and save as jpg
-          $photo = $entry['photo'];
           $photo_data = $entry['photo_data'][0]['value'];
-          $photo_file = $this->tmpdir . '/' . basename($photo) . ".jpg";
+          $photo_version = substr(sha1($photo_data), 0, 5);
+          $photo_file = $this->tmpdir . '/' . "{$entry['photo']}_{$photo_version}.jpg";
           file_put_contents($photo_file . ".b64", $photo_data);
 
           // convert base64 representation to jpg and delete tempfile afterwards
@@ -468,7 +468,7 @@ class CardDAV2FB {
           unlink($photo_file . ".b64");
 
           // add contact photo to xml
-          $person->addChild("imageURL", $this->config['fritzbox_path'].$this->config['usb_disk']."FRITZ/fonpix/".$entry['photo'].".jpg");
+          $person->addChild("imageURL", $this->config['fritzbox_path'].$this->config['usb_disk']."FRITZ/fonpix/".basename($photo_file));
 
           print "  Added photo: " . basename($photo_file) . PHP_EOL;
         }
@@ -533,12 +533,13 @@ class CardDAV2FB {
 
     // create remote photo path on FRITZ!Box if it doesn't exist
     $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
-    if(ftp_nlist($conn_id, $remote_path) == false)
+    $all_existing_files = ftp_nlist($conn_id, $remote_path);
+    if($all_existing_files == false)
     {
       ftp_mkdir($conn_id, $remote_path);
     }
 
-    // now iterate through all jpg files in tempdir and upload them
+    // now iterate through all jpg files in tempdir and upload them if necessary
     $dir = new DirectoryIterator($this->tmpdir);
     foreach($dir as $fileinfo)
     {
@@ -547,18 +548,29 @@ class CardDAV2FB {
         if($fileinfo->getExtension() == "jpg")
         {
           $file = $fileinfo->getFilename();
-          print " FTP-Upload: " . $file . PHP_EOL;
-          if(!ftp_put($conn_id, $remote_path."/".$file, $fileinfo->getPathname(), FTP_BINARY))
-          {
-            // retry when a fault occurs.
-            print "  WARNING: an error occurred while uploading file ".$fileinfo->getFilename()." - retrying" . PHP_EOL;
-            $conn_id = ftp_ssl_connect($ftp_server);
-            $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-            ftp_pasv($conn_id, true);
-            if(!ftp_put($conn_id, $remote_path."/".$file, $fileinfo->getPathname(), FTP_BINARY))
-            {
-              print "  ERROR: an error occurred while uploading file ".$fileinfo->getFilename()." - giving up" . PHP_EOL;
+
+          if (! in_array($remote_path . "/" . $file, $all_existing_files)) {
+            print " FTP-Upload: " . $file . PHP_EOL;
+            if (!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY)) {
+              // retry when a fault occurs.
+              print "  WARNING: an error occurred while uploading file " . $fileinfo->getFilename() . " - retrying" . PHP_EOL;
+              $conn_id = ftp_ssl_connect($ftp_server);
+              $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
+              ftp_pasv($conn_id, true);
+              if (!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY)) {
+                print "  ERROR: an error occurred while uploading file " . $fileinfo->getFilename() . " - giving up" . PHP_EOL;
+              }
             }
+
+            // cleanup old files
+            foreach($all_existing_files as $existing_file) {
+              if(strpos($existing_file, $remote_path."/".substr($file, 0, -10)) !== false) {
+                print " FTP-Delete old version: " . $existing_file . PHP_EOL;
+                ftp_delete($conn_id, $remote_path . "/" . basename($existing_file));
+              }
+            }
+          } else {
+            print " File exists -> skipping FTP-Upload: " . $file . PHP_EOL;
           }
         }
       }
