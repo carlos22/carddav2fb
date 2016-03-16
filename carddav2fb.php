@@ -221,54 +221,113 @@ class CardDAV2FB
         $prefix = '';
         $suffix = '';
         $orgname = '';
+        $firstname = '';
+        $lastname = '';
+
         // Build name Parts if existing ans switch to true in config
         if(isset($name_arr['prefixes']) AND $this->config['prefix'])
-          $prefix = $name_arr['prefixes'];
+          $prefix = trim($name_arr['prefixes']);
 
         if(isset($name_arr['suffixes']) AND $this->config['suffix'])
-          $suffix = ' '.$name_arr['suffixes'];
+          $suffix = trim($name_arr['suffixes']);
 
         if(isset($name_arr['additionalnames']) AND $this->config['addnames'])
-          $addnames = ' '.$name_arr['additionalnames'].' ';
+          $addnames = trim($name_arr['additionalnames']);
 
         if(isset($org_arr['name']) AND $this->config['orgname'])
-          $orgname = '('.$org_arr['name'].')';
+          $orgname = trim($org_arr['name']);
 
-        switch ($this->config['fullname_format'])
+        $firstname = trim($name_arr['firstname']);
+        $lastname = trim($name_arr['lastname']);
+
+        // the following section implemented different ways of constructing the
+        // final phonebook name entry depending on user preferred settings
+        // selectable in the config file. Possible options are:
+        //
+        // $this->config['fullname_format']:
+        //
+        // 0: "Prefix Lastname, Firstname AdditionalNames Suffix (orgname)"
+        // 1: "Prefix Firstname Lastname AdditionalNames Suffix (orgname)"
+        // 2: "Prefix Firstname AdditionalNames Lastname Suffix (orgname)"
+        //
+        $name = '';
+        $format = $this->config['fullname_format'];
+
+        // Prefix
+        if(!empty($prefix))
+          $name .= $prefix;
+
+        if($format == 0)
         {
-          case 0:
-            // Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
-            $name = trim(str_replace('  ',' ', $prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.' '.$orgname));
-          break;
-
-          case 1:
-            // Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
-            $name = trim(str_replace('  ',' ', $prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.' '.$orgname));
-          break;
-
-          case 2:
-            // Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
-            $name = trim(str_replace('  ',' ', $prefix.' '.$name_arr['firstname'].$addnames.$name_arr['lastname'].$suffix.' '.$orgname));
-          break;
+          // Lastname
+          if(!empty($name) AND !empty($lastname))
+            $name .= ' ' . $lastname;
+          else
+            $name .= $lastname;
+        }
+        else
+        {
+          // Firstname
+          if(!empty($name) AND !empty($firstname))
+            $name .= ' ' . $firstname;
+          else
+            $name .= $firstname;
         }
 
-        // if no first and lastname but orgname remove ()
-        if(!isset($name_arr['firstname']) AND !isset($name_arr['lastname']) AND isset($org_arr['name']))
-          $name = $org_arr['name'];
-
-        // if first is sign in name is an ( remove it and check if las is also ) and remove it
-        if(strrpos($name, "(") === 0)
+        if($format == 2)
         {
-          $name=substr($name , 1, strlen($name)-1);
-
-          if(strrpos($name, ")") === strlen($name)-1)
-            $name=substr($name , 0, strlen($name)-1);
+          // AdditionalNames
+          if(!empty($name) AND !empty($addnames))
+            $name .= ' ' . $addnames;
+          else
+            $name .= $addnames;
         }
+
+        if($format == 0)
+        {
+          // Firstname
+          if(!empty($name) AND !empty($firstname))
+            $name .= ', ' . $firstname;
+          else
+            $name .= $firstname;
+        }
+        else
+        {
+          // Lastname
+          if(!empty($name) AND !empty($lastname))
+            $name .= ' ' . $lastname;
+          else
+            $name .= $lastname;
+        }
+
+        if($format != 2)
+        {
+          // AdditionalNames
+          if(!empty($name) AND !empty($addnames))
+            $name .= ' ' . $addnames;
+          else
+            $name .= $addnames;
+        }
+
+        // Suffix
+        if(!empty($name) AND !empty($suffix))
+          $name .= ' ' . $suffix;
+        else
+          $name .= $suffix;
+
+        // OrgName
+        if(!empty($name) AND !empty($orgname))
+          $name .= ' (' . $orgname . ')';
+        else
+          $name .= $orgname;
+
+        // make sure to trim whitespaces and double spaces
+        $name = trim(str_replace('  ', ' ', $name));
 
         if(empty($name))
         {
-          $name = 'No fullname, lastname or orgname found!';
-          $name = isset($org_arr['name']);
+          print '  WARNING: No fullname, lastname or orgname found!';
+          $name = 'UNKNOWN';
         }
 
         // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
@@ -602,6 +661,8 @@ class CardDAV2FB
               else
                 print " ok." . PHP_EOL;
             }
+            else
+              print " ok." . PHP_EOL;
 
             // cleanup old files
             foreach($all_existing_files as $existing_file)

@@ -19,9 +19,9 @@ $config['phonebook_name'] = 'Telefonbuch';
 
 // Fullname format options
 // 'only if exist and switched to true here in config'
-// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
-// 1 =  'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
-// 2 =  'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
+// 0: "Prefix Lastname, Firstname AdditionalNames Suffix (orgname)"
+// 1: "Prefix Firstname Lastname AdditionalNames Suffix (orgname)"
+// 2: "Prefix Firstname AdditionalNames Lastname Suffix (orgname)"
 $config['fullname_format'] = 0;
 
 // Fullname parts
