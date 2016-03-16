@@ -206,53 +206,53 @@ class CardDAV2FB {
         $orgname = '';
         // Build name Parts if existing ans switch to true in config
         if (isset($name_arr['prefixes']) AND $this->config['prefix']) { $prefix = $name_arr['prefixes'];} //prefix
-		if (isset($name_arr['suffixes']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffixes'];} //suffix
-		if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'].' ';}//additionalnames
-		if (isset($org_arr['name']) AND $this->config['orgname']) { $orgname = '('.$org_arr['name'].')';} //orgname
+        if (isset($name_arr['suffixes']) AND $this->config['suffix']) { $suffix = ' '.$name_arr['suffixes'];} //suffix
+        if (isset($name_arr['additionalnames']) AND $this->config['addnames']) { $addnames = ' '.$name_arr['additionalnames'].' ';}//additionalnames
+        if (isset($org_arr['name']) AND $this->config['orgname']) { $orgname = '('.$org_arr['name'].')';} //orgname
         switch ($this->config['fullname_format']) {
-    	case 0:
-			// Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
-			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.' '.$orgname));
-			break;
-		case 1:
-			// Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
-			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.' '.$orgname));
-			break;
-		case 2:
-			// Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
-			$name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].$addnames.$name_arr['lastname'].$suffix.' '.$orgname));
-			break;
+        case 0:
+            // Format 'only if exist and switched on': 'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', '(orgname)'
+            $name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['lastname'].', '.$name_arr['firstname'].$addnames.$suffix.' '.$orgname));
+            break;
+        case 1:
+            // Format 'only if exist and switched on': 'Prefix' Firstname Lastname 'AdditionalNames' 'Suffix' '(orgname)'
+            $name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].' '.$name_arr['lastname'].$addnames.$suffix.' '.$orgname));
+            break;
+        case 2:
+            // Format 'only if exist and switched on': 'Prefix' Firstname 'AdditionalNames' Lastname 'Suffix' '(orgname)'
+            $name = trim( str_replace ( '  ',' ', $prefix.' '.$name_arr['firstname'].$addnames.$name_arr['lastname'].$suffix.' '.$orgname));
+            break;
         }
         // if no first and lastname but orgname remove ()
-    	if(!isset($name_arr['firstname']) AND !isset($name_arr['lastname']) AND isset($org_arr['name'])){
-    		$name = $org_arr['name'];
-    	}
-    	
+        if(!isset($name_arr['firstname']) AND !isset($name_arr['lastname']) AND isset($org_arr['name'])){
+            $name = $org_arr['name'];
+        }
+
         // if first is sign in name is an ( remove it and check if las is also ) and remove it
         if(strrpos ( $name, "(") === 0) {
-        	$name=substr( $name , 1, strlen($name)-1);
-        	
-        	if(strrpos ( $name, ")") === strlen($name)-1) {
-        	$name=substr( $name , 0, strlen($name)-1);
-        	}
+            $name=substr( $name , 1, strlen($name)-1);
+
+            if(strrpos ( $name, ")") === strlen($name)-1) {
+            $name=substr( $name , 0, strlen($name)-1);
+            }
         }
 
         if(empty($name)) {
-        	$name = 'No fullname, lastname or orgname found!';
+            $name = 'No fullname, lastname or orgname found!';
             $name = isset($org_arr['name']);
         }
 
         // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
         if ($vcard_obj->photo) {
-        	if (isset($this->config['seq_photo_name']) AND $this->config['seq_photo_name'] == true){
-        		$photo = $imgseqfname;
-        		$imgseqfname++;
-        	} else {
-        		$photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í'),
-        		array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i'),$name);
-        	}
+            if (isset($this->config['seq_photo_name']) AND $this->config['seq_photo_name'] == true){
+                $photo = $imgseqfname;
+                $imgseqfname++;
+            } else {
+                $photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í'),
+                array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i'),$name);
+            }
         } else {
-           	$photo = '';
+            $photo = '';
         }
 
         // phone
@@ -268,18 +268,18 @@ class CardDAV2FB {
         
         // check for quickdial entry
         if (isset($vcard_obj->note[0])){
-			$note = $vcard_obj->note[0];
-			$notes = explode ( $this->config['quickdial_keyword'], $note );
-			foreach ($notes as $linenr => $linecontent){
-				$found = strrpos ( $linecontent , ":**7");
-				if ( $found > 0) {
-					$pos_qd_start = strrpos($linecontent , ":**7" );
-					$quick_dial_for_nr = preg_replace("/[^0-9+]/", "",substr( $linecontent , 0, $pos_qd_start));
-					$quick_dial_nr = intval(substr ( $linecontent , $pos_qd_start+4, 3));
-					$quick_dial_arr[$quick_dial_for_nr]=$quick_dial_nr;
-				}
-			}
-		}
+            $note = $vcard_obj->note[0];
+            $notes = explode ( $this->config['quickdial_keyword'], $note );
+            foreach ($notes as $linenr => $linecontent){
+                $found = strrpos ( $linecontent , ":**7");
+                if ( $found > 0) {
+                    $pos_qd_start = strrpos($linecontent , ":**7" );
+                    $quick_dial_for_nr = preg_replace("/[^0-9+]/", "",substr( $linecontent , 0, $pos_qd_start));
+                    $quick_dial_nr = intval(substr ( $linecontent , $pos_qd_start+4, 3));
+                    $quick_dial_arr[$quick_dial_for_nr]=$quick_dial_nr;
+                }
+            }
+        }
 
         // e-mail addresses
         $email_add = array();
@@ -305,19 +305,19 @@ class CardDAV2FB {
             
             if (!is_array($t) || empty($t['type'])) {
               $type = "mobile";
-              $phone_number = $t;		  
+              $phone_number = $t;
             } else {
               $phone_number = $t['value'];
               
               $phone_number_clean = preg_replace("/[^0-9+]/", "",$phone_number);
               foreach ($quick_dial_arr as $qd_phone_nr => $value){
-				  if ($qd_phone_nr == $phone_number_clean){
-							//Set quickdial
-							if ($value == 1) {print "\nWARNING: Quickdial value 1 (**701) is not possible but used! \n";}
-							if ($value >= 100) {print "\nWARNING: Quickdial value bigger than 99 (**799) is not possible but used! \n";}
-							$quickdial = $value;
-				  }
-			  }
+                  if ($qd_phone_nr == $phone_number_clean){
+                            //Set quickdial
+                            if ($value == 1) {print "\nWARNING: Quickdial value 1 (**701) is not possible but used! \n";}
+                            if ($value >= 100) {print "\nWARNING: Quickdial value bigger than 99 (**799) is not possible but used! \n";}
+                            $quickdial = $value;
+                  }
+              }
 
               $typearr_lower = unserialize(strtolower(serialize($t['type'])));
 
@@ -423,10 +423,10 @@ class CardDAV2FB {
           $num->addAttribute("vanity","");
           $num->addAttribute("prio", $tel['prio']);
           $num->addAttribute("id", $id);
-          	if(isset($tel['quickdial'])){
-          	$num->addAttribute("quickdial",$tel['quickdial']);
-          	print "  Added quickdial: " . $tel['quickdial'] . " for: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
-          	}
+            if(isset($tel['quickdial'])){
+            $num->addAttribute("quickdial",$tel['quickdial']);
+            print "  Added quickdial: " . $tel['quickdial'] . " for: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
+            }
           $id++;
 
           print "  Added phone: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
@@ -578,14 +578,14 @@ class CardDAV2FB {
     $hostname = $this->config['fritzbox_ip'];
     if (filter_var($hostname, FILTER_VALIDATE_IP)) {
         $hostname = gethostbyaddr($hostname);
-	if ($hostname ==  $this->config['fritzbox_ip']) {
-		print "  WARNING: Unable to get hostname for IP address (". $this->config['fritzbox_ip'] .") <" . $hostname . "<" . PHP_EOL;
-	} else {
-		print "  INFO: Given IP address (". $this->config['fritzbox_ip'] .") has hostname ". $hostname . "." . PHP_EOL;
-		$this->config['fritzbox_ip'] = $hostname;
-	}
+    if ($hostname ==  $this->config['fritzbox_ip']) {
+        print "  WARNING: Unable to get hostname for IP address (". $this->config['fritzbox_ip'] .") <" . $hostname . "<" . PHP_EOL;
     } else {
-	print "  INFO: Given value (". $hostname .") is no valid IP address" . PHP_EOL;
+        print "  INFO: Given IP address (". $this->config['fritzbox_ip'] .") has hostname ". $hostname . "." . PHP_EOL;
+        $this->config['fritzbox_ip'] = $hostname;
+    }
+    } else {
+    print "  INFO: Given value (". $hostname .") is no valid IP address" . PHP_EOL;
     }
 
     // lets post the phonebook xml to the FRITZ!Box
