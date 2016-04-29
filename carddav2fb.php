@@ -18,14 +18,15 @@
  *         Jens Maus <mail@jens-maus.de>
  *         Johannes Freiburger
  *
- * version 1.11 2016-02-21
- *
  */
 error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
-$php_min_version = '5.3.6';
+// Version identifier for CardDAV2FB
+$carddav2fb_version = '1.11 (2016-04-29)';
 
+// check for the minimum php version
+$php_min_version = '5.3.6';
 if(version_compare(PHP_VERSION, $php_min_version) < 0)
 {
   print 'ERROR: PHP version '.$php_min_version.' is required. Found version: ' . PHP_VERSION . PHP_EOL;
@@ -68,7 +69,7 @@ else
 
 // ---------------------------------------------
 // MAIN
-print "carddav2fb.php - CardDAV to FRITZ!Box conversion tool" . PHP_EOL;
+print "carddav2fb.php " . $carddav2fb_version . " - CardDAV to FRITZ!Box phonebook conversion tool" . PHP_EOL;
 print "Copyright (c) 2012-2016 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger" . PHP_EOL . PHP_EOL;
 
 $client = new CardDAV2FB($config);
@@ -147,6 +148,32 @@ class CardDAV2FB
       }
       reset($objects);
       rmdir($dir);
+    }
+  }
+
+  public function is_base64($str)
+  {
+    try
+    {
+      // Check if there are valid base64 characters
+      if(!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $str))
+        return false;
+
+      // Decode the string in strict mode and check the results
+      $decoded = base64_decode($str, true);
+      if($decoded === false)
+        return false;
+
+      // Encode the string again
+      if(base64_encode($decoded) === $str)
+        return true;
+      else
+        return false;
+    }
+    catch(Exception $e)
+    {
+      // If exception is caught, then it is not a base64 encoded string
+      return false;
     }
   }
 
@@ -553,24 +580,53 @@ class CardDAV2FB
       }
 
       // check for a photo being part of the VCard
-      if(($entry['photo']) and ($entry['photo_data']))
+      if(($entry['photo']) and ($entry['photo_data']) and (is_array($entry['photo_data'])) and ($entry['photo_data'][0]))
       {
-        // get photo, rename, base64 convert and save as jpg
-        $photo_data = $entry['photo_data'][0]['value'];
-        $photo_version = substr(sha1($photo_data), 0, 5);
-        $photo_file = $this->tmpdir . '/' . "{$entry['photo']}_{$photo_version}.jpg";
-        file_put_contents($photo_file . ".b64", $photo_data);
+        // check if 'photo_data'[0] is an array as well because then
+        // we have to extract ['value'] and friends.
+        if(is_array($entry['photo_data'][0]) and (array_key_exists('value', $entry['photo_data'][0])))
+        {
+          // check if photo_data really contains JPEG data
+          if((array_key_exists('type', $entry['photo_data'][0])) and (is_array($entry['photo_data'][0]['type'])) and
+             ($entry['photo_data'][0]['type'][0] == 'jpeg' or $entry['photo_data'][0]['type'][0] == 'jpg'))
+          {
+            // get photo, rename, base64 convert and save as jpg
+            $photo_data = $entry['photo_data'][0]['value'];
+            $photo_version = substr(sha1($photo_data), 0, 5);
+            $photo_file = $this->tmpdir . '/' . "{$entry['photo']}_{$photo_version}.jpg";
 
-        // convert base64 representation to jpg and delete tempfile afterwards
-        $this->base64_to_jpeg($photo_file . ".b64", $photo_file);
-        unlink($photo_file . ".b64");
+            // check for base64 encoding of the photo data and convert it
+            // accordingly.
+            if(((array_key_exists('encoding', $entry['photo_data'][0])) and ($entry['photo_data'][0]['encoding'] == 'b')) or $this->is_base64($photo_data))
+            {
+              file_put_contents($photo_file . ".b64", $photo_data);
+              $this->base64_to_jpeg($photo_file . ".b64", $photo_file);
+              unlink($photo_file . ".b64");
+            }
+            else
+            {
+              print "  WARNING: non-base64 encoded photo data found and used." . PHP_EOL;
+              file_put_contents($photo_file, $photo_data);
+            }
 
-        // add contact photo to xml
-        $person->addChild("imageURL", $this->config['fritzbox_path'].$this->config['usb_disk']."FRITZ/fonpix/".basename($photo_file));
+            // add contact photo to xml
+            $person->addChild("imageURL", $this->config['fritzbox_path'].$this->config['usb_disk']."FRITZ/fonpix/".basename($photo_file));
 
-        print "  Added photo: " . basename($photo_file) . PHP_EOL;
+            print "  Added photo: " . basename($photo_file) . PHP_EOL;
+          }
+          else
+           print "  WARNING: Only jpg contact photos are currently supported." . PHP_EOL;
+        }
+        elseif(substr($entry['photo_data'][0], 0, 4) == 'http')
+        {
+          // add contact photo to xml
+          $person->addChild("imageURL", $entry['photo_data'][0]);
+
+          print "  Added photo: " . $entry['photo_data'][0] . PHP_EOL;
+        }
+        else
+          print "  WARNING: Only VCard embedded photo data or a reference URL is currently supported." . PHP_EOL;
       }
-
 
       $contact->addChild("services");
       $contact->addChild("setup");

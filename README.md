@@ -16,7 +16,10 @@ This version of carddav2fb is a forked version from carlos22 (https://github.com
 
 ## Requirements
 
-PHP version 5.3.6 or higher is required.
+* PHP-version 5.3.6 or higher
+* PHP-curl module
+* PHP-ftp module
+* PHP-mbstring module
 
 ## Installation
 
@@ -38,9 +41,9 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 
 ### Ubuntu
 
-1. Install PHP5, PHP-curl and PHP-ftp module:
+1. Install PHP, PHP-curl, PHP-ftp and PHP-mbstring module:
 
-		sudo apt-get install php5-cli php5-curl php5-ftp
+		sudo apt-get install php-cli php-curl php-ftp php-mbstring
 
 2. Open a Terminal and execute:
 
