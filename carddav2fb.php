@@ -630,7 +630,7 @@ class CardDAV2FB
       $contact->addChild("mod_time", (string)time());
     }
 
-    if($root->asXML() != false)
+    if($root->asXML() !== false)
       $this->fbxml = $root->asXML();
     else
     {
