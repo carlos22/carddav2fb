@@ -684,7 +684,7 @@ class CardDAV2FB
     $conn_id = ftp_ssl_connect($ftp_server);
     if($conn_id == false)
     {
-      print " WARNING: Secure connection to FTP-server '" . $ftp_server . "' failed, retrying without SSL."
+      print " WARNING: Secure connection to FTP-server '" . $ftp_server . "' failed, retrying without SSL." . PHP_EOL;
       $conn_id = ftp_connect($ftp_server);
     }
 
@@ -725,20 +725,20 @@ class CardDAV2FB
                   $conn_id = ftp_ssl_connect($ftp_server);
                   if($conn_id == false)
                   {
-                    print " WARNING: Secure re-connection to FTP-server '" . $ftp_server . "' failed, retrying without SSL."
+                    print " WARNING: Secure re-connection to FTP-server '" . $ftp_server . "' failed, retrying without SSL." . PHP_EOL;
                     $conn_id = ftp_connect($ftp_server);
                   }
 
                   if($conn_id == false)
                   {
-                    print " ERROR: couldn't re-connect to FTP server '" . $ftp_server . "', abortіng."
+                    print " ERROR: couldn't re-connect to FTP server '" . $ftp_server . "', abortіng." . PHP_EOL;
                     break;
                   }
 
                   $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
                   if($login_result == false)
                   {
-                    print " ERROR: couldn't re-login to FTP-server '" . $ftp_server . "' with provided username/password settings."
+                    print " ERROR: couldn't re-login to FTP-server '" . $ftp_server . "' with provided username/password settings." . PHP_EOL;
                     break;
                   }
 
@@ -768,13 +768,13 @@ class CardDAV2FB
         }
       }
       else
-        print " ERROR: couldn't login to FTP-server '" . $ftp_server . "' with provided username/password settings."
+        print " ERROR: couldn't login to FTP-server '" . $ftp_server . "' with provided username/password settings." . PHP_EOL;
 
       // close ftp connection
       ftp_close($conn_id);
     }
     else
-      print " ERROR: couldn't connect to FTP server '" . $ftp_server . "'."
+      print " ERROR: couldn't connect to FTP server '" . $ftp_server . "'." . PHP_EOL;
 
     // in case numeric IP is given, try to resolve to hostname. Otherwise Fritzbox may decline login, because it is determine to be (prohibited) remote access
     $hostname = $this->config['fritzbox_ip'];
