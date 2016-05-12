@@ -199,319 +199,316 @@ class CardDAV2FB
     $imgseqfname = 1;
     $snum = 0;
 
-    foreach($this->config['carddav'] as $conf)
+    if(is_array($this->config['carddav']))
     {
-      print " [" . $snum . "]: " . $conf['url'] . " ";
-      $carddav = new CardDavPHP\CardDavBackend($conf['url']);
-      $carddav->setAuth($conf['user'], $conf['pw']);
-
-      // set the vcard extension in case the user
-      // defined it in the config
-      if(isset($conf['extension']))
-        $carddav->setVcardExtension($conf['extension']);
-
-      // retrieve data from the CardDAV server now
-      $xmldata =  $carddav->get();
-
-      // identify if we received UTF-8 encoded data from the
-      // CardDAV server and if not reencode it since the FRITZ!Box
-      // requires UTF-8 encoded data
-      if(iconv('utf-8', 'utf-8//IGNORE', $xmldata) != $xmldata)
-        $xmldata = utf8_encode($xmldata);
-
-      // read raw_vcard data from xml response
-      $raw_vcards = array();
-      $xmlvcard = new SimpleXMLElement($xmldata);
-
-      foreach($xmlvcard->element as $vcard_element)
+      foreach($this->config['carddav'] as $conf)
       {
-        $id = $vcard_element->id->__toString();
-        $value = (string)$vcard_element->vcard->__toString();
-        $raw_vcards[$id] = $value;
-      }
+        print " [" . $snum . "]: " . $conf['url'] . " ";
+        $carddav = new CardDavPHP\CardDavBackend($conf['url']);
+        $carddav->setAuth($conf['user'], $conf['pw']);
 
-      print " " . count($raw_vcards) . " VCards retrieved." . PHP_EOL;
+        // set the vcard extension in case the user
+        // defined it in the config
+        if(isset($conf['extension']))
+          $carddav->setVcardExtension($conf['extension']);
 
-      // parse raw_vcards
-      $result = array();
-      $quick_dial_arr = array();
-      foreach($raw_vcards as $v)
-      {
-        $vcard_obj = new vCard(false, $v);
-        $name_arr = null;
-        if(isset($vcard_obj->n[0]))
-          $name_arr = $vcard_obj->n[0];
-        $org_arr = null;
-        if(isset($vcard_obj->org[0]))
-          $org_arr = $vcard_obj->org[0];
-        $addnames = '';
-        $prefix = '';
-        $suffix = '';
-        $orgname = '';
-        $firstname = '';
-        $lastname = '';
+        // retrieve data from the CardDAV server now
+        $xmldata =  $carddav->get();
 
-        // Build name Parts if existing ans switch to true in config
-        if(isset($name_arr['prefixes']) AND $this->config['prefix'])
-          $prefix = trim($name_arr['prefixes']);
+        // identify if we received UTF-8 encoded data from the
+        // CardDAV server and if not reencode it since the FRITZ!Box
+        // requires UTF-8 encoded data
+        if(iconv('utf-8', 'utf-8//IGNORE', $xmldata) != $xmldata)
+          $xmldata = utf8_encode($xmldata);
 
-        if(isset($name_arr['suffixes']) AND $this->config['suffix'])
-          $suffix = trim($name_arr['suffixes']);
+        // read raw_vcard data from xml response
+        $raw_vcards = array();
+        $xmlvcard = new SimpleXMLElement($xmldata);
 
-        if(isset($name_arr['additionalnames']) AND $this->config['addnames'])
-          $addnames = trim($name_arr['additionalnames']);
-
-        if(isset($org_arr['name']) AND $this->config['orgname'])
-          $orgname = trim($org_arr['name']);
-
-        $firstname = trim($name_arr['firstname']);
-        $lastname = trim($name_arr['lastname']);
-
-        // the following section implemented different ways of constructing the
-        // final phonebook name entry depending on user preferred settings
-        // selectable in the config file. Possible options are:
-        //
-        // $this->config['fullname_format']:
-        //
-        // 0: "Prefix Lastname, Firstname AdditionalNames Suffix (orgname)"
-        // 1: "Prefix Firstname Lastname AdditionalNames Suffix (orgname)"
-        // 2: "Prefix Firstname AdditionalNames Lastname Suffix (orgname)"
-        //
-        $name = '';
-        $format = $this->config['fullname_format'];
-
-        // Prefix
-        if(!empty($prefix))
-          $name .= $prefix;
-
-        if($format == 0)
+        foreach($xmlvcard->element as $vcard_element)
         {
-          // Lastname
-          if(!empty($name) AND !empty($lastname))
-            $name .= ' ' . $lastname;
-          else
-            $name .= $lastname;
-        }
-        else
-        {
-          // Firstname
-          if(!empty($name) AND !empty($firstname))
-            $name .= ' ' . $firstname;
-          else
-            $name .= $firstname;
+          $id = $vcard_element->id->__toString();
+          $value = (string)$vcard_element->vcard->__toString();
+          $raw_vcards[$id] = $value;
         }
 
-        if($format == 2)
+        print " " . count($raw_vcards) . " VCards retrieved." . PHP_EOL;
+
+        // parse raw_vcards
+        $quick_dial_arr = array();
+        foreach($raw_vcards as $v)
         {
-          // AdditionalNames
-          if(!empty($name) AND !empty($addnames))
-            $name .= ' ' . $addnames;
-          else
-            $name .= $addnames;
-        }
+          $vcard_obj = new vCard(false, $v);
+          $name_arr = null;
+          if(isset($vcard_obj->n[0]))
+            $name_arr = $vcard_obj->n[0];
+          $org_arr = null;
+          if(isset($vcard_obj->org[0]))
+            $org_arr = $vcard_obj->org[0];
+          $addnames = '';
+          $prefix = '';
+          $suffix = '';
+          $orgname = '';
 
-        if($format == 0)
-        {
-          // Firstname
-          if(!empty($name) AND !empty($firstname))
-            $name .= ', ' . $firstname;
-          else
-            $name .= $firstname;
-        }
-        else
-        {
-          // Lastname
-          if(!empty($name) AND !empty($lastname))
-            $name .= ' ' . $lastname;
-          else
-            $name .= $lastname;
-        }
+          // Build name Parts if existing ans switch to true in config
+          if(isset($name_arr['prefixes']) AND $this->config['prefix'])
+            $prefix = trim($name_arr['prefixes']);
 
-        if($format != 2)
-        {
-          // AdditionalNames
-          if(!empty($name) AND !empty($addnames))
-            $name .= ' ' . $addnames;
-          else
-            $name .= $addnames;
-        }
+          if(isset($name_arr['suffixes']) AND $this->config['suffix'])
+            $suffix = trim($name_arr['suffixes']);
 
-        // Suffix
-        if(!empty($name) AND !empty($suffix))
-          $name .= ' ' . $suffix;
-        else
-          $name .= $suffix;
+          if(isset($name_arr['additionalnames']) AND $this->config['addnames'])
+            $addnames = trim($name_arr['additionalnames']);
 
-        // OrgName
-        if(!empty($name) AND !empty($orgname))
-          $name .= ' (' . $orgname . ')';
-        else
-          $name .= $orgname;
+          if(isset($org_arr['name']) AND $this->config['orgname'])
+            $orgname = trim($org_arr['name']);
 
-        // make sure to trim whitespaces and double spaces
-        $name = trim(str_replace('  ', ' ', $name));
+          $firstname = trim($name_arr['firstname']);
+          $lastname = trim($name_arr['lastname']);
 
-        if(empty($name))
-        {
-          print '  WARNING: No fullname, lastname or orgname found!';
-          $name = 'UNKNOWN';
-        }
+          // the following section implemented different ways of constructing the
+          // final phonebook name entry depending on user preferred settings
+          // selectable in the config file. Possible options are:
+          //
+          // $this->config['fullname_format']:
+          //
+          // 0: "Prefix Lastname, Firstname AdditionalNames Suffix (orgname)"
+          // 1: "Prefix Firstname Lastname AdditionalNames Suffix (orgname)"
+          // 2: "Prefix Firstname AdditionalNames Lastname Suffix (orgname)"
+          //
+          $name = '';
+          $format = $this->config['fullname_format'];
 
-        // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
-        if($vcard_obj->photo)
-        {
-          if(isset($this->config['seq_photo_name']) AND $this->config['seq_photo_name'] == true)
+          // Prefix
+          if(!empty($prefix))
+            $name .= $prefix;
+
+          if($format == 0)
           {
-            $photo = $imgseqfname;
-            $imgseqfname++;
+            // Lastname
+            if(!empty($name) AND !empty($lastname))
+              $name .= ' ' . $lastname;
+            else
+              $name .= $lastname;
           }
           else
           {
-            $photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í','ø'),
-            array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i','oe'),$name);
+            // Firstname
+            if(!empty($name) AND !empty($firstname))
+              $name .= ' ' . $firstname;
+            else
+              $name .= $firstname;
           }
-        }
-        else
-          $photo = '';
 
-        // phone
-        $phone_no = array();
-        if($vcard_obj->categories)
-          $categories = $vcard_obj->categories[0];
-        else
-          $categories = array();
-
-        $quick_dial_for_nr = null;
-        $quick_dial_nr = null;
-        
-        // check for quickdial entry
-        if(isset($vcard_obj->note[0]))
-        {
-          $note = $vcard_obj->note[0];
-          $notes = explode($this->config['quickdial_keyword'], $note);
-          foreach($notes as $linenr => $linecontent)
+          if($format == 2)
           {
-            $found = strrpos($linecontent , ":**7");
-            if($found > 0)
+            // AdditionalNames
+            if(!empty($name) AND !empty($addnames))
+              $name .= ' ' . $addnames;
+            else
+              $name .= $addnames;
+          }
+
+          if($format == 0)
+          {
+            // Firstname
+            if(!empty($name) AND !empty($firstname))
+              $name .= ', ' . $firstname;
+            else
+              $name .= $firstname;
+          }
+          else
+          {
+            // Lastname
+            if(!empty($name) AND !empty($lastname))
+              $name .= ' ' . $lastname;
+            else
+              $name .= $lastname;
+          }
+
+          if($format != 2)
+          {
+            // AdditionalNames
+            if(!empty($name) AND !empty($addnames))
+              $name .= ' ' . $addnames;
+            else
+              $name .= $addnames;
+          }
+
+          // Suffix
+          if(!empty($name) AND !empty($suffix))
+            $name .= ' ' . $suffix;
+          else
+            $name .= $suffix;
+
+          // OrgName
+          if(!empty($name) AND !empty($orgname))
+            $name .= ' (' . $orgname . ')';
+          else
+            $name .= $orgname;
+
+          // make sure to trim whitespaces and double spaces
+          $name = trim(str_replace('  ', ' ', $name));
+
+          if(empty($name))
+          {
+            print '  WARNING: No fullname, lastname or orgname found!';
+            $name = 'UNKNOWN';
+          }
+
+          // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
+          if($vcard_obj->photo)
+          {
+            if(isset($this->config['seq_photo_name']) AND $this->config['seq_photo_name'] == true)
             {
-              $pos_qd_start = strrpos($linecontent , ":**7" );
-              $quick_dial_for_nr = preg_replace("/[^0-9+]/", "",substr($linecontent , 0, $pos_qd_start));
-              $quick_dial_nr = intval(substr($linecontent , $pos_qd_start+4, 3));
-              $quick_dial_arr[$quick_dial_for_nr]=$quick_dial_nr;
-            }
-          }
-        }
-
-        // e-mail addresses
-        $email_add = array();
-        $vip = isset($this->config['group_vip']) && in_array((string)$this->config['group_vip'], $categories);
-
-        if(array_key_exists('group_filter',$this->config))
-        {
-          $add_entry = 0;
-          foreach($this->config['group_filter'] as $group_filter)
-          {
-            if(in_array($group_filter,$categories))
-            {
-              $add_entry = 1;
-              break;
-            }
-          }
-        } 
-        else
-          $add_entry = 1;
-
-        if($add_entry == 1)
-        {
-          foreach($vcard_obj->tel as $t)
-          {
-            $prio = 0;
-            $quickdial =null;
-            
-            if(!is_array($t) || empty($t['type']))
-            {
-              $type = "mobile";
-              $phone_number = $t;
+              $photo = $imgseqfname;
+              $imgseqfname++;
             }
             else
             {
-              $phone_number = $t['value'];
-              
-              $phone_number_clean = preg_replace("/[^0-9+]/", "",$phone_number);
-              foreach($quick_dial_arr as $qd_phone_nr => $value)
-              {
-                if($qd_phone_nr == $phone_number_clean)
-                {
-                  //Set quickdial
-                  if($value == 1)
-                    print "\nWARNING: Quickdial value 1 (**701) is not possible but used! \n";
-                  elseif($value >= 100)
-                    print "\nWARNING: Quickdial value bigger than 99 (**799) is not possible but used! \n";
-
-                  $quickdial = $value;
-                }
-              }
-
-              $typearr_lower = unserialize(strtolower(serialize($t['type'])));
-
-              // find out priority
-              if(in_array("pref", $typearr_lower))
-                $prio = 1;
-
-              // set the proper type
-              if(in_array("cell", $typearr_lower))
-                $type = "mobile";
-              elseif(in_array("home", $typearr_lower))
-                $type = "home";
-              elseif(in_array("fax", $typearr_lower))
-                $type = "fax_work";
-              elseif(in_array("work", $typearr_lower))
-                $type = "work";
-              elseif(in_array("other", $typearr_lower))
-                $type = "other";
-              elseif(in_array("dom", $typearr_lower))
-                $type = "other";
-              else
-                continue;
+              $photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í','ø'),
+              array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i','oe'),$name);
             }
-            $phone_no[] =  array("type"=>$type, "prio"=>$prio, "quickdial"=>$quickdial, "value" => $this->_clear_phone_number($phone_number));
+          }
+          else
+            $photo = '';
+
+          // phone
+          $phone_no = array();
+          if($vcard_obj->categories)
+            $categories = $vcard_obj->categories[0];
+          else
+            $categories = array();
+
+          // check for quickdial entry
+          if(isset($vcard_obj->note[0]))
+          {
+            $note = $vcard_obj->note[0];
+            $notes = explode($this->config['quickdial_keyword'], $note);
+            foreach($notes as $linenr => $linecontent)
+            {
+              $found = strrpos($linecontent , ":**7");
+              if($found > 0)
+              {
+                $pos_qd_start = strrpos($linecontent , ":**7" );
+                $quick_dial_for_nr = preg_replace("/[^0-9+]/", "",substr($linecontent , 0, $pos_qd_start));
+                $quick_dial_nr = intval(substr($linecontent , $pos_qd_start+4, 3));
+                $quick_dial_arr[$quick_dial_for_nr]=$quick_dial_nr;
+              }
+            }
           }
 
-          // request email address and type
-          if($vcard_obj->email)
+          // e-mail addresses
+          $email_add = array();
+          $vip = isset($this->config['group_vip']) && in_array((string)$this->config['group_vip'], $categories);
+
+          if(array_key_exists('group_filter',$this->config) && is_array($this->config['group_filter']))
           {
-            foreach($vcard_obj->email as $e)
+            $add_entry = 0;
+            foreach($this->config['group_filter'] as $group_filter)
             {
-              if(empty($e['type']))
+              if(in_array($group_filter,$categories))
               {
-                $type_email = "work";
-                $email = $e;
+                $add_entry = 1;
+                break;
+              }
+            }
+          } 
+          else
+            $add_entry = 1;
+
+          if($add_entry == 1)
+          {
+            foreach($vcard_obj->tel as $t)
+            {
+              $prio = 0;
+              $quickdial =null;
+              
+              if(!is_array($t) || empty($t['type']))
+              {
+                $type = "mobile";
+                $phone_number = $t;
               }
               else
               {
-                $email = $e['value'];
-                $typearr_lower = unserialize(strtolower(serialize($e['type'])));
-                if(in_array("work", $typearr_lower))
-                  $type_email = "work";
+                $phone_number = $t['value'];
+                
+                $phone_number_clean = preg_replace("/[^0-9+]/", "",$phone_number);
+                foreach($quick_dial_arr as $qd_phone_nr => $value)
+                {
+                  if($qd_phone_nr == $phone_number_clean)
+                  {
+                    //Set quickdial
+                    if($value == 1)
+                      print "\nWARNING: Quickdial value 1 (**701) is not possible but used! \n";
+                    elseif($value >= 100)
+                      print "\nWARNING: Quickdial value bigger than 99 (**799) is not possible but used! \n";
+
+                    $quickdial = $value;
+                  }
+                }
+
+                $typearr_lower = unserialize(strtolower(serialize($t['type'])));
+
+                // find out priority
+                if(in_array("pref", $typearr_lower))
+                  $prio = 1;
+
+                // set the proper type
+                if(in_array("cell", $typearr_lower))
+                  $type = "mobile";
                 elseif(in_array("home", $typearr_lower))
-                  $type_email = "home";
+                  $type = "home";
+                elseif(in_array("fax", $typearr_lower))
+                  $type = "fax_work";
+                elseif(in_array("work", $typearr_lower))
+                  $type = "work";
                 elseif(in_array("other", $typearr_lower))
-                  $type_email = "other";
+                  $type = "other";
+                elseif(in_array("dom", $typearr_lower))
+                  $type = "other";
                 else
                   continue;
               }
-
-              // DEBUG: print out the email address on the console
-              //print $type_email.": ".$email."\n";
-
-              $email_add[] = array("type"=>$type_email, "value" => $email);
+              $phone_no[] =  array("type"=>$type, "prio"=>$prio, "quickdial"=>$quickdial, "value" => $this->_clear_phone_number($phone_number));
             }
-          }
-          $entries[] = array("realName" => $name, "telephony" => $phone_no, "email" => $email_add, "vip" => $vip, "photo" => $photo, "photo_data" => $vcard_obj->photo);
-        }
-      }
 
-      $snum++;
+            // request email address and type
+            if($vcard_obj->email)
+            {
+              foreach($vcard_obj->email as $e)
+              {
+                if(empty($e['type']))
+                {
+                  $type_email = "work";
+                  $email = $e;
+                }
+                else
+                {
+                  $email = $e['value'];
+                  $typearr_lower = unserialize(strtolower(serialize($e['type'])));
+                  if(in_array("work", $typearr_lower))
+                    $type_email = "work";
+                  elseif(in_array("home", $typearr_lower))
+                    $type_email = "home";
+                  elseif(in_array("other", $typearr_lower))
+                    $type_email = "other";
+                  else
+                    continue;
+                }
+
+                // DEBUG: print out the email address on the console
+                //print $type_email.": ".$email."\n";
+
+                $email_add[] = array("type"=>$type_email, "value" => $email);
+              }
+            }
+            $entries[] = array("realName" => $name, "telephony" => $phone_no, "email" => $email_add, "vip" => $vip, "photo" => $photo, "photo_data" => $vcard_obj->photo);
+          }
+        }
+
+        $snum++;
+      }
     }
 
     $this->entries = $entries;
@@ -692,7 +689,7 @@ class CardDAV2FB
     {
       ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
       $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-      if($login_result == true)
+      if($login_result === true)
       {
         ftp_pasv($conn_id, true);
 
@@ -736,7 +733,7 @@ class CardDAV2FB
                   }
 
                   $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-                  if($login_result == false)
+                  if($login_result === false)
                   {
                     print " ERROR: couldn't re-login to FTP-server '" . $ftp_server . "' with provided username/password settings." . PHP_EOL;
                     break;
@@ -812,7 +809,7 @@ class CardDAV2FB
 
       $raw_result =  $fritz->doPostFile($formfields, $filefileds);   // send the command
       $msg = $this->_parse_fb_result($raw_result);
-      $fritz = null;  // destroy the object to log out
+      unset($fritz);  // destroy the object to log out
 
       print "  FRITZ!Box returned message: '" . $msg . "'" . PHP_EOL;
     }
@@ -822,4 +819,3 @@ class CardDAV2FB
     }
   }
 }
-?>
