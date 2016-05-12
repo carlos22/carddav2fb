@@ -690,7 +690,10 @@ class CardDAV2FB
     $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
     $all_existing_files = ftp_nlist($conn_id, $remote_path);
     if($all_existing_files == false)
+    {
       ftp_mkdir($conn_id, $remote_path);
+      $all_existing_files = array();
+    }
 
     // now iterate through all jpg files in tempdir and upload them if necessary
     $dir = new DirectoryIterator($this->tmpdir);
@@ -703,7 +706,7 @@ class CardDAV2FB
           $file = $fileinfo->getFilename();
 
           print " FTP-Upload '" . $file . "'...";
-          if(! in_array($remote_path . "/" . $file, $all_existing_files))
+          if(!in_array($remote_path . "/" . $file, $all_existing_files))
           {
             if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
             {
