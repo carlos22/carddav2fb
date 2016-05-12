@@ -29,7 +29,7 @@ $carddav2fb_version = '1.11 (2016-05-12)';
 $php_min_version = '5.3.6';
 if(version_compare(PHP_VERSION, $php_min_version) < 0)
 {
-  print 'ERROR: PHP version '.$php_min_version.' is required. Found version: ' . PHP_VERSION . PHP_EOL;
+  print 'ERROR: PHP version ' . $php_min_version . ' is required. Found version: ' . PHP_VERSION . PHP_EOL;
   exit(1);
 }
 
@@ -63,7 +63,7 @@ if(is_file($config_file_name))
   require($config_file_name);
 else
 {
-  print 'ERROR: No '.$config_file_name.' found, please take a look at config.example.php and create a '.$config_file_name.' file!'.PHP_EOL;
+  print 'ERROR: No ' . $config_file_name . ' found, please take a look at config.example.php and create a ' . $config_file_name . ' file!' . PHP_EOL;
   exit(1);
 }
 
@@ -119,16 +119,16 @@ class CardDAV2FB
   }
 
   // Source: https://php.net/manual/de/function.tempnam.php#61436
-  public function mktemp($dir, $prefix='', $mode=0700)
+  public function mktemp($dir, $prefix = '', $mode = 0700)
   {
     if(substr($dir, -1) != '/')
       $dir .= '/';
 
     do
     {
-      $path = $dir.$prefix.mt_rand(0, 9999999);
+      $path = $dir . $prefix . mt_rand(0, 9999999);
     }
-    while (!mkdir($path, $mode));
+    while(!mkdir($path, $mode));
 
     return $path;
   }
@@ -142,8 +142,8 @@ class CardDAV2FB
       {
         if($object != "." && $object != "..")
         {
-          if(filetype($dir."/".$object) == "dir")
-            rrmdir($dir."/".$object); else unlink($dir."/".$object);
+          if(filetype($dir . "/" . $object) == "dir")
+            rrmdir($dir . "/" . $object); else unlink($dir . "/" . $object);
         }
       }
       reset($objects);
@@ -213,7 +213,7 @@ class CardDAV2FB
           $carddav->setVcardExtension($conf['extension']);
 
         // retrieve data from the CardDAV server now
-        $xmldata =  $carddav->get();
+        $xmldata = $carddav->get();
 
         // identify if we received UTF-8 encoded data from the
         // CardDAV server and if not reencode it since the FRITZ!Box
@@ -251,16 +251,16 @@ class CardDAV2FB
           $orgname = '';
 
           // Build name Parts if existing ans switch to true in config
-          if(isset($name_arr['prefixes']) AND $this->config['prefix'])
+          if(isset($name_arr['prefixes']) and $this->config['prefix'])
             $prefix = trim($name_arr['prefixes']);
 
-          if(isset($name_arr['suffixes']) AND $this->config['suffix'])
+          if(isset($name_arr['suffixes']) and $this->config['suffix'])
             $suffix = trim($name_arr['suffixes']);
 
-          if(isset($name_arr['additionalnames']) AND $this->config['addnames'])
+          if(isset($name_arr['additionalnames']) and $this->config['addnames'])
             $addnames = trim($name_arr['additionalnames']);
 
-          if(isset($org_arr['name']) AND $this->config['orgname'])
+          if(isset($org_arr['name']) and $this->config['orgname'])
             $orgname = trim($org_arr['name']);
 
           $firstname = trim($name_arr['firstname']);
@@ -286,7 +286,7 @@ class CardDAV2FB
           if($format == 0)
           {
             // Lastname
-            if(!empty($name) AND !empty($lastname))
+            if(!empty($name) and !empty($lastname))
               $name .= ' ' . $lastname;
             else
               $name .= $lastname;
@@ -294,7 +294,7 @@ class CardDAV2FB
           else
           {
             // Firstname
-            if(!empty($name) AND !empty($firstname))
+            if(!empty($name) and !empty($firstname))
               $name .= ' ' . $firstname;
             else
               $name .= $firstname;
@@ -303,7 +303,7 @@ class CardDAV2FB
           if($format == 2)
           {
             // AdditionalNames
-            if(!empty($name) AND !empty($addnames))
+            if(!empty($name) and !empty($addnames))
               $name .= ' ' . $addnames;
             else
               $name .= $addnames;
@@ -312,7 +312,7 @@ class CardDAV2FB
           if($format == 0)
           {
             // Firstname
-            if(!empty($name) AND !empty($firstname))
+            if(!empty($name) and !empty($firstname))
               $name .= ', ' . $firstname;
             else
               $name .= $firstname;
@@ -320,7 +320,7 @@ class CardDAV2FB
           else
           {
             // Lastname
-            if(!empty($name) AND !empty($lastname))
+            if(!empty($name) and !empty($lastname))
               $name .= ' ' . $lastname;
             else
               $name .= $lastname;
@@ -329,20 +329,20 @@ class CardDAV2FB
           if($format != 2)
           {
             // AdditionalNames
-            if(!empty($name) AND !empty($addnames))
+            if(!empty($name) and !empty($addnames))
               $name .= ' ' . $addnames;
             else
               $name .= $addnames;
           }
 
           // Suffix
-          if(!empty($name) AND !empty($suffix))
+          if(!empty($name) and !empty($suffix))
             $name .= ' ' . $suffix;
           else
             $name .= $suffix;
 
           // OrgName
-          if(!empty($name) AND !empty($orgname))
+          if(!empty($name) and !empty($orgname))
             $name .= ' (' . $orgname . ')';
           else
             $name .= $orgname;
@@ -359,15 +359,15 @@ class CardDAV2FB
           // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
           if($vcard_obj->photo)
           {
-            if(isset($this->config['seq_photo_name']) AND $this->config['seq_photo_name'] == true)
+            if(isset($this->config['seq_photo_name']) and $this->config['seq_photo_name'] == true)
             {
               $photo = $imgseqfname;
               $imgseqfname++;
             }
             else
             {
-              $photo = str_replace(array(',','&',' ','/','ä','ö','ü','Ä','Ö','Ü','ß','á','à','ó','ò','ú','ù','í','ø'),
-              array('','_','_','_','ae','oe','ue','Ae','Oe','Ue','ss','a','a','o','o','u','u','i','oe'),$name);
+              $photo = str_replace(array(',', '&', ' ', '/', 'ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü', 'ß', 'á', 'à', 'ó', 'ò', 'ú', 'ù', 'í', 'ø'),
+              array('', '_', '_', '_', 'ae', 'oe', 'ue', 'Ae', 'Oe', 'Ue', 'ss', 'a', 'a', 'o', 'o', 'u', 'u', 'i', 'oe'), $name);
             }
           }
           else
@@ -387,13 +387,13 @@ class CardDAV2FB
             $notes = explode($this->config['quickdial_keyword'], $note);
             foreach($notes as $linenr => $linecontent)
             {
-              $found = strrpos($linecontent , ":**7");
+              $found = strrpos($linecontent, ":**7");
               if($found > 0)
               {
-                $pos_qd_start = strrpos($linecontent , ":**7" );
-                $quick_dial_for_nr = preg_replace("/[^0-9+]/", "",substr($linecontent , 0, $pos_qd_start));
-                $quick_dial_nr = intval(substr($linecontent , $pos_qd_start+4, 3));
-                $quick_dial_arr[$quick_dial_for_nr]=$quick_dial_nr;
+                $pos_qd_start = strrpos($linecontent, ":**7");
+                $quick_dial_for_nr = preg_replace("/[^0-9+]/", "", substr($linecontent, 0, $pos_qd_start));
+                $quick_dial_nr = intval(substr($linecontent, $pos_qd_start + 4, 3));
+                $quick_dial_arr[$quick_dial_for_nr] = $quick_dial_nr;
               }
             }
           }
@@ -402,12 +402,12 @@ class CardDAV2FB
           $email_add = array();
           $vip = isset($this->config['group_vip']) && in_array((string)$this->config['group_vip'], $categories);
 
-          if(array_key_exists('group_filter',$this->config) && is_array($this->config['group_filter']))
+          if(array_key_exists('group_filter', $this->config) && is_array($this->config['group_filter']))
           {
             $add_entry = 0;
             foreach($this->config['group_filter'] as $group_filter)
             {
-              if(in_array($group_filter,$categories))
+              if(in_array($group_filter, $categories))
               {
                 $add_entry = 1;
                 break;
@@ -422,7 +422,7 @@ class CardDAV2FB
             foreach($vcard_obj->tel as $t)
             {
               $prio = 0;
-              $quickdial =null;
+              $quickdial = null;
               
               if(!is_array($t) || empty($t['type']))
               {
@@ -433,7 +433,7 @@ class CardDAV2FB
               {
                 $phone_number = $t['value'];
                 
-                $phone_number_clean = preg_replace("/[^0-9+]/", "",$phone_number);
+                $phone_number_clean = preg_replace("/[^0-9+]/", "", $phone_number);
                 foreach($quick_dial_arr as $qd_phone_nr => $value)
                 {
                   if($qd_phone_nr == $phone_number_clean)
@@ -470,7 +470,7 @@ class CardDAV2FB
                 else
                   continue;
               }
-              $phone_no[] =  array("type"=>$type, "prio"=>$prio, "quickdial"=>$quickdial, "value" => $this->_clear_phone_number($phone_number));
+              $phone_no[] = array("type"=>$type, "prio"=>$prio, "quickdial"=>$quickdial, "value" => $this->_clear_phone_number($phone_number));
             }
 
             // request email address and type
@@ -527,7 +527,7 @@ class CardDAV2FB
     // create FB XML in utf-8 format
     $root = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><phonebooks><phonebook></phonebook></phonebooks>');
     $pb = $root->phonebook;
-    $pb->addAttribute("name",$this->config['phonebook_name']);
+    $pb->addAttribute("name", $this->config['phonebook_name']);
 
     foreach($this->entries as $entry)
     {
@@ -545,13 +545,13 @@ class CardDAV2FB
       {
         $num = $telephony->addChild("number", $tel['value']);
         $num->addAttribute("type", $tel['type']);
-        $num->addAttribute("vanity","");
+        $num->addAttribute("vanity", "");
         $num->addAttribute("prio", $tel['prio']);
         $num->addAttribute("id", $id);
 
         if(isset($tel['quickdial']))
         {
-          $num->addAttribute("quickdial",$tel['quickdial']);
+          $num->addAttribute("quickdial", $tel['quickdial']);
           print "  Added quickdial: " . $tel['quickdial'] . " for: " . $tel['value'] . " (" . $tel['type'] . ")" . PHP_EOL;
         }
 
@@ -607,7 +607,7 @@ class CardDAV2FB
             }
 
             // add contact photo to xml
-            $person->addChild("imageURL", $this->config['fritzbox_path'].$this->config['usb_disk']."FRITZ/fonpix/".basename($photo_file));
+            $person->addChild("imageURL", $this->config['fritzbox_path'] . $this->config['usb_disk'] . "FRITZ/fonpix/" . basename($photo_file));
 
             print "  Added photo: " . basename($photo_file) . PHP_EOL;
           }
@@ -639,14 +639,14 @@ class CardDAV2FB
     return $text;
   }
 
-  public function _concat ($text1,$text2)
+  public function _concat($text1, $text2)
   {
     if($text1 == '')
       return $text2;
     elseif($text2 == '')
       return $text1;
     else
-      return $text1.", ".$text2;
+      return $text1 . ", " . $text2;
   }
 
   public function _parse_fb_result($text)
@@ -661,7 +661,7 @@ class CardDAV2FB
   public function upload_to_fb()
   {
     // if the user wants to save the xml to a separate file, we do so now
-    if(array_key_exists('output_file',$this->config))
+    if(array_key_exists('output_file', $this->config))
     {
       $output = fopen($this->config['output_file'], 'w');
       if($output)
@@ -694,7 +694,7 @@ class CardDAV2FB
         ftp_pasv($conn_id, true);
 
         // create remote photo path on FRITZ!Box if it doesn't exist
-        $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
+        $remote_path = $this->config['usb_disk'] . "/FRITZ/fonpix";
         $all_existing_files = ftp_nlist($conn_id, $remote_path);
         if($all_existing_files == false)
         {
@@ -751,7 +751,7 @@ class CardDAV2FB
                 // cleanup old files
                 foreach($all_existing_files as $existing_file)
                 {
-                  if(strpos($existing_file, $remote_path."/".substr($file, 0, -10)) !== false)
+                  if(strpos($existing_file, $remote_path . "/" . substr($file, 0, -10)) !== false)
                   {
                     print " FTP-Delete: " . $existing_file . PHP_EOL;
                     ftp_delete($conn_id, $remote_path . "/" . basename($existing_file));
@@ -778,11 +778,11 @@ class CardDAV2FB
     if(filter_var($hostname, FILTER_VALIDATE_IP))
     {
       $hostname = gethostbyaddr($hostname);
-      if($hostname ==  $this->config['fritzbox_ip'])
-        print " WARNING: Unable to get hostname for IP address (". $this->config['fritzbox_ip'] .") <" . $hostname . "<" . PHP_EOL;
+      if($hostname == $this->config['fritzbox_ip'])
+        print " WARNING: Unable to get hostname for IP address (" . $this->config['fritzbox_ip'] . ") <" . $hostname . "<" . PHP_EOL;
       else
       {
-        print " INFO: Given IP address (". $this->config['fritzbox_ip'] .") has hostname ". $hostname . "." . PHP_EOL;
+        print " INFO: Given IP address (" . $this->config['fritzbox_ip'] . ") has hostname " . $hostname . "." . PHP_EOL;
         $this->config['fritzbox_ip'] = $hostname;
       }
     }
@@ -807,15 +807,15 @@ class CardDAV2FB
        )
       );
 
-      $raw_result =  $fritz->doPostFile($formfields, $filefileds);   // send the command
+      $raw_result = $fritz->doPostFile($formfields, $filefileds); // send the command
       $msg = $this->_parse_fb_result($raw_result);
-      unset($fritz);  // destroy the object to log out
+      unset($fritz); // destroy the object to log out
 
       print "  FRITZ!Box returned message: '" . $msg . "'" . PHP_EOL;
     }
     catch(Exception $e)
     {
-      print "  ERROR: " . $e->getMessage() . PHP_EOL;     // show the error message in anything failed
+      print "  ERROR: " . $e->getMessage() . PHP_EOL; // show the error message in anything failed
     }
   }
 }
