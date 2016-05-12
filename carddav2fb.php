@@ -23,7 +23,7 @@ error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
 // Version identifier for CardDAV2FB
-$carddav2fb_version = '1.11 (2016-04-29)';
+$carddav2fb_version = '1.11 (2016-05-12)';
 
 // check for the minimum php version
 $php_min_version = '5.3.6';
@@ -45,7 +45,7 @@ else
 // default/fallback config options
 $config['tmp_dir'] = sys_get_temp_dir();
 $config['fritzbox_ip'] = 'fritz.box';
-$config['fritzbox_ip_ftp'] = 'fritz.box';
+$config['fritzbox_ip_ftp'] = $config['fritzbox_ip'];
 $config['fritzbox_force_local_login'] = false;
 $config['phonebook_number'] = '0';
 $config['phonebook_name'] = 'Telefonbuch';
@@ -682,65 +682,99 @@ class CardDAV2FB
     // perform an ftps-connection to copy over the photos to a specified directory
     $ftp_server = $this->config['fritzbox_ip_ftp'];
     $conn_id = ftp_ssl_connect($ftp_server);
-    ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
-    $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-    ftp_pasv($conn_id, true);
-
-    // create remote photo path on FRITZ!Box if it doesn't exist
-    $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
-    $all_existing_files = ftp_nlist($conn_id, $remote_path);
-    if($all_existing_files == false)
+    if($conn_id == false)
     {
-      ftp_mkdir($conn_id, $remote_path);
-      $all_existing_files = array();
+      print " WARNING: Secure connection to FTP-server '" . $ftp_server . "' failed, retrying without SSL."
+      $conn_id = ftp_connect($ftp_server);
     }
 
-    // now iterate through all jpg files in tempdir and upload them if necessary
-    $dir = new DirectoryIterator($this->tmpdir);
-    foreach($dir as $fileinfo)
+    if($conn_id != false)
     {
-      if(!$fileinfo->isDot())
+      ftp_set_option($conn_id, FTP_TIMEOUT_SEC, 60);
+      $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
+      if($login_result == true)
       {
-        if($fileinfo->getExtension() == "jpg")
+        ftp_pasv($conn_id, true);
+
+        // create remote photo path on FRITZ!Box if it doesn't exist
+        $remote_path = $this->config['usb_disk']."/FRITZ/fonpix";
+        $all_existing_files = ftp_nlist($conn_id, $remote_path);
+        if($all_existing_files == false)
         {
-          $file = $fileinfo->getFilename();
+          ftp_mkdir($conn_id, $remote_path);
+          $all_existing_files = array();
+        }
 
-          print " FTP-Upload '" . $file . "'...";
-          if(!in_array($remote_path . "/" . $file, $all_existing_files))
+        // now iterate through all jpg files in tempdir and upload them if necessary
+        $dir = new DirectoryIterator($this->tmpdir);
+        foreach($dir as $fileinfo)
+        {
+          if(!$fileinfo->isDot())
           {
-            if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
+            if($fileinfo->getExtension() == "jpg")
             {
-              // retry when a fault occurs.
-              print " retrying... ";
-              $conn_id = ftp_ssl_connect($ftp_server);
-              $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
-              ftp_pasv($conn_id, true);
-              if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
-                print " ERROR: while uploading file " . $fileinfo->getFilename() . PHP_EOL;
-              else
-                print " ok." . PHP_EOL;
-            }
-            else
-              print " ok." . PHP_EOL;
+              $file = $fileinfo->getFilename();
 
-            // cleanup old files
-            foreach($all_existing_files as $existing_file)
-            {
-              if(strpos($existing_file, $remote_path."/".substr($file, 0, -10)) !== false)
+              print " FTP-Upload '" . $file . "'...";
+              if(!in_array($remote_path . "/" . $file, $all_existing_files))
               {
-                print " FTP-Delete: " . $existing_file . PHP_EOL;
-                ftp_delete($conn_id, $remote_path . "/" . basename($existing_file));
+                if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
+                {
+                  // retry when a fault occurs.
+                  print " retrying... ";
+                  $conn_id = ftp_ssl_connect($ftp_server);
+                  if($conn_id == false)
+                  {
+                    print " WARNING: Secure re-connection to FTP-server '" . $ftp_server . "' failed, retrying without SSL."
+                    $conn_id = ftp_connect($ftp_server);
+                  }
+
+                  if($conn_id == false)
+                  {
+                    print " ERROR: couldn't re-connect to FTP server '" . $ftp_server . "', abortіng."
+                    break;
+                  }
+
+                  $login_result = ftp_login($conn_id, $this->config['fritzbox_user'], $this->config['fritzbox_pw']);
+                  if($login_result == false)
+                  {
+                    print " ERROR: couldn't re-login to FTP-server '" . $ftp_server . "' with provided username/password settings."
+                    break;
+                  }
+
+                  ftp_pasv($conn_id, true);
+                  if(!ftp_put($conn_id, $remote_path . "/" . $file, $fileinfo->getPathname(), FTP_BINARY))
+                    print " ERROR: while uploading file " . $fileinfo->getFilename() . PHP_EOL;
+                  else
+                    print " ok." . PHP_EOL;
+                }
+                else
+                  print " ok." . PHP_EOL;
+
+                // cleanup old files
+                foreach($all_existing_files as $existing_file)
+                {
+                  if(strpos($existing_file, $remote_path."/".substr($file, 0, -10)) !== false)
+                  {
+                    print " FTP-Delete: " . $existing_file . PHP_EOL;
+                    ftp_delete($conn_id, $remote_path . "/" . basename($existing_file));
+                  }
+                }
               }
+              else
+                print " already exists." . PHP_EOL;
             }
           }
-          else
-            print " already exists." . PHP_EOL;
         }
       }
-    }
+      else
+        print " ERROR: couldn't login to FTP-server '" . $ftp_server . "' with provided username/password settings."
 
-    // close ftp connection
-    ftp_close($conn_id);
+      // close ftp connection
+      ftp_close($conn_id);
+    }
+    else
+      print " ERROR: couldn't connect to FTP server '" . $ftp_server . "'."
 
     // in case numeric IP is given, try to resolve to hostname. Otherwise Fritzbox may decline login, because it is determine to be (prohibited) remote access
     $hostname = $this->config['fritzbox_ip'];
