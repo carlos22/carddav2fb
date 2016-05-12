@@ -630,7 +630,13 @@ class CardDAV2FB
       $contact->addChild("mod_time", (string)time());
     }
 
-    $this->fbxml = $root->asXML();
+    if($root->asXML() != false)
+      $this->fbxml = $root->asXML();
+    else
+    {
+      print "  ERROR: created XML data isn't well-formed." . PHP_EOL;
+      exit(1);
+    }
   }
 
   public function _convert_text($text)
@@ -651,8 +657,7 @@ class CardDAV2FB
 
   public function _parse_fb_result($text)
   {
-    preg_match("/\<h2\>([^\<]+)\<\/h2\>/", $text, $matches);
-    if($matches)
+    if(preg_match("/\<h2\>([^\<]+)\<\/h2\>/", $text, $matches) == 1 && !empty($matches))
       return $matches[1];
     else
       return "Error while uploading xml to fritzbox";
