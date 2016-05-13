@@ -364,11 +364,32 @@ class CardDavBackend
         $vcard_id   = str_replace($this->url_vcard_extension, null, $vcard_id);
         $result     = $this->query($this->url . $vcard_id . $this->url_vcard_extension, 'GET');
 
-        switch ($result['http_code'])
+        // DEBUG: print the response of the carddav-server
+        // print_r($result);
+
+	switch ($result['http_code'])
         {
-            case 200:
-            case 207:
-                return $result['response'];
+		case 404:
+			$altResult  = $this->query($this->url . $vcard_id , 'GET');
+		        // DEBUG: print the response of the carddav-server
+		        // print_r($altResult);
+	                switch ($altResult['http_code'])
+        	        {
+                	        case 200:
+	                        case 207:
+					print "Ignoring given Vcard Extension (".$this->url_vcard_extension.")" . PHP_EOL. ".";
+					$this->setVcardExtension("");
+        	                        return $altResult['response'];
+	                }
+		        throw new \Exception(
+		            "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}:{$result['response']}:{$vcard_id}.",
+		            self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET_VCARD
+		        );
+
+		case 200:
+		case 207:
+			print ".";
+			return $result['response'];
         }
 
         throw new \Exception(

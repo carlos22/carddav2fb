@@ -1,5 +1,7 @@
 # CardDAV contacts import for AVM FRITZ!Box
 
+[![Build Status](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/badges/build.png?b=master)](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/build-status/master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/?branch=master)
+
 Features:
 
 * Allows to import CardDAV-based VCard contacts (e.g. from 'owncloud') to a phonebook in a AVM FRITZ!Box
@@ -12,17 +14,20 @@ Features:
 
 ## Information
 
-This version of carddav2fb is a forked version from jens-maus (https://github.com/jens-maus/carddav2fb.git) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
+This version of carddav2fb is a forked version from carlos22 (https://github.com/carlos22/carddav2fb) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
 
 ## Requirements
 
-PHP version 5.3.6 or higher is required.
+* PHP-version 5.3.6 or higher
+* PHP-curl module
+* PHP-ftp module
+* PHP-mbstring module
 
 ## Installation
 
  Checkout the carddav2fb sources including its related subprojects using the following command:
 
-		git clone https://github.com/holzhannes/carddav2fb.git
+		git clone https://github.com/jens-maus/carddav2fb.git
 
 Now you should have everything setup and checked out to a 'carddav2fb' directory.
 
@@ -33,15 +38,14 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
   * `Access to NAS content` (required to upload photos via ftp).
 3. Make sure the telephone book you are going to update via carddav2fb exists on the FRITZ!Box, otherwise the upload will fail.
 4. Copy `config.example.php` to `config.php` and adapt it to your needs including setting the FRITZ!Box user settings.
-5. Copy as many `initializing images` from the folder `init-images` to your FRITZ!Box `fonpix` folder.
 
 ## Usage
 
 ### Ubuntu
 
-1. Install PHP5, PHP-curl and PHP-ftp module:
+1. Install PHP, PHP-curl, PHP-ftp and PHP-mbstring module:
 
-		sudo apt-get install php5-cli php5-curl php5-ftp
+		sudo apt-get install php-cli php-curl php-ftp php-mbstring
 
 2. Open a Terminal and execute:
 
@@ -60,6 +64,7 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 	$config['phonebook_number'] = '0';
 	$config['phonebook_name'] = 'Telefonbuch';
 	$config['fritzbox_path'] = 'file:///var/media/ftp/';
+
 	// full name format options default 0
 	// parts in '' will only added if existing and switched to true in config
 	// 0 =  'Prefix' Lastname, Firstname, 'Additional Names', 'Suffix', 'orgname'
@@ -92,4 +97,4 @@ This script is using third-party libraries for downloading VCards from CardDAV s
 This script is released under Public Domain.
 
 ## Authors
-Copyright (c) 2012-2015 Karl Glatz, Martin Rost, Jens Maus
+Copyright (c) 2012-2016 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger
