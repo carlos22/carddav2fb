@@ -196,7 +196,6 @@ class CardDAV2FB
   public function get_carddav_entries()
   {
     $entries = array();
-    $imgseqfname = 1;
     $snum = 0;
 
     if(is_array($this->config['carddav']))
@@ -356,19 +355,11 @@ class CardDAV2FB
             $name = 'UNKNOWN';
           }
 
-          // format filename of contact photo; remove special letters, added config option for sequential filnames default is false
+          // format filename of contact photo; remove special letters
           if($vcard_obj->photo)
           {
-            if(isset($this->config['seq_photo_name']) and $this->config['seq_photo_name'] == true)
-            {
-              $photo = $imgseqfname;
-              $imgseqfname++;
-            }
-            else
-            {
-              $photo = str_replace(array(',', '&', ' ', '/', 'ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü', 'ß', 'á', 'à', 'ó', 'ò', 'ú', 'ù', 'í', 'ø'),
-              array('', '_', '_', '_', 'ae', 'oe', 'ue', 'Ae', 'Oe', 'Ue', 'ss', 'a', 'a', 'o', 'o', 'u', 'u', 'i', 'oe'), $name);
-            }
+            $photo = str_replace(array(',', '&', ' ', '/', 'ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü', 'ß', 'á', 'à', 'ó', 'ò', 'ú', 'ù', 'í', 'ø'),
+            array('', '_', '_', '_', 'ae', 'oe', 'ue', 'Ae', 'Oe', 'Ue', 'ss', 'a', 'a', 'o', 'o', 'u', 'u', 'i', 'oe'), $name);
           }
           else
             $photo = '';
@@ -668,16 +659,30 @@ class CardDAV2FB
     // if the user wants to save the xml to a separate file, we do so now
     if(array_key_exists('output_file', $this->config))
     {
+      // build md5 hash of previous stored xml without <mod_time> Elements
+      $oldphonebhash = md5(preg_replace("/<mod_time>(\\d{10})/","",file_get_contents($this->config['output_file'],'r'),-1,$debugoldtsreplace));
       $output = fopen($this->config['output_file'], 'w');
       if($output)
       {
         fwrite($output, $this->fbxml);
         fclose($output);
+        print " Saved to file " . $this->config['output_file'] . PHP_EOL;
       }
-
-      return 0;
+	  if (array_key_exists('output_and_upload', $this->config) and $this->config['output_and_upload'])
+	  {
+	  	$newphonebhash = md5(preg_replace("/<mod_time>(\\d{10})/","",file_get_contents($this->config['output_file'],'r'),-1,$debugnewtsreplace));
+	  	print " INFO: Compare old and new phonebook file versions." . PHP_EOL . " INFO: old version: " . $oldphonebhash . PHP_EOL . " INFO: new version: " . $newphonebhash . PHP_EOL;
+	  	if($oldphonebhash === $newphonebhash)
+      	{
+      	print " INFO: Same versions ==> No changes in phonebook or images" . PHP_EOL . " EXIT: No need to upload phonebook to the FRITZ!Box.". PHP_EOL;
+      	return 0;
+      	}
+      	else
+      	print " INFO: Different versions ==> Changes in phonebook." . PHP_EOL . " INFO: Changes dedected! Continue with upload." . PHP_EOL;
+      }
+	  else
+      return 0;  
     }
-
     // now we upload the photo jpgs first being stored in the
     // temp directory.
 
@@ -791,7 +796,7 @@ class CardDAV2FB
         $this->config['fritzbox_ip'] = $hostname;
       }
     }
-
+    
     // lets post the phonebook xml to the FRITZ!Box
     print " Uploading Phonebook XML to " . $this->config['fritzbox_ip'] . PHP_EOL;
     try
