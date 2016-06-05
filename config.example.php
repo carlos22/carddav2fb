@@ -2,7 +2,9 @@
 
 // CONFIG
 
-// DNS name of Fritz!Box or IP address
+// hostname or IP address of Fritz!Box
+// Note: Some Boxes are configured to reject login via IP.
+//       If that's the case with your box, then you have to specify the hostname.
 $config['fritzbox_ip'] = 'fritz.box';
 $config['fritzbox_ip_ftp'] = 'fritz.box';
 
