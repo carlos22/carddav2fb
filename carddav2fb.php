@@ -782,20 +782,6 @@ class CardDAV2FB
     }
     else
       print " ERROR: couldn't connect to FTP server '" . $ftp_server . "'." . PHP_EOL;
-
-    // in case numeric IP is given, try to resolve to hostname. Otherwise Fritzbox may decline login, because it is determine to be (prohibited) remote access
-    $hostname = $this->config['fritzbox_ip'];
-    if(filter_var($hostname, FILTER_VALIDATE_IP))
-    {
-      $hostname = gethostbyaddr($hostname);
-      if($hostname == $this->config['fritzbox_ip'])
-        print " WARNING: Unable to get hostname for IP address (" . $this->config['fritzbox_ip'] . ") <" . $hostname . "<" . PHP_EOL;
-      else
-      {
-        print " INFO: Given IP address (" . $this->config['fritzbox_ip'] . ") has hostname " . $hostname . "." . PHP_EOL;
-        $this->config['fritzbox_ip'] = $hostname;
-      }
-    }
     
     // lets post the phonebook xml to the FRITZ!Box
     print " Uploading Phonebook XML to " . $this->config['fritzbox_ip'] . PHP_EOL;
