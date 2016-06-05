@@ -43,9 +43,9 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 
 ### Ubuntu
 
-1. Install PHP, PHP-curl, PHP-ftp and PHP-mbstring module:
+1. Install PHP, PHP-curl, PHP-ftp, PHP-mbstring and php-xml module:
 
-		sudo apt-get install php-cli php-curl php-ftp php-mbstring
+		sudo apt-get install php-cli php-curl php-ftp php-mbstring php-xml
 
 2. Open a Terminal and execute:
 
