@@ -176,10 +176,25 @@ class CardDAV2FB {
       $result = array();
       foreach($raw_vcards as $v) {
         $vcard_obj = new vCard(false, $v);
+        $name_arr = null;
+        $name = '';
 
         // name
-        $name_arr = $vcard_obj->n[0];
-        $name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
+        if (count($vcard_obj->n)>0) {
+          $name_arr = $vcard_obj->n[0];
+          $name = $this->_concat($this->_concat($name_arr['lastname'],$name_arr['firstname']),$name_arr['additionalnames']);
+        }
+
+        // if name is empty we take formatted name instead
+        if(empty($name)) {
+          $name = $vcard_obj->fn[0];
+        }
+
+        // if name is empty we take nickname instead
+        if(empty($name)) {
+          $name_arr = $vcard_obj->nickname[0];
+          $name = $name_arr[0];
+        }
 
         // if name is empty we take organization instead
         if(empty($name)) {
