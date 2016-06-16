@@ -584,7 +584,7 @@ class CardDAV2FB
         {
           // check if photo_data really contains JPEG data
           if((array_key_exists('type', $entry['photo_data'][0])) and (is_array($entry['photo_data'][0]['type'])) and
-             ($entry['photo_data'][0]['type'][0] == 'jpeg' or $entry['photo_data'][0]['type'][0] == 'jpg'))
+             ($entry['photo_data'][0]['type'][0] == 'jpeg' or $entry['photo_data'][0]['type'][0] == 'jpg' or $entry['photo_data'][0]['type'][0] == 'image/jpeg'))
           {
             // get photo, rename, base64 convert and save as jpg
             $photo_data = $entry['photo_data'][0]['value'];
