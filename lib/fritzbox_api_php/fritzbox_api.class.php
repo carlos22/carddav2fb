@@ -158,7 +158,6 @@ class fritzbox_api {
 		// set SSL-options and path to certificate
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 2);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-		curl_setopt($ch, CURLOPT_CAINFO, '/etc/ssl/certs/'.$ssl_cert_fritzbox.'.pem');
 		curl_setopt($ch, CURLOPT_CAPATH, '/etc/ssl/certs');
 
 		// support for pre FRITZ!OS 5.50 remote config
