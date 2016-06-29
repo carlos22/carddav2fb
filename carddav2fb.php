@@ -90,8 +90,10 @@ flush(); // in case this script runs by php-cgi
 
 // upload the XML-file to the FRITZ!Box (CAUTION: this will overwrite all current entries in the phone book!!)
 print 'Upload data to FRITZ!Box @ ' . $config['fritzbox_ip'] . PHP_EOL;
-$client->upload_to_fb();
-print 'Done.' . PHP_EOL;
+if($client->upload_to_fb())
+  print 'Done.' . PHP_EOL;
+else
+  exit(1);
 
 flush(); // in case this script runs by php-cgi
 
@@ -820,6 +822,8 @@ class CardDAV2FB
     catch(Exception $e)
     {
       print "  ERROR: " . $e->getMessage() . PHP_EOL; // show the error message in anything failed
+      return false;
     }
+    return true;
   }
 }
