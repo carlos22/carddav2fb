@@ -364,15 +364,36 @@ class CardDavBackend
         $vcard_id   = str_replace($this->url_vcard_extension, null, $vcard_id);
         $result     = $this->query($this->url . $vcard_id . $this->url_vcard_extension, 'GET');
 
-        switch ($result['http_code'])
+        // DEBUG: print the response of the carddav-server
+        // print_r($result);
+
+	switch ($result['http_code'])
         {
-            case 200:
-            case 207:
-                return $result['response'];
+		case 404:
+			$altResult  = $this->query($this->url . $vcard_id , 'GET');
+		        // DEBUG: print the response of the carddav-server
+		        // print_r($altResult);
+	                switch ($altResult['http_code'])
+        	        {
+                	        case 200:
+	                        case 207:
+					print "Ignoring given Vcard Extension (".$this->url_vcard_extension.")" . PHP_EOL. ".";
+					$this->setVcardExtension("");
+        	                        return $altResult['response'];
+	                }
+		        throw new \Exception(
+		            "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}:{$result['response']}:{$vcard_id}.",
+		            self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET_VCARD
+		        );
+
+		case 200:
+		case 207:
+			print ".";
+			return $result['response'];
         }
 
         throw new \Exception(
-            "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}.",
+            "Woops, something's gone wrong! The CardDAV server returned the http status code {$result['http_code']}:{$result['response']}:{$vcard_id}.",
             self::EXCEPTION_WRONG_HTTP_STATUS_CODE_GET_VCARD
         );
     }
@@ -557,16 +578,21 @@ class CardDavBackend
                     $id = basename($response->href);
                     $id = str_replace($this->url_vcard_extension, null, $id);
 
-                    if (!empty($id)) {
-                        $simplified_xml->startElement('element');
-                            $simplified_xml->writeElement('id', $id);
-                            $simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-                            $simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+                    try {
+                        $vcardData = $this->getVcard($id);
+                        if (!empty($id)) {
+                            $simplified_xml->startElement('element');
+                                $simplified_xml->writeElement('id', $id);
+                                $simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
+                                $simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
 
-                        if ($include_vcards === true) {
-                            $simplified_xml->writeElement('vcard', $this->getVcard($id));
+                            if ($include_vcards === true) {
+                                $simplified_xml->writeElement('vcard', $vcardData);
+                            }
+                            $simplified_xml->endElement();
                         }
-                        $simplified_xml->endElement();
+                    } catch (\Exception $e) {
+                        print("Error fetching vCard: {$id}: {$e->getMessage()}\n");
                     }
                 } elseif (preg_match('/unix-directory/', $response->propstat->prop->getcontenttype)) {
                     if (isset($response->propstat->prop->href)) {
