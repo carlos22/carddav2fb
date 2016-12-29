@@ -54,6 +54,25 @@ Now you should have everything setup and checked out to a 'carddav2fb' directory
 1. Download PHP from [php.net](http://windows.php.net/download/). Extract it to `C:\PHP`.
 2. Start -> cmd. Run `C:\PHP\php.exe C:\path\to\carddav2fb\carddav2fb.php`
 
+### docker
+
+1. Pull image from Docker Hub:
+
+		docker pull nafets227/carddav2fb
+
+2. create config file (see below). Start with the [adopted docker example](https://github.com/nafets227/carddav2fb/blob/master/config.example-docker.php).
+
+3. Start the container, e.g. using docker-compose:
+
+		services:
+		  carddav2fb:
+		    image: nafets227/carddav2fb
+		    volumes:
+		        - ./mycarddav2fbconfig.php:/etc/carddav2fb.config.php:ro
+		        - /path/to/my/carddav2fb-directory:/var/lib/carddav2fb
+
+The volumes are referring to the config file created in step 2 and a directory to store phonebook.xml intermediate file. The later one helps to only update Fritz Box if something changed and thus avoid unneccessary phonebook downloads from all DECT phones.
+
 ## config.php Example (owncloud)
 
 ```php
