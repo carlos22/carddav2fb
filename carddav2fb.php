@@ -22,8 +22,18 @@
 error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
+$config_file_name = __DIR__ . '/config.php';
+// check for cli 
+$no_cli = substr(php_sapi_name(),0,3) != 'cli';
+if ($no_cli) {
+	header ('Content-type: text/html; charset=ISO-8859-1');
+    	echo "<!DOCTYPE html><html><body><pre style='white-space: pre-wrap;word-wrap: break-word;'>";
+} elseif ($argc == 2) { // is cli and has one arg
+	  $config_file_name = $argv[1];
+}
+
 // Version identifier for CardDAV2FB
-$carddav2fb_version = '1.11 (2016-05-12)';
+$carddav2fb_version = '1.12 (2016-12-31)';
 
 // check for the minimum php version
 $php_min_version = '5.3.6';
@@ -36,11 +46,6 @@ if(version_compare(PHP_VERSION, $php_min_version) < 0)
 require_once('lib/CardDAV-PHP/carddav.php');
 require_once('lib/vCard-parser/vCard.php');
 require_once('lib/fritzbox_api_php/fritzbox_api.class.php');
-
-if($argc == 2)
-  $config_file_name = $argv[1];
-else
-  $config_file_name = __DIR__ . '/config.php';
 
 // default/fallback config options
 $config['tmp_dir'] = sys_get_temp_dir();
