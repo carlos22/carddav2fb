@@ -33,7 +33,7 @@ if ($no_cli) {
 }
 
 // Version identifier for CardDAV2FB
-$carddav2fb_version = '1.12 (2016-12-31)';
+$carddav2fb_version = '1.13 (2017-01-13)';
 
 // check for the minimum php version
 $php_min_version = '5.3.6';
@@ -63,6 +63,7 @@ $config['addnames'] = false;
 $config['orgname'] = false;
 $config['build_photos'] = true;
 $config['quickdial_keyword'] = 'Quickdial:';
+$config['no_need_to_upload_is_error'] = true; // throw error (exit code 1) if no upload is necessary, default <= 1.12
 
 if(is_file($config_file_name))
   require($config_file_name);
@@ -690,7 +691,7 @@ class CardDAV2FB
 	  	if($oldphonebhash === $newphonebhash)
       	{
       	print " INFO: Same versions ==> No changes in phonebook or images" . PHP_EOL . " EXIT: No need to upload phonebook to the FRITZ!Box.". PHP_EOL;
-      	return 0;
+      	return !no_need_to_upload_is_error; // return false for error
       	}
       	else
       	print " INFO: Different versions ==> Changes in phonebook." . PHP_EOL . " INFO: Changes dedected! Continue with upload." . PHP_EOL;
