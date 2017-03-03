@@ -12,10 +12,6 @@ Features:
 
 **CAUTION: This script will overwrite your current contacts in the FritzBox without any warning!**
 
-## Information
-
-This version of carddav2fb is a forked version from carlos22 (https://github.com/carlos22/carddav2fb) and adding support for convenient image upload, different FRITZ!Box base paths (for example for FRITZ!Box 7490 (UI) OS: 6.50) and full name design support. 
-
 ## Requirements
 
 * PHP-version 5.3.6 or higher
@@ -28,7 +24,7 @@ This version of carddav2fb is a forked version from carlos22 (https://github.com
 Checkout the carddav2fb sources including its related subprojects using the following command:
 
 ```
-git clone https://github.com/jens-maus/carddav2fb.git
+git clone https://github.com/carlos22/carddav2fb.git
 ```
 
 Now you should have everything setup and checked out to a 'carddav2fb' directory.
