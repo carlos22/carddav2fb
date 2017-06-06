@@ -22,8 +22,18 @@
 error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
+$config_file_name = __DIR__ . '/config.php';
+// check for cli 
+$no_cli = substr(php_sapi_name(),0,3) != 'cli';
+if ($no_cli) {
+	header ('Content-type: text/html; charset=ISO-8859-1');
+    	echo "<!DOCTYPE html><html><body><pre style='white-space: pre-wrap;word-wrap: break-word;'>";
+} elseif ($argc == 2) { // is cli and has one arg
+	  $config_file_name = $argv[1];
+}
+
 // Version identifier for CardDAV2FB
-$carddav2fb_version = '1.11 (2016-05-12)';
+$carddav2fb_version = '1.13 (2017-01-13)';
 
 // check for the minimum php version
 $php_min_version = '5.3.6';
@@ -36,11 +46,6 @@ if(version_compare(PHP_VERSION, $php_min_version) < 0)
 require_once('lib/CardDAV-PHP/carddav.php');
 require_once('lib/vCard-parser/vCard.php');
 require_once('lib/fritzbox_api_php/fritzbox_api.class.php');
-
-if($argc == 2)
-  $config_file_name = $argv[1];
-else
-  $config_file_name = __DIR__ . '/config.php';
 
 // default/fallback config options
 $config['tmp_dir'] = sys_get_temp_dir();
@@ -58,6 +63,7 @@ $config['addnames'] = false;
 $config['orgname'] = false;
 $config['build_photos'] = true;
 $config['quickdial_keyword'] = 'Quickdial:';
+$config['no_need_to_upload_is_error'] = true; // throw error (exit code 1) if no upload is necessary, default <= 1.12
 
 if(is_file($config_file_name))
   require($config_file_name);
@@ -685,7 +691,7 @@ class CardDAV2FB
 	  	if($oldphonebhash === $newphonebhash)
       	{
       	print " INFO: Same versions ==> No changes in phonebook or images" . PHP_EOL . " EXIT: No need to upload phonebook to the FRITZ!Box.". PHP_EOL;
-      	return 0;
+      	return !no_need_to_upload_is_error; // return false for error
       	}
       	else
       	print " INFO: Different versions ==> Changes in phonebook." . PHP_EOL . " INFO: Changes dedected! Continue with upload." . PHP_EOL;
