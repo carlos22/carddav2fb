@@ -1,4 +1,6 @@
-<?php namespace CardDavPHP;
+<?php 
+
+namespace Andig\CardDav;
 
 /**
  * CardDAV PHP
@@ -98,7 +100,7 @@
  *
  */
 
-class CardDavBackend
+class Backend
 {
     /**
      * CardDAV PHP Version

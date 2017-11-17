@@ -1,0 +1,22 @@
+{
+    "name": "andig/carddav2fb",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "andig",
+            "email": "cpuidle@gmx.de"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.0",
+        "andig/vcard": "dev-master",
+        "symfony/console": "^4.0@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Andig\\": "src/"
+        }
+    }
+}
