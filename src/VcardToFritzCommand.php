@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use JeroenDesloovere\VCard\VCardParser;
-use Andig\Converter;
+use Andig\FritzBox\Converter;
 use \SimpleXMLElement;
 
 class VcardToFritzCommand extends Command {
@@ -23,7 +23,7 @@ class VcardToFritzCommand extends Command {
 
 	protected function configure() {
 		$this->setName('convert')
-			->setDescription('Load from CardDAV server')
+			->setDescription('Convert Vcard to FritzBox format')
 			->addArgument('filename', InputArgument::REQUIRED, 'filename');
 	}
 
