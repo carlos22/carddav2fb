@@ -8,7 +8,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use JeroenDesloovere\VCard\VCardParser;
+use Andig\Vcard\Parser;
 use Andig\FritzBox\Converter;
 use \SimpleXMLElement;
 
@@ -36,7 +36,8 @@ class ConvertCommand extends Command {
 		// file_put_contents('output.json', print_r($cards, 1));
 
 		// convert
-		$xml = self::export($this->config['phonebook'] ?? null, $cards, $this->config['conversions']);
+		$phonebook = $this->config['phonebook'];
+		$xml = self::export($phonebook['name'], $cards, $this->config['conversions']);
 
 		echo $xml->asXML();
 	}
@@ -49,7 +50,7 @@ class ConvertCommand extends Command {
 		// parse all vcards
 		foreach ($xml->element as $element) {
 			foreach ($element->vcard as $vcard) {
-				$parser = new VCardParser($vcard);
+				$parser = new Parser($vcard);
 				$card = $parser->getCardAtIndex(0);
 
 				// separate iCloud groups
@@ -84,7 +85,7 @@ class ConvertCommand extends Command {
 	    $toDom->appendChild($toDom->ownerDocument->importNode($fromDom, true));
 	}
 
-	public static function export(string $phonebook=null, array $cards, array $conversions)
+	public static function export(string $name='Telefonbuch', array $cards, array $conversions)
 	{
 		$xml = new SimpleXMLElement(<<<EOT
 <?xml version="1.0" encoding="UTF-8"?>
@@ -95,9 +96,7 @@ EOT
 		);
 
 		$root = $xml->xpath('//phonebook')[0];
-		if ($phonebook) {
-			$root->addAttribute('name', $phonebook);
-		}
+		$root->addAttribute('name', $name);
 
 		$converter = new Converter($conversions);
 

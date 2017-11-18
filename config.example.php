@@ -2,8 +2,11 @@
 
 $config = [
 	// phonebook
-	'phonebook' => 'iCloud',
-
+	'phonebook' => [
+		'id' => 0,
+		'name' => 'Telefonbuch'
+	],
+	
 	// or server
 	'server' => [
 		'url' => 'https://...',
@@ -32,6 +35,12 @@ $config = [
 		'emailTypes' => [
 			'WORK' => 'work', 
 			'HOME' => 'home'
+		],
+		'phoneReplaceCharacters' => [
+			'(' => '',
+			')' => '',
+			'/' => '',
+			'-' => ' '
 		]
 	]
 ];

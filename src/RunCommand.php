@@ -30,14 +30,15 @@ class RunCommand extends Command {
 
 		// parse and convert
 		$xml = simplexml_load_string($xmlStr);
-
 		$cards = ConvertCommand::parse($xml);
-		$xml = ConvertCommand::export($this->config['phonebook'] ?? null, $cards, $this->config['conversions']);
+
+		$phonebook = $this->config['phonebook'];
+		$xml = ConvertCommand::export($phonebook['name'], $cards, $this->config['conversions']);
 
 		// upload
 		$xmlStr = $xml->asXML();
-		
+
 		$fritzbox = $this->config['fritzbox'];
-		UploadCommand::upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
+		UploadCommand::upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id']);
 	}
 }

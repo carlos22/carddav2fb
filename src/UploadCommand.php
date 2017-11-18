@@ -30,7 +30,9 @@ class UploadCommand extends Command {
 		$xml = file_get_contents($filename);
 
 		$fritzbox = $this->config['fritzbox'];
-		self::upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
+		$phonebook = $this->config['phonebook'];
+
+		self::upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id'] ?? 0);
 	}
 
 	public static function upload(string $xml, string $url, string $user, string $password, int $phonebook=0)

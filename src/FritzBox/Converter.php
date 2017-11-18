@@ -41,12 +41,19 @@ class Converter
 		// 	<number type="work" vanity="" prio="0" id="1">+400746653254</number></telephony>
 
 		$telephony = $this->contact->addChild('telephony');
+		
+		$replaceCharacters = $this->config['phoneReplaceCharacters'] ?? array();
 		$phoneTypes = $this->config->phoneTypes ??
 			['WORK' => 'work', 'HOME' => 'home', 'CELL' => 'mobile'];
 
 		if (isset($this->card->phone)) {
 			foreach ($this->card->phone as $numberType => $numbers) {
 				foreach ($numbers as $idx => $number) {
+					if (count($replaceCharacters)) {
+						$number = strtr($number, $replaceCharacters);
+						$number = preg_replace('/\s+/', ' ', $number);
+					}
+
 					$phone = $telephony->addChild('number', $number);
 					$phone->addAttribute('id', $idx);
 

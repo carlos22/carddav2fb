@@ -12,7 +12,6 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.0",
-        "andig/vcard": "dev-master",
         "symfony/console": "^3.0"
     },
     "autoload": {
