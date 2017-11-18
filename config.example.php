@@ -1,9 +1,6 @@
 <?php
 
 $config = [
-	// local cards
-	'file' => '',
-
 	// or server
 	'server' => [
 		'url' => 'https://...',
