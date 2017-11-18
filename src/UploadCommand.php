@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Andig\FritzBox\Api;
 
-class UploadToFritzCommand extends Command {
+class UploadCommand extends Command {
 
 	private $config;
 
@@ -33,12 +33,12 @@ class UploadToFritzCommand extends Command {
 		self::upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
 	}
 
-	public static function upload($xml, $url, $user, $password)
+	public static function upload(string $xml, string $url, string $user, string $password, int $phonebook=0)
 	{
 		$fritz = new Api($url, $user, $password, 1);
 
 		$formfields = array(
-			'PhonebookId' => 0
+			'PhonebookId' => $phonebook
 		);
 
 		$filefields = array(

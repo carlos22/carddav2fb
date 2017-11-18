@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Andig\CardDav\Backend;
 
-class CardDavLoaderCommand extends Command {
+class DownloadCommand extends Command {
 
 	private $config;
 

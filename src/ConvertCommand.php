@@ -12,7 +12,7 @@ use JeroenDesloovere\VCard\VCardParser;
 use Andig\FritzBox\Converter;
 use \SimpleXMLElement;
 
-class VcardToFritzCommand extends Command {
+class ConvertCommand extends Command {
 
 	private $config;
 
@@ -41,7 +41,7 @@ class VcardToFritzCommand extends Command {
 		echo $xml->asXML();
 	}
 
-	public static function parse($xml)
+	public static function parse(SimpleXMLElement $xml)
 	{
 		$cards = [];
 		$groups = [];
@@ -84,7 +84,7 @@ class VcardToFritzCommand extends Command {
 	    $toDom->appendChild($toDom->ownerDocument->importNode($fromDom, true));
 	}
 
-	public static function export(string $phonebook=null, array $cards, $conversions)
+	public static function export(string $phonebook=null, array $cards, array $conversions)
 	{
 		$xml = new SimpleXMLElement(<<<EOT
 <?xml version="1.0" encoding="UTF-8"?>

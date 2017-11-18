@@ -24,14 +24,20 @@ class RunCommand extends Command {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		// download
 		$server = $this->config['server'];
-		$xml = CardDavLoaderCommand::load($server['url'], $server['user'], $server['password']);
+		$xmlStr = DownloadCommand::load($server['url'], $server['user'], $server['password']);
 
 		// parse and convert
-		$cards = VcardToFritzCommand::parse($xml);
-		$xml = VcardToFritzCommand::export($this->config['phonebook'] ?? null, $cards, $this->config['conversions']);
+		$xml = simplexml_load_string($xmlStr);
 
+		$cards = ConvertCommand::parse($xml);
+		$xml = ConvertCommand::export($this->config['phonebook'] ?? null, $cards, $this->config['conversions']);
+
+		// upload
+		$xmlStr = $xml->asXML();
+		
 		$fritzbox = $this->config['fritzbox'];
-		UploadToFritzCommand::upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
+		UploadCommand::upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
 	}
 }

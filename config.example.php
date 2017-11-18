@@ -1,6 +1,9 @@
 <?php
 
 $config = [
+	// phonebook
+	'phonebook' => 'iCloud',
+
 	// or server
 	'server' => [
 		'url' => 'https://...',
