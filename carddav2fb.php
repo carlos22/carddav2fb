@@ -11,10 +11,10 @@ require_once(__DIR__ . '/config.php');
 $app = new Application('CardDAV to FritzBox converter');
 
 $app->addCommands(array(
-	new CardDavLoaderCommand($config),
-	new VcardToFritzCommand($config),
-	new UploadToFritzCommand($config),
-	new RunCommand($config)
+	new RunCommand($config),
+	new DownloadCommand($config),
+	new ConvertCommand($config),
+	new UploadCommand($config)
 ));
 
 $app->run();
