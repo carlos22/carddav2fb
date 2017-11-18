@@ -1,49 +1,6 @@
 <?php
 
 namespace Andig\FritzBox;
-
-/**
- * Fritz!Box API - A simple wrapper for automated changes in the Fritz!Box Web-UI
- * 
- * handles the new secured login/session system and implements a cURL wrapper
- * new in v0.2: Can handle remote config mode via https://example.dyndns.org
- * new in v0.3: New method doGetRequest handles GET-requests
- * new in v0.4: Added support for the new .lua forms like the WLAN guest access settings
- * new in v0.5: added support for the new .lua-loginpage in newest Fritz!OS firmwares and refactored the code
- * 
- * @author   Gregor Nathanael Meyer <Gregor [at] der-meyer.de>
- * @license  http://creativecommons.org/licenses/by-sa/3.0/de/ Creative Commons cc-by-sa
- * @version  0.5.0b7 2013-01-02
- * @package  Fritz!Box PHP tools
- */
-
-/* A simple usage example
- *
- * try
- * { 
- *   // load the fritzbox_api class
- *   require_once('fritzbox_api.class.php');
- *   $fritz = new fritzbox_api();
- *
- *   // init the output message
- *   $message = date('Y-m-d H:i') . ' ';
- *   
- *   // update the setting
- *   $formfields = array(
- *     'telcfg:command/Dial'      => '**610',
- *   );
- *   $fritz->doPostForm($formfields);
- *   $message .= 'Phone ' . $dial . ' ringed.';
- * }
- * catch (Exception $e)
- * {
- *   $message .= $e->getMessage();
- * }
- *
- * // log the result
- * $fritz->logMessage($message);
- * $fritz = null; // destroy the object to log out
- */
  
 /**
  * The main Fritz!Box API class
@@ -54,9 +11,6 @@ class Api {
 	private $password;
 	private $url;
 	
-	/**
-	 * @var  string  the session ID, set by method initSID() after login
-	 */
 	protected $sid = '0000000000000000';
 	
 	/**
