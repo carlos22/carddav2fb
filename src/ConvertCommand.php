@@ -27,7 +27,7 @@ class ConvertCommand extends Command {
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$this->loadConfig($input);
-
+		
 		$filename = $input->getArgument('filename');
 		$xml = simplexml_load_file($filename);
 
@@ -83,6 +83,18 @@ class ConvertCommand extends Command {
 					}
 				}
 			}
+		}
+
+		$excludeCategories = $conversions['excludeCategories'] ?? null;
+		if ($excludeCategories) {
+			$cards = array_filter($cards, function($card) use ($excludeCategories) {
+				// filter excluded categories
+				if (isset($card->category)) {
+					return !in_array($card->category, $excludeCategories);
+				}
+
+				return true;
+			});
 		}
 
 		return $cards;

@@ -23,9 +23,13 @@ $config = [
 
 	'conversions' => [
 		'groupNameToCategory' => [
-			'ORGA' => 'org'
+			'ORGA' => 'org',
+			'PERS' => 'pers'
 		],
 		'vipCategories' => [
+			'pers'
+		],
+		'excludeCategories' => [
 			'org'
 		],
 		'realName' => [
