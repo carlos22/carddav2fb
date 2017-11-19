@@ -51,7 +51,7 @@ class Converter
 				foreach ($numbers as $idx => $number) {
 					if (count($replaceCharacters)) {
 						$number = strtr($number, $replaceCharacters);
-						$number = preg_replace('/\s+/', ' ', $number);
+						$number = trim(preg_replace('/\s+/', ' ', $number));
 					}
 
 					$phone = $telephony->addChild('number', $number);

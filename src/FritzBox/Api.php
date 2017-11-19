@@ -3,7 +3,8 @@
 namespace Andig\FritzBox;
  
 /**
- * The main Fritz!Box API class
+ * Extended from https://github.com/jens-maus/carddav2fb
+ * Public Domain
  */
 class Api {
 

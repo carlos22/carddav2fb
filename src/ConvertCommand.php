@@ -14,26 +14,29 @@ use \SimpleXMLElement;
 
 class ConvertCommand extends Command {
 
-	private $config;
-
-	public function __construct($config) {
-		$this->config = $config;
-		parent::__construct();
-	}
+	use ConfigTrait;
 
 	protected function configure() {
 		$this->setName('convert')
 			->setDescription('Convert Vcard to FritzBox format')
+			->addOption('json', 'j', InputOption::VALUE_REQUIRED, 'export parse result to json file')
 			->addArgument('filename', InputArgument::REQUIRED, 'filename');
+
+		$this->addConfig();
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$this->loadConfig($input);
+
 		$filename = $input->getArgument('filename');
 		$xml = simplexml_load_file($filename);
 
 		// parse
 		$cards = self::parse($xml);
-		// file_put_contents('output.json', print_r($cards, 1));
+
+		if ($json = $input->getOption('json')) {
+			file_put_contents($json, json_encode($cards, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+		}
 
 		// convert
 		$phonebook = $this->config['phonebook'];

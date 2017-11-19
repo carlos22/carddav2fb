@@ -3,6 +3,10 @@
 namespace Andig\CardDav;
 
 /**
+ * Extended from https://github.com/jens-maus/carddav2fb
+ */
+
+/**
  * CardDAV PHP
  *
  * Simple CardDAV query
@@ -97,7 +101,6 @@ namespace Andig\CardDav;
  * @since 24.05.2015
  * @version 0.7
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
- *
  */
 
 class Backend

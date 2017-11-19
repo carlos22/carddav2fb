@@ -12,20 +12,19 @@ use Andig\FritzBox\Api;
 
 class UploadCommand extends Command {
 
-	private $config;
-
-	public function __construct($config) {
-		$this->config = $config;
-		parent::__construct();
-	}
+	use ConfigTrait;
 
 	protected function configure() {
 		$this->setName('upload')
 			->setDescription('Upload to FritzBox')
 			->addArgument('filename', InputArgument::REQUIRED, 'filename');
+
+		$this->addConfig();
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$this->loadConfig($input);
+
 		$filename = $input->getArgument('filename');
 		$xml = file_get_contents($filename);
 

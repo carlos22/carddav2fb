@@ -11,19 +11,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class RunCommand extends Command {
 
-	private $config;
-
-	public function __construct($config) {
-		$this->config = $config;
-		parent::__construct();
-	}
+	use ConfigTrait;
 
 	protected function configure() {
 		$this->setName('run')
 			->setDescription('Download, convert and upload - all in one');
+
+		$this->addConfig();
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$this->loadConfig($input);
+
 		// download
 		$server = $this->config['server'];
 		$xmlStr = DownloadCommand::load($server['url'], $server['user'], $server['password']);

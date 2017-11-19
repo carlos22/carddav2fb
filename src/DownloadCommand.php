@@ -12,19 +12,18 @@ use Andig\CardDav\Backend;
 
 class DownloadCommand extends Command {
 
-	private $config;
-
-	public function __construct($config) {
-		$this->config = $config;
-		parent::__construct();
-	}
+	use ConfigTrait;
 
 	protected function configure() {
 		$this->setName('carddav')
 			->setDescription('Load from CardDAV server');
+
+		$this->addConfig();
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$this->loadConfig($input);
+
 		$server = $this->config['server'];
 		$xml = self::load($server['url'], $server['user'], $server['password']);
 
