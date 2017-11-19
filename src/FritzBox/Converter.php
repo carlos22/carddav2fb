@@ -18,6 +18,8 @@ class Converter
 		// $contact = $xml->addChild('contact');
 		$this->contact = new \SimpleXMLElement('<contact />');
 
+		$this->addVip();
+
 		$person = $this->contact->addChild('person');
 		$name = htmlspecialchars($this->getProperty('realName'));
 		$person->addChild('realName', $name);
@@ -32,6 +34,17 @@ class Converter
 		// echo($this->contact->asXML().PHP_EOL);
 
 		return $this->contact;
+	}
+
+	private function addVip() 
+	{
+		if (isset($this->card->category)) {
+			$vipCategories = $this->config->vipCategories ?? array();
+		
+			if (in_array($this->card->category, $vipCategories)) {
+				$this->contact->addChild('category', 1);
+			}
+		}
 	}
 
 	private function addPhone() 

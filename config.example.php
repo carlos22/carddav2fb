@@ -23,7 +23,10 @@ $config = [
 
 	'conversions' => [
 		'groupNameToCategory' => [
-			'ORGA' => 'ORGA'
+			'ORGA' => 'org'
+		],
+		'vipCategories' => [
+			'org'
 		],
 		'realName' => [
 			'{lastname}, {firstname}',
