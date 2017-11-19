@@ -28,11 +28,13 @@ class RunCommand extends Command {
 		$xmlStr = DownloadCommand::load($server['url'], $server['user'], $server['password']);
 
 		// parse and convert
-		$xml = simplexml_load_string($xmlStr);
-		$cards = ConvertCommand::parse($xml);
-
 		$phonebook = $this->config['phonebook'];
-		$xml = ConvertCommand::export($phonebook['name'], $cards, $this->config['conversions']);
+		$conversions = $this->config['conversions'];
+
+		$xml = simplexml_load_string($xmlStr);
+		$cards = ConvertCommand::parse($xml, $conversions);
+
+		$xml = ConvertCommand::export($phonebook['name'], $cards, $conversions);
 
 		// upload
 		$xmlStr = $xml->asXML();
