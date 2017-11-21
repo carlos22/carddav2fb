@@ -39,7 +39,7 @@ class Converter
 	private function addVip() 
 	{
 		if (isset($this->card->category)) {
-			$vipCategories = $this->config->vipCategories ?? array();
+			$vipCategories = $this->config['vipCategories'] ?? array();
 		
 			if (in_array($this->card->category, $vipCategories)) {
 				$this->contact->addChild('category', 1);
@@ -56,8 +56,7 @@ class Converter
 		$telephony = $this->contact->addChild('telephony');
 		
 		$replaceCharacters = $this->config['phoneReplaceCharacters'] ?? array();
-		$phoneTypes = $this->config->phoneTypes ??
-			['WORK' => 'work', 'HOME' => 'home', 'CELL' => 'mobile'];
+		$phoneTypes = $this->config['phoneTypes'] ?? array();
 
 		if (isset($this->card->phone)) {
 			foreach ($this->card->phone as $numberType => $numbers) {
@@ -102,8 +101,7 @@ class Converter
 		// 	<email classifier="work" id="1">Kindertagesstaette@michaelis-hannover.de</email></
 
 		$services = $this->contact->addChild('services');
-		$emailTypes = $this->config->emailTypes ??
-			['WORK' => 'work', 'HOME' => 'home'];
+		$emailTypes = $this->config['emailTypes'] ?? array();
 
 		if (isset($this->card->email)) {
 			foreach ($this->card->email as $emailType => $addresses) {
