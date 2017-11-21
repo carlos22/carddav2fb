@@ -8,8 +8,6 @@
             "email": "cpuidle@gmx.de"
         }
     ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "require": {
         "php": "^7.0",
         "symfony/console": "^3.0"
