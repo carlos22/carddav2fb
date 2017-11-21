@@ -25,9 +25,12 @@ class DownloadCommand extends Command {
 		$this->loadConfig($input);
 
 		$server = $this->config['server'];
-		$xml = self::load($server['url'], $server['user'], $server['password']);
+		$xmlStr = self::load($server['url'], $server['user'], $server['password']);
+		$xml = simplexml_load_string($xmlStr);
 
-		echo $xml;
+		error_log(sprintf("Downloaded %d vcards", $xml->element));
+
+		echo $xmlStr;
 	}
 
 	public static function load($url, $user, $password) {

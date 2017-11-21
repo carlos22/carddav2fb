@@ -32,6 +32,8 @@ class UploadCommand extends Command {
 		$phonebook = $this->config['phonebook'];
 
 		self::upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id'] ?? 0);
+
+		error_log("Uploaded fritz phonebook");
 	}
 
 	public static function upload(string $xml, string $url, string $user, string $password, int $phonebook=0)

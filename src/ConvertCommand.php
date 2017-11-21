@@ -41,6 +41,8 @@ class ConvertCommand extends Command {
 			file_put_contents($json, json_encode($cards, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
 		}
 
+		error_log(sprintf("Converted %d vcards", count($cards)));
+
 		// convert
 		$xml = self::export($phonebook['name'], $cards, $conversions);
 
