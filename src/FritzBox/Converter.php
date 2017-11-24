@@ -2,6 +2,8 @@
 
 namespace Andig\FritzBox;
 
+use \SimpleXMLElement;
+
 class Converter
 {
 	private $config;
@@ -11,12 +13,12 @@ class Converter
 		$this->config = $config;
 	}
 
-	public function convert($card) 
+	public function convert($card): SimpleXMLElement
 	{
 		$this->card = $card;
 
 		// $contact = $xml->addChild('contact');
-		$this->contact = new \SimpleXMLElement('<contact />');
+		$this->contact = new SimpleXMLElement('<contact />');
 
 		$this->addVip();
 
@@ -122,7 +124,7 @@ class Converter
 		}
 	}
 
-	private function getProperty(string $property)
+	private function getProperty(string $property): string
 	{
 		if (null === ($rules = $this->config[$property] ?? null)) {
 			throw new \Exception("Missing conversion definition for `$property`");
@@ -162,10 +164,8 @@ class Converter
 			}, $rule);
 		}
 
-		throw new \Exception("No data for conversion `$property`");
+		error_log("No data for conversion `$property`");
 
-		print_r($rules);
-		print_r($this->card);
-		print_r($tokens);
+		return '';
 	}
 }

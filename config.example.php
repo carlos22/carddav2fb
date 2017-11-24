@@ -21,16 +21,23 @@ $config = [
 		'password' => '',
 	],
 
+	'excludes' => [
+		'category' => [
+			'ORGA', 'b'
+		],
+		'group' => [
+			'c', 'd'
+		],
+	],
+
 	'conversions' => [
-		'groupNameToCategory' => [
-			'ORGA' => 'org',
-			'PERS' => 'pers'
-		],
-		'vipCategories' => [
-			'pers'
-		],
-		'excludeCategories' => [
-			'org'
+		'vip' => [
+			'category' => [
+				'vip1'
+			],
+			'group' => [
+				'PERS'
+			],
 		],
 		'realName' => [
 			'{lastname}, {firstname}',

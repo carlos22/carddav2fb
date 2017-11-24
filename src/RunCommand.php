@@ -25,27 +25,30 @@ class RunCommand extends Command {
 
 		// download
 		$server = $this->config['server'];
-		$xmlStr = DownloadCommand::load($server['url'], $server['user'], $server['password']);
+		$xmlStr = download($server['url'], $server['user'], $server['password']);
 
-		$count = DownloadCommand::countCards($xmlStr);
+		$count = countCards($xmlStr);
 		error_log(sprintf("\nDownloaded %d vcards", $count));
 
 		// parse and convert
 		$phonebook = $this->config['phonebook'];
 		$conversions = $this->config['conversions'];
+		$excludes = $this->config['excludes'];
 
 		$xml = simplexml_load_string($xmlStr);
-		$cards = ConvertCommand::parse($xml, $conversions);
-		error_log(sprintf("Converted %d vcards", count($cards)));
+		$cards = parse($xml, $conversions);
+		$filtered = filter($cards, $excludes);
+		error_log(sprintf("Converted %d vcards", count($filtered)));
 
-		$xml = ConvertCommand::export($phonebook['name'], $cards, $conversions);
+		// fritzbox format
+		$xml = export($phonebook['name'], $filtered, $conversions);
 		// error_log(sprintf("Exported fritz phonebook", count($cards)));
 
 		// upload
 		$xmlStr = $xml->asXML();
 
 		$fritzbox = $this->config['fritzbox'];
-		UploadCommand::upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id']);
+		load($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id']);
 
 		error_log("Uploaded fritz phonebook");
 	}
