@@ -15,7 +15,7 @@ class DownloadCommand extends Command {
 	use ConfigTrait;
 
 	protected function configure() {
-		$this->setName('carddav')
+		$this->setName('download')
 			->setDescription('Load from CardDAV server');
 
 		$this->addConfig();
@@ -26,9 +26,9 @@ class DownloadCommand extends Command {
 
 		$server = $this->config['server'];
 		$xmlStr = self::load($server['url'], $server['user'], $server['password']);
-		$xml = simplexml_load_string($xmlStr);
 
-		error_log(sprintf("Downloaded %d vcards", $xml->element));
+		$count = self::countCards($xmlStr);
+		error_log(sprintf("\nDownloaded %d vcards", $count));
 
 		echo $xmlStr;
 	}
@@ -37,5 +37,17 @@ class DownloadCommand extends Command {
 		$backend = new Backend($url);
 		$backend->setAuth($user, $password);
 		return $backend->get();
+	}
+
+	public static function countCards($xml) {
+		$count = 0;
+		$xml = simplexml_load_string($xml);
+
+		foreach ($xml->element as $element) {
+			foreach ($element->vcard as $vcard) {
+				$count++;
+			}
+		}
+		return $count;
 	}
 }

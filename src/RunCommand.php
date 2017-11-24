@@ -26,14 +26,15 @@ class RunCommand extends Command {
 		// download
 		$server = $this->config['server'];
 		$xmlStr = DownloadCommand::load($server['url'], $server['user'], $server['password']);
-		$xml = simplexml_load_string($xmlStr);
 
-		error_log(sprintf("Downloaded %d vcards", $xml->element));
+		$count = DownloadCommand::countCards($xmlStr);
+		error_log(sprintf("\nDownloaded %d vcards", $count));
 
 		// parse and convert
 		$phonebook = $this->config['phonebook'];
 		$conversions = $this->config['conversions'];
 
+		$xml = simplexml_load_string($xmlStr);
 		$cards = ConvertCommand::parse($xml, $conversions);
 		error_log(sprintf("Converted %d vcards", count($cards)));
 
