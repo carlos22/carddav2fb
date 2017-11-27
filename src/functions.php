@@ -5,6 +5,7 @@ namespace Andig;
 use Andig\CardDav\Backend;
 use Andig\Vcard\Parser;
 use Andig\FritzBox\Converter;
+use Andig\FritzBox\Api;
 use \SimpleXMLElement;
 
 
@@ -135,4 +136,28 @@ function xml_adopt(SimpleXMLElement $to, SimpleXMLElement $from)
     $toDom = dom_import_simplexml($to);
     $fromDom = dom_import_simplexml($from);
     $toDom->appendChild($toDom->ownerDocument->importNode($fromDom, true));
+}
+
+
+function upload(string $xml, string $url, string $user, string $password, int $phonebook=0)
+{
+	$fritz = new Api($url, $user, $password, 1);
+
+	$formfields = array(
+		'PhonebookId' => $phonebook
+	);
+
+	$filefields = array(
+		'PhonebookImportFile' => array(
+			'type' => 'text/xml',
+			'filename' => 'updatepb.xml',
+			'content' => $xml,
+		)
+	);
+
+	$result = $fritz->doPostFile($formfields, $filefields); // send the command
+
+	if (strpos($result, 'Das Telefonbuch der FRITZ!Box wurde wiederhergestellt') === false) {
+		throw new \Exception('Upload failed');
+	}
 }
