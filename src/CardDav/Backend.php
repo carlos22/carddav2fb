@@ -89,6 +89,15 @@ class Backend
     }
 
     /**
+     * Set credentials
+     */
+    public function setAuth(string $username, string $password)
+    {
+        $this->username = $username;
+        $this->password = $password;
+    }
+
+    /**
      * Gets all vCards including additional information from the CardDAV server
      *
      * @param   boolean $include_vcards     Include vCards within the response (simplified only)
