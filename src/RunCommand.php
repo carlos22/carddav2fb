@@ -12,52 +12,58 @@ use Symfony\Component\Console\Helper\ProgressBar;
 
 class RunCommand extends Command {
 
-	use ConfigTrait;
+    use ConfigTrait;
 
-	protected function configure() {
-		$this->setName('run')
-			->setDescription('Download, convert and upload - all in one');
+    protected function configure() {
+        $this->setName('run')
+            ->setDescription('Download, convert and upload - all in one');
 
-		$this->addConfig();
-	}
+        $this->addConfig();
+    }
 
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		$this->loadConfig($input);
+    protected function execute(InputInterface $input, OutputInterface $output) {
+        $this->loadConfig($input);
 
-		// download
-		$progress = new ProgressBar($output);
-		$progress->start();
+        // download
+        error_log("Downloading");
 
-		$server = $this->config['server'];
-		$xmlStr = download($server['url'], $server['user'], $server['password'], function() use ($progress) {
-			$progress->advance();
-		});
+        $progress = new ProgressBar($output);
+        $progress->start();
 
-		$progress->finish();
+        $server = $this->config['server'];
+        $xmlStr = download($server['url'], $server['user'], $server['password'], function() use ($progress) {
+            $progress->advance();
+        });
 
-		$count = countCards($xmlStr);
-		error_log(sprintf("\nDownloaded %d vcards", $count));
+        $progress->finish();
 
-		// parse and convert
-		$phonebook = $this->config['phonebook'];
-		$conversions = $this->config['conversions'];
-		$excludes = $this->config['excludes'];
+        $count = countCards($xmlStr);
+        error_log(sprintf("\nDownloaded %d vcards", $count));
 
-		$xml = simplexml_load_string($xmlStr);
-		$cards = parse($xml, $conversions);
-		$filtered = filter($cards, $excludes);
-		error_log(sprintf("Converted %d vcards", count($filtered)));
+        // parse and convert
+        error_log("Converting");
 
-		// fritzbox format
-		$xml = export($phonebook['name'], $filtered, $conversions);
-		// error_log(sprintf("Exported fritz phonebook", count($cards)));
+        $phonebook = $this->config['phonebook'];
+        $conversions = $this->config['conversions'];
+        $excludes = $this->config['excludes'];
 
-		// upload
-		$xmlStr = $xml->asXML();
+        $xml = simplexml_load_string($xmlStr);
+        $cards = parse($xml, $conversions);
+        $filtered = filter($cards, $excludes);
+        error_log(sprintf("Converted %d vcards", count($filtered)));
 
-		$fritzbox = $this->config['fritzbox'];
-		upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id']);
+        // fritzbox format
+        $xml = export($phonebook['name'], $filtered, $conversions);
+        // error_log(sprintf("Exported fritz phonebook", count($cards)));
 
-		error_log("Uploaded fritz phonebook");
-	}
+        // upload
+        error_log("Uploading");
+
+        $xmlStr = $xml->asXML();
+
+        $fritzbox = $this->config['fritzbox'];
+        upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id']);
+
+        error_log("Uploaded fritz phonebook");
+    }
 }

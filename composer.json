@@ -10,7 +10,9 @@
     ],
     "require": {
         "php": "^7.0",
-        "symfony/console": "^3.0"
+        "symfony/console": "^3.0",
+        "guzzlehttp/guzzle": "^6.0",
+        "ringcentral/psr7": "^1.2"
     },
     "autoload": {
         "psr-4": {
