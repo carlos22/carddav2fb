@@ -9,9 +9,10 @@ use Andig\FritzBox\Api;
 use \SimpleXMLElement;
 
 
-function download($url, $user, $password): string {
+function download($url, $user, $password, callable $callback=null): string {
 	$backend = new Backend($url);
 	$backend->setAuth($user, $password);
+	$backend->setProgress($callback);
 	return $backend->get();
 }
 

@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class RunCommand extends Command {
 
@@ -24,8 +25,15 @@ class RunCommand extends Command {
 		$this->loadConfig($input);
 
 		// download
+		$progress = new ProgressBar($output);
+		$progress->start();
+
 		$server = $this->config['server'];
-		$xmlStr = download($server['url'], $server['user'], $server['password']);
+		$xmlStr = download($server['url'], $server['user'], $server['password'], function() use ($progress) {
+			$progress->advance();
+		});
+
+		$progress->finish();
 
 		$count = countCards($xmlStr);
 		error_log(sprintf("\nDownloaded %d vcards", $count));
