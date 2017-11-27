@@ -54,13 +54,6 @@ class Backend
     private $password;
 
     /**
-     * Characters used for vCard id generation
-     *
-     * @var     array
-     */
-    private $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
-
-    /**
      * Progress callback
      */
     private $callback;
@@ -83,7 +76,7 @@ class Backend
 
         // workaround for providers that don't use the default .vcf extension
         if (strpos($this->url, "google.com")) {
-            $this->setVcardExtension("");
+            $this->url_vcard_extension = '';
         }
     }
 
@@ -93,63 +86,6 @@ class Backend
     public function setProgress($callback = null)
     {
         $this->callback = $callback;
-    }
-
-    /**
-     * Sets the CardDAV vcard url extension
-     *
-     * Most providers do requests handling Vcards with .vcf, however
-     * this isn't always the case and some providers (such as Google)
-     * returned a 404 if the .vcf extension is used - or the other
-     * way around, returning 404 unless .vcf is used.
-     *
-     * Both approaches are technically correct, see rfc635
-     * http://tools.ietf.org/html/rfc6352
-     *
-     *
-     * @param string  $extension  File extension
-     * @return  void
-     */
-    public function setVcardExtension($extension)
-    {
-        $this->url_vcard_extension = $extension;
-    }
-
-    /**
-     * Sets authentication information
-     *
-     * @param   string  $username   CardDAV server username
-     * @param   string  $password   CardDAV server password
-     * @return  void
-     */
-    public function setAuth($username, $password)
-    {
-        $this->username     = $username;
-        $this->password     = $password;
-        $this->auth         = $username . ':' . $password;
-    }
-
-    /**
-     * Sets wether to follow redirects and if yes how often
-     *
-     * @param boolean $follow_redirects
-     * @param integer $follow_redirects_count
-     * @return  void
-     */
-    public function setFollowRedirects($follow_redirects, $follow_redirects_count = 3)
-    {
-        $this->follow_redirects = $follow_redirects && $follow_redirects_count > 0;
-        $this->follow_redirects_count = $follow_redirects_count > 0 ? $follow_redirects_count : 0;
-    }
-
-    /**
-     * Gets all available debug information
-     *
-     * @return  array   $this->debug_information    All available debug information
-     */
-    public function getDebug()
-    {
-        return $this->debug_information;
     }
 
     /**
@@ -206,12 +142,12 @@ class Backend
         $response = $this->cleanResponse($response);
         $xml = new \SimpleXMLElement($response);
 
-        $simplified_xml = new \XMLWriter();
-        $simplified_xml->openMemory();
-        $simplified_xml->setIndent(4);
+        $xmlRes = new \XMLWriter();
+        $xmlRes->openMemory();
+        $xmlRes->setIndent(4);
 
-        $simplified_xml->startDocument('1.0', 'utf-8');
-        $simplified_xml->startElement('response');
+        $xmlRes->startDocument('1.0', 'utf-8');
+        $xmlRes->startElement('response');
 
         if (!empty($xml->response)) {
             foreach ($xml->response as $response) {
@@ -224,15 +160,15 @@ class Backend
                         $vcardData = $this->getVcard($id);
 
                         if (!empty($id)) {
-                            $simplified_xml->startElement('element');
-                            $simplified_xml->writeElement('id', $id);
-                            $simplified_xml->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-                            $simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+                            $xmlRes->startElement('element');
+                            $xmlRes->writeElement('id', $id);
+                            $xmlRes->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
+                            $xmlRes->writeElement('last_modified', $response->propstat->prop->getlastmodified);
 
                             if ($include_vcards === true) {
-                                $simplified_xml->writeElement('vcard', $vcardData);
+                                $xmlRes->writeElement('vcard', $vcardData);
                             }
-                            $simplified_xml->endElement();
+                            $xmlRes->endElement();
                         }
                     } catch (\Exception $e) {
                         error_log("Error fetching vCard: {$id}: {$e->getMessage()}\n");
@@ -247,19 +183,19 @@ class Backend
                     }
 
                     $url = str_replace($this->url_parts['path'], null, $this->url) . $href;
-                    $simplified_xml->startElement('addressbook_element');
-                    $simplified_xml->writeElement('display_name', $response->propstat->prop->displayname);
-                    $simplified_xml->writeElement('url', $url);
-                    $simplified_xml->writeElement('last_modified', $response->propstat->prop->getlastmodified);
-                    $simplified_xml->endElement();
+                    $xmlRes->startElement('addressbook_element');
+                    $xmlRes->writeElement('display_name', $response->propstat->prop->displayname);
+                    $xmlRes->writeElement('url', $url);
+                    $xmlRes->writeElement('last_modified', $response->propstat->prop->getlastmodified);
+                    $xmlRes->endElement();
                 }
             }
         }
 
-        $simplified_xml->endElement();
-        $simplified_xml->endDocument();
+        $xmlRes->endElement();
+        $xmlRes->endDocument();
 
-        return $simplified_xml->outputMemory();
+        return $xmlRes->outputMemory();
     }
 
     /**
@@ -290,21 +226,7 @@ class Backend
      */
     private function query($url, $method, $content = null, $content_type = null)
     {
-        /*
-                if ($content !== null) {
-        error_log('POST');
-                    curl_setopt($this->curl, CURLOPT_POST, true);
-                    curl_setopt($this->curl, CURLOPT_POSTFIELDS, $content);
-                } else {
-                    curl_setopt($this->curl, CURLOPT_POST, false);
-                    curl_setopt($this->curl, CURLOPT_POSTFIELDS, null);
-                }
-        */
-
-        if (!isset($this->client)) {
-            $this->client = new Client();
-        }
-
+        $this->client = $this->client ?? new Client();
         $request = new Request($method, $url, [
             'Depth' => '1'
         ]);
@@ -322,12 +244,7 @@ class Backend
             $request = $request->withHeader('Authorization', 'Basic '.$credentials);
         }
 
-        // error_log(Psr7\str($request));
         $response = $this->client->send($request);
-        // error_log("\nHEADERS");
-        // error_log(Psr7\str($response));
-        // error_log("<<< HEADERS");
-
         return $response;
     }
 }
