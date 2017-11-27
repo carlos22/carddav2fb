@@ -9,29 +9,31 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class UploadCommand extends Command {
+class UploadCommand extends Command
+{
+    use ConfigTrait;
 
-	use ConfigTrait;
+    protected function configure()
+    {
+        $this->setName('upload')
+            ->setDescription('Upload to FritzBox')
+            ->addArgument('filename', InputArgument::REQUIRED, 'filename');
 
-	protected function configure() {
-		$this->setName('upload')
-			->setDescription('Upload to FritzBox')
-			->addArgument('filename', InputArgument::REQUIRED, 'filename');
+        $this->addConfig();
+    }
 
-		$this->addConfig();
-	}
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $this->loadConfig($input);
 
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		$this->loadConfig($input);
+        $filename = $input->getArgument('filename');
+        $xml = file_get_contents($filename);
 
-		$filename = $input->getArgument('filename');
-		$xml = file_get_contents($filename);
+        $fritzbox = $this->config['fritzbox'];
+        $phonebook = $this->config['phonebook'];
 
-		$fritzbox = $this->config['fritzbox'];
-		$phonebook = $this->config['phonebook'];
+        upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id'] ?? 0);
 
-		upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id'] ?? 0);
-
-		error_log("Uploaded fritz phonebook");
-	}
+        error_log("Uploaded fritz phonebook");
+    }
 }

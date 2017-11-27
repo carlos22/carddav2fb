@@ -53,7 +53,8 @@ class Parser implements \IteratorAggregate
     /**
      * IteratorAggregate
      */
-    public function getIterator() {
+    public function getIterator()
+    {
         foreach ($this->vcardObjects as $vcard) {
             yield $vcard;
         }
@@ -134,7 +135,7 @@ class Parser implements \IteratorAggregate
                 // or can be prefixed with "type=". E.g.: "INTERNET" or
                 // "type=INTERNET".
                 if (!empty($types)) {
-                    $types = array_map(function($type) {
+                    $types = array_map(function ($type) {
                         return preg_replace('/^type=/i', '', $type);
                     }, $types);
                 }

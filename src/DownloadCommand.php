@@ -10,33 +10,35 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\ProgressBar;
 
-class DownloadCommand extends Command {
+class DownloadCommand extends Command
+{
+    use ConfigTrait;
 
-	use ConfigTrait;
+    protected function configure()
+    {
+        $this->setName('download')
+            ->setDescription('Load from CardDAV server');
 
-	protected function configure() {
-		$this->setName('download')
-			->setDescription('Load from CardDAV server');
+        $this->addConfig();
+    }
 
-		$this->addConfig();
-	}
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $this->loadConfig($input);
 
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		$this->loadConfig($input);
+        $progress = new ProgressBar($output);
+        $progress->start();
 
-		$progress = new ProgressBar($output);
-		$progress->start();
+        $server = $this->config['server'];
+        $xmlStr = download($server['url'], $server['user'], $server['password'], function () use ($progress) {
+            $progress->advance();
+        });
 
-		$server = $this->config['server'];
-		$xmlStr = download($server['url'], $server['user'], $server['password'], function() use ($progress) {
-			$progress->advance();
-		});
+        $progress->finish();
 
-		$progress->finish();
+        $count = countCards($xmlStr);
+        error_log(sprintf("\nDownloaded %d vcards", $count));
 
-		$count = countCards($xmlStr);
-		error_log(sprintf("\nDownloaded %d vcards", $count));
-
-		echo $xmlStr;
-	}
+        echo $xmlStr;
+    }
 }
