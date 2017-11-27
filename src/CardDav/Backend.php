@@ -19,32 +19,18 @@ use Ringcentral\Psr7;
 class Backend
 {
     /**
-     * CardDAV PHP Version
-     *
-     * @constant    string
-     */
-    const VERSION = '0.7';
-
-    /**
-     * User agent displayed in http requests
-     *
-     * @constant    string
-     */
-    const USERAGENT = 'CardDAV PHP/';
-
-    /**
      * CardDAV server url
      *
      * @var     string
      */
-    private $url = null;
+    private $url;
 
     /**
      * CardDAV server url_parts
      *
      * @var     array
      */
-    private $url_parts = null;
+    private $url_parts;
 
     /**
      * VCard File URL Extension
@@ -54,25 +40,18 @@ class Backend
     private $url_vcard_extension = '.vcf';
 
     /**
-     * Authentication string
-     *
-     * @var     string
-     */
-    private $auth = null;
-
-    /**
     * Authentication: username
     *
     * @var  string
     */
-    private $username = null;
+    private $username;
 
     /**
     * Authentication: password
     *
     * @var  string
     */
-    private $password = null;
+    private $password;
 
     /**
      * Characters used for vCard id generation
@@ -80,41 +59,6 @@ class Backend
      * @var     array
      */
     private $vcard_id_chars = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F');
-
-    /**
-     * CardDAV server connection (curl handle)
-     *
-     * @var     resource
-     */
-    private $curl;
-
-    /**
-     * Follow redirects (Location Header)
-     *
-     * @var boolean
-     */
-    private $follow_redirects = true;
-
-    /**
-     * Maximum redirects to follow
-     *
-     * @var integer
-     */
-    private $follow_redirects_count = 3;
-
-    /**
-     * Debug on or off
-     *
-     * @var     boolean
-     */
-    private $debug = false;
-
-    /**
-     * All available debug information
-     *
-     * @var     array
-     */
-    private $debug_information = array();
 
     /**
      * Progress callback
