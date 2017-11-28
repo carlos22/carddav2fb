@@ -8,64 +8,72 @@ use Andig\FritzBox\Converter;
 use Andig\FritzBox\Api;
 use \SimpleXMLElement;
 
-function download($url, $user, $password, callable $callback=null): string
+function backendProvider(array $config): Backend
+{
+    $server = $config['server'] ?? $config;
+
+    $backend = new Backend();
+    $backend->setUrl($server['url']);
+    $backend->setAuth($server['user'], $server['password']);
+
+    return $backend;
+}
+
+function download(Backend $backend, callable $callback=null): array
 {
     $backend = new Backend($url);
     $backend->setAuth($user, $password);
     $backend->setProgress($callback);
-    return $backend->get();
+    return $backend->getVcards();
 }
 
-function countCards($xml): int
+function downloadImages(Backend $backend, $card): object
 {
-    $count = 0;
-    $xml = simplexml_load_string($xml);
-
-    foreach ($xml->element as $element) {
-        foreach ($element->vcard as $vcard) {
-            $count++;
-        }
+    if (isset($card->photo)) {
+        $uri = $card->photo;
+        $image = $backend->fetchImage($uri);
+        $card->photo_data = $image;
+        // print_r($card);
+        die;
     }
-    return $count;
+
+    return $card;
 }
 
-function parse(SimpleXMLElement $xml, array $conversions): array
+function parse(array $cards, array $conversions): array
 {
-    $cards = [];
+    $vcards = [];
     $groups = [];
 
     // parse all vcards
-    foreach ($xml->element as $element) {
-        foreach ($element->vcard as $vcard) {
-            $parser = new Parser($vcard);
-            $card = $parser->getCardAtIndex(0);
+    foreach ($cards as $card) {
+        $parser = new Parser($card);
+        $vcard = $parser->getCardAtIndex(0);
 
-            // separate iCloud groups
-            if (isset($card->xabsmember)) {
-                $groups[$card->fullname] = $card->xabsmember;
-                continue;
-            }
-
-            $cards[] = $card;
-            // print_r($card);
+        // separate iCloud groups
+        if (isset($vcard->xabsmember)) {
+            $groups[$vcard->fullname] = $vcard->xabsmember;
+            continue;
         }
+
+        $vcards[] = $vcard;
     }
 
     // assign group memberships
-    foreach ($cards as $card) {
+    foreach ($vcards as $vcard) {
         foreach ($groups as $group => $members) {
-            if (in_array($card->uid, $members)) {
-                if (!isset($card->group)) {
-                    $card->group = array();
+            if (in_array($vcard->uid, $members)) {
+                if (!isset($vcard->group)) {
+                    $vcard->group = array();
                 }
 
-                $card->group = $group;
+                $vcard->group = $group;
                 break;
             }
         }
     }
 
-    return $cards;
+    return $vcards;
 }
 
 function filter(array $cards, array $filters): array

@@ -17,7 +17,7 @@ class ConvertCommand extends Command
     {
         $this->setName('convert')
             ->setDescription('Convert Vcard to FritzBox format')
-            ->addOption('json', 'j', InputOption::VALUE_REQUIRED, 'export parse result to json file')
+            ->addOption('json', 'j', InputOption::VALUE_REQUIRED, 'export result to json file')
             ->addArgument('filename', InputArgument::REQUIRED, 'filename');
 
         $this->addConfig();
@@ -26,17 +26,23 @@ class ConvertCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->loadConfig($input);
-        
+
         $filename = $input->getArgument('filename');
-        $xml = simplexml_load_file($filename);
+        $cards = json_decode(file_get_contents($filename));
 
         $conversions = $this->config['conversions'];
         $excludes = $this->config['excludes'];
         $phonebook = $this->config['phonebook'];
 
         // parse
-        $cards = parse($xml, $conversions);
-        $filtered = filter($cards, $excludes);
+        $vcards = parse($cards, $conversions);
+        $filtered = filter($vcards, $excludes);
+
+        $server = $this->config['server'];
+        $backend = backendProvider($server);
+        foreach ($vcards as $vcard) {
+            downloadImages($backend, $vcard);
+        }
 
         if ($json = $input->getOption('json')) {
             file_put_contents($json, json_encode($filtered, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));

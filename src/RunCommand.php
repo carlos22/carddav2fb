@@ -33,14 +33,13 @@ class RunCommand extends Command
         $progress->start();
 
         $server = $this->config['server'];
-        $xmlStr = download($server['url'], $server['user'], $server['password'], function () use ($progress) {
+        $cards = download($server['url'], $server['user'], $server['password'], function () use ($progress) {
             $progress->advance();
         });
 
         $progress->finish();
 
-        $count = countCards($xmlStr);
-        error_log(sprintf("\nDownloaded %d vcards", $count));
+        error_log(sprintf("\nDownloaded %d vcards", count($cards)));
 
         // parse and convert
         error_log("Converting");
@@ -49,9 +48,8 @@ class RunCommand extends Command
         $conversions = $this->config['conversions'];
         $excludes = $this->config['excludes'];
 
-        $xml = simplexml_load_string($xmlStr);
-        $cards = parse($xml, $conversions);
-        $filtered = filter($cards, $excludes);
+        $vcards = parse($cards, $conversions);
+        $filtered = filter($vcards, $excludes);
         error_log(sprintf("Converted %d vcards", count($filtered)));
 
         // fritzbox format

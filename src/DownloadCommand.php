@@ -17,7 +17,8 @@ class DownloadCommand extends Command
     protected function configure()
     {
         $this->setName('download')
-            ->setDescription('Load from CardDAV server');
+            ->setDescription('Load from CardDAV server')
+            ->addOption('json', 'j', InputOption::VALUE_REQUIRED, 'export result to json file');
 
         $this->addConfig();
     }
@@ -30,15 +31,20 @@ class DownloadCommand extends Command
         $progress->start();
 
         $server = $this->config['server'];
-        $xmlStr = download($server['url'], $server['user'], $server['password'], function () use ($progress) {
+        $cards = download(backendProvider($server), function () use ($progress) {
             $progress->advance();
         });
 
         $progress->finish();
 
-        $count = countCards($xmlStr);
-        error_log(sprintf("\nDownloaded %d vcards", $count));
+        error_log(sprintf("\nDownloaded %d vcards", count($cards)));
 
-        echo $xmlStr;
+        $jsonStr = json_encode($cards, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+
+        if ($json = $input->getOption('json')) {
+            file_put_contents($json, $jsonStr);
+        }
+
+        echo $jsonStr;
     }
 }

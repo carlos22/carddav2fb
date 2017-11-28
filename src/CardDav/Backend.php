@@ -26,13 +26,6 @@ class Backend
     private $url;
 
     /**
-     * CardDAV server url_parts
-     *
-     * @var     array
-     */
-    private $url_parts;
-
-    /**
      * VCard File URL Extension
      *
      * @var string
@@ -64,15 +57,19 @@ class Backend
      *
      * @param   string  $url    CardDAV server url
      */
-    public function __construct($url)
+    public function __construct(string $url=null) {
+        if ($url) {
+            $this->setUrl($url);
+        }
+    }
+
+    public function setUrl(string $url)
     {
         $this->url = $url;
 
         if (substr($this->url, -1, 1) !== '/') {
             $this->url = $this->url . '/';
         }
-
-        $this->url_parts = parse_url($this->url);
 
         // workaround for providers that don't use the default .vcf extension
         if (strpos($this->url, "google.com")) {
@@ -103,7 +100,7 @@ class Backend
      * @param   boolean $include_vcards     Include vCards within the response (simplified only)
      * @return  string                      Raw or simplified XML response
      */
-    public function get($include_vcards = true)
+    public function getVcards($include_vcards = true)
     {
         $response = $this->query($this->url, 'PROPFIND');
 
@@ -113,6 +110,25 @@ class Backend
         }
 
         throw new \Exception('Received HTTP ' . $response->getStatusCode());
+    }
+
+    public function fetchImage($uri)
+    {
+        $this->client = $this->client ?? new Client();
+        $request = new Request('GET', $uri);
+
+        if ($this->username) {
+            $credentials = base64_encode($this->username.':'.$this->password);
+            $request = $request->withHeader('Authorization', 'Basic '.$credentials);
+        }
+
+        $response = $this->client->send($request);
+
+        if (200 !== $response->getStatusCode()) {
+            throw new \Exception('Received HTTP ' . $response->getStatusCode());
+        }
+
+        return (string)$response->getBody();
     }
 
     /**
@@ -143,68 +159,26 @@ class Backend
      * Simplify CardDAV XML response
      *
      * @param   string  $response           CardDAV XML response
-     * @param   boolean $include_vcards     Include vCards or not
      * @return  string                      Simplified CardDAV XML response
      */
-    private function simplify($response, $include_vcards = true)
+    private function simplify(string $response): array
     {
         $response = $this->cleanResponse($response);
         $xml = new \SimpleXMLElement($response);
 
-        $xmlRes = new \XMLWriter();
-        $xmlRes->openMemory();
-        $xmlRes->setIndent(4);
+        $cards = [];
 
-        $xmlRes->startDocument('1.0', 'utf-8');
-        $xmlRes->startElement('response');
+        foreach ($xml->response as $response) {
+            if ((preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) &&
+              !$response->propstat->prop->resourcetype->collection) {
+                $id = basename($response->href);
+                $id = str_replace($this->url_vcard_extension, null, $id);
 
-        if (!empty($xml->response)) {
-            foreach ($xml->response as $response) {
-                if ((preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) &&
-                  !$response->propstat->prop->resourcetype->collection) {
-                    $id = basename($response->href);
-                    $id = str_replace($this->url_vcard_extension, null, $id);
-
-                    try {
-                        $vcardData = $this->getVcard($id);
-
-                        if (!empty($id)) {
-                            $xmlRes->startElement('element');
-                            $xmlRes->writeElement('id', $id);
-                            $xmlRes->writeElement('etag', str_replace('"', null, $response->propstat->prop->getetag));
-                            $xmlRes->writeElement('last_modified', $response->propstat->prop->getlastmodified);
-
-                            if ($include_vcards === true) {
-                                $xmlRes->writeElement('vcard', $vcardData);
-                            }
-                            $xmlRes->endElement();
-                        }
-                    } catch (\Exception $e) {
-                        error_log("Error fetching vCard: {$id}: {$e->getMessage()}\n");
-                    }
-                } elseif (preg_match('/unix-directory/', $response->propstat->prop->getcontenttype)) {
-                    if (isset($response->propstat->prop->href)) {
-                        $href = $response->propstat->prop->href;
-                    } elseif (isset($response->href)) {
-                        $href = $response->href;
-                    } else {
-                        $href = null;
-                    }
-
-                    $url = str_replace($this->url_parts['path'], null, $this->url) . $href;
-                    $xmlRes->startElement('addressbook_element');
-                    $xmlRes->writeElement('display_name', $response->propstat->prop->displayname);
-                    $xmlRes->writeElement('url', $url);
-                    $xmlRes->writeElement('last_modified', $response->propstat->prop->getlastmodified);
-                    $xmlRes->endElement();
-                }
+                $cards[] = $this->getVcard($id);
             }
         }
 
-        $xmlRes->endElement();
-        $xmlRes->endDocument();
-
-        return $xmlRes->outputMemory();
+        return $cards;
     }
 
     /**
