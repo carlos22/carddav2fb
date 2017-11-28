@@ -45,7 +45,7 @@ function parse(SimpleXMLElement $xml, array $conversions): array
                 $groups[$card->fullname] = $card->xabsmember;
                 continue;
             }
-            
+
             $cards[] = $card;
             // print_r($card);
         }
@@ -85,7 +85,7 @@ function filter(array $cards, array $filters): array
         }
 
         if ($filterMatched) {
-            break;
+            continue;
         }
 
         $result[] = $card;
