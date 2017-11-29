@@ -19,7 +19,7 @@ trait ConfigTrait
     protected function loadConfig(InputInterface $input)
     {
         $configFile = $input->getOption('config');
-        
+
         if (!file_exists($configFile)) {
             throw new \Exception('Config file ' . $configFile . ' does not exist');
         }

@@ -13,11 +13,13 @@ class ConvertCommand extends Command
 {
     use ConfigTrait;
 
+    const JSON_OPTIONS = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
+
     protected function configure()
     {
         $this->setName('convert')
             ->setDescription('Convert Vcard to FritzBox format')
-            ->addOption('json', 'j', InputOption::VALUE_REQUIRED, 'export result to json file')
+            ->addOption('raw', 'r', InputOption::VALUE_REQUIRED, 'export raw conversion result to json file')
             ->addArgument('filename', InputArgument::REQUIRED, 'filename');
 
         $this->addConfig();
@@ -34,21 +36,14 @@ class ConvertCommand extends Command
         $excludes = $this->config['excludes'];
         $phonebook = $this->config['phonebook'];
 
-        // parse
-        $vcards = parse($cards, $conversions);
-        $filtered = filter($vcards, $excludes);
+        // filter
+        $filtered = filter($cards, $excludes);
 
-        $server = $this->config['server'];
-        $backend = backendProvider($server);
-        foreach ($vcards as $vcard) {
-            downloadImages($backend, $vcard);
+        if ($json = $input->getOption('raw')) {
+            file_put_contents($json, json_encode($filtered, self::JSON_OPTIONS));
         }
 
-        if ($json = $input->getOption('json')) {
-            file_put_contents($json, json_encode($filtered, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
-        }
-
-        error_log(sprintf("Converted %d vcards", count($filtered)));
+        error_log(sprintf("Converted %d cards", count($filtered)));
 
         // convert
         $xml = export($phonebook['name'], $filtered, $conversions);

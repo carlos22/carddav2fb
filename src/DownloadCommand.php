@@ -14,11 +14,15 @@ class DownloadCommand extends Command
 {
     use ConfigTrait;
 
+    const JSON_OPTIONS = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
+
     protected function configure()
     {
         $this->setName('download')
             ->setDescription('Load from CardDAV server')
-            ->addOption('json', 'j', InputOption::VALUE_REQUIRED, 'export result to json file');
+            ->addArgument('filename', InputArgument::OPTIONAL, 'raw vcards json file')
+            ->addOption('image', 'i', InputOption::VALUE_NONE, 'download images')
+            ->addOption('raw', 'r', InputOption::VALUE_REQUIRED, 'export raw vcards to json file');
 
         $this->addConfig();
     }
@@ -27,24 +31,52 @@ class DownloadCommand extends Command
     {
         $this->loadConfig($input);
 
-        $progress = new ProgressBar($output);
-        $progress->start();
-
         $server = $this->config['server'];
-        $cards = download(backendProvider($server), function () use ($progress) {
-            $progress->advance();
-        });
+        $backend = backendProvider($server);
+        $progress = new ProgressBar($output);
 
-        $progress->finish();
+        if ($inputFile = $input->getArgument('filename')) {
+            // read from file
+            $vcards = json_decode(file_get_contents($inputFile));
+        }
+        else {
+            // download
+            error_log("Downloading vcards");
 
-        error_log(sprintf("\nDownloaded %d vcards", count($cards)));
+            $progress->start();
+            $vcards = download($backend, function () use ($progress) {
+                $progress->advance();
+            });
+            $progress->finish();
 
-        $jsonStr = json_encode($cards, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+            error_log(sprintf("\nDownloaded %d vcard(s)", count($vcards)));
 
-        if ($json = $input->getOption('json')) {
-            file_put_contents($json, $jsonStr);
+            if ($file = $input->getOption('json')) {
+                $json = json_encode($vcards, self::JSON_OPTIONS);
+                file_put_contents($file, $json);
+            }
         }
 
-        echo $jsonStr;
+        // parsing
+        error_log("Parsing vcards");
+
+        $cards = parse($vcards);
+        $json = json_encode($cards, self::JSON_OPTIONS);
+
+        // images
+        if ($input->getOption('image')) {
+            error_log("Downloading images");
+
+            $progress->start();
+            $cards = downloadImages($backend, $cards, function() use ($progress) {
+                $progress->advance();
+            });
+            $progress->finish();
+
+            error_log(sprintf("\nDownloaded %d image(s)", countImages($cards)));
+        }
+
+        $json = json_encode($cards, self::JSON_OPTIONS);
+        echo $json;
     }
 }

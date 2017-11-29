@@ -21,26 +21,41 @@ function backendProvider(array $config): Backend
 
 function download(Backend $backend, callable $callback=null): array
 {
-    $backend = new Backend($url);
-    $backend->setAuth($user, $password);
     $backend->setProgress($callback);
     return $backend->getVcards();
 }
 
-function downloadImages(Backend $backend, $card): object
+function downloadImages(Backend $backend, array $cards, callable $callback=null): array
 {
-    if (isset($card->photo)) {
-        $uri = $card->photo;
-        $image = $backend->fetchImage($uri);
-        $card->photo_data = $image;
-        // print_r($card);
-        die;
+    foreach ($cards as $card) {
+        if (isset($card->photo)) {
+            $uri = $card->photo;
+            $image = $backend->fetchImage($uri);
+            $card->photo_data = utf8_encode($image);
+
+            if (is_callable($callback)) {
+                $callback();
+            }
+        }
     }
 
-    return $card;
+    return $cards;
 }
 
-function parse(array $cards, array $conversions): array
+function countImages(array $cards): int
+{
+    $images = 0;
+
+    foreach ($cards as $card) {
+        if (isset($card->photo_data)) {
+            $images++;
+        }
+    }
+
+    return $images;
+}
+
+function parse(array $cards): array
 {
     $vcards = [];
     $groups = [];

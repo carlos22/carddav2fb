@@ -2,6 +2,10 @@
 
 namespace Andig\FritzBox;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+use Ringcentral\Psr7;
+
 /**
  * Extended from https://github.com/jens-maus/carddav2fb
  * Public Domain
@@ -11,9 +15,9 @@ class Api
     private $username;
     private $password;
     private $url;
-    
+
     protected $sid = '0000000000000000';
-    
+
     /**
      * the constructor, initializes the object and calls the login method
      *
@@ -31,7 +35,7 @@ class Api
 
         $this->sid = $this->initSID();
     }
-    
+
     /**
      * do a POST request on the box
      * the main cURL wrapper handles the command
@@ -64,7 +68,7 @@ class Api
     public function doPostFile($formfields = array(), $filefileds = array())
     {
         $ch = curl_init();
-     
+
         // add the sid, if it is already set
         if ($this->sid != '0000000000000000') {
             // 'sid' MUST be the first POST variable!!! (otherwise it will not work!!)
@@ -74,11 +78,11 @@ class Api
         }
         curl_setopt($ch, CURLOPT_URL, $this->url . '/cgi-bin/firmwarecfg');
         curl_setopt($ch, CURLOPT_POST, 1);
-        
+
         // enable for debugging:
         //curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        
+
         // if filefileds not specified ('@/path/to/file.xml;type=text/xml' works fine)
         if (empty($filefileds)) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $formfields); // http_build_query
@@ -92,10 +96,10 @@ class Api
                 array(
                 'Content-Type: multipart/form-data; boundary=' . $header['delimiter'], 'Content-Length: ' . strlen($header['data']) )
                 );
-                
+
             curl_setopt($ch, CURLOPT_POSTFIELDS, $header['data']);
         }
-    
+
         $output = curl_exec($ch);
 
         // curl error
@@ -117,7 +121,7 @@ class Api
     {
         // form field separator
         $delimiter = '-------------' . uniqid();
-        
+
         /*
             // file upload fields: name => array(type=>'mime/type',content=>'raw data')
             $fileFields = array(
@@ -132,7 +136,7 @@ class Api
                 'otherformfield'   => 'content of otherformfield is this text',
             );
          */
-        
+
         $data = '';
 
         // populate normal fields first (simpler)
@@ -149,7 +153,7 @@ class Api
             // "filename" attribute is not essential; server-side scripts may use it
             $data .= 'Content-Disposition: form-data; name="' . urlencode($name) . '";' .
                      ' filename="' . $file['filename'] . '"' . "\r\n";
-                     
+
             //$data .= 'Content-Transfer-Encoding: binary'."\r\n";
             // this is, again, informative only; good practice to include though
             $data .= 'Content-Type: ' . $file['type'] . "\r\n";
@@ -160,10 +164,10 @@ class Api
         }
         // last delimiter
         $data .= "--" . $delimiter . "--\r\n";
-    
+
         return array('delimiter' => $delimiter, 'data' => $data);
     }
-    
+
     /**
      * do a GET request on the box
      * the main cURL wrapper handles the command
@@ -177,7 +181,7 @@ class Api
         if ($this->sid != '0000000000000000') {
             $params['sid'] = $this->sid;
         }
-    
+
         if (strpos($params['getpage'], '.lua') > 0) {
             $getpage = $params['getpage'] . '?';
             unset($params['getpage']);
@@ -186,11 +190,17 @@ class Api
         }
 
         $url = $this->url . $getpage . http_build_query($params);
-        $output = file_get_contents($url);
 
-        return $output;
+        $this->client = $this->client ?? new Client();
+        $response = $this->client->send(new Request('GET', $url));
+
+        if (200 !== $response->getStatusCode()) {
+            throw new \Exception('Received HTTP ' . $response->getStatusCode());
+        }
+
+        return (string)$response->getBody();
     }
-    
+
     /**
      * the login method, handles the secured login-process
      * newer firmwares (xx.04.74 and newer) need a challenge-response mechanism to prevent Cross-Site Request Forgery attacks

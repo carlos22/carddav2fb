@@ -17,7 +17,8 @@ class RunCommand extends Command
     protected function configure()
     {
         $this->setName('run')
-            ->setDescription('Download, convert and upload - all in one');
+            ->setDescription('Download, convert and upload - all in one')
+            ->addOption('image', 'i', InputOption::VALUE_NONE, 'download images');
 
         $this->addConfig();
     }
@@ -25,36 +26,49 @@ class RunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->loadConfig($input);
+        $progress = new ProgressBar($output);
 
         // download
         error_log("Downloading");
 
-        $progress = new ProgressBar($output);
-        $progress->start();
-
         $server = $this->config['server'];
-        $cards = download($server['url'], $server['user'], $server['password'], function () use ($progress) {
+        $backend = backendProvider($server);
+
+        $progress->start();
+        $vcards = download($backend, function () use ($progress) {
             $progress->advance();
         });
-
         $progress->finish();
 
-        error_log(sprintf("\nDownloaded %d vcards", count($cards)));
+        error_log(sprintf("\nDownloaded %d vcard(s)", count($vcards)));
 
         // parse and convert
-        error_log("Converting");
+        error_log("Parsing vcards");
+        $cards = parse($vcards);
 
+        // images
+        if ($input->getOption('image')) {
+            error_log("Downloading images");
+
+            $progress->start();
+            $cards = downloadImages($backend, $cards, function() use ($progress) {
+                $progress->advance();
+            });
+            $progress->finish();
+
+            error_log(sprintf("\nDownloaded %d image(s)", countImages($cards)));
+        }
+
+        // conversion
         $phonebook = $this->config['phonebook'];
         $conversions = $this->config['conversions'];
         $excludes = $this->config['excludes'];
 
-        $vcards = parse($cards, $conversions);
-        $filtered = filter($vcards, $excludes);
-        error_log(sprintf("Converted %d vcards", count($filtered)));
+        $filtered = filter($cards, $excludes);
+        error_log(sprintf("Converted %d vcard(s)", count($filtered)));
 
         // fritzbox format
         $xml = export($phonebook['name'], $filtered, $conversions);
-        // error_log(sprintf("Exported fritz phonebook", count($cards)));
 
         // upload
         error_log("Uploading");
