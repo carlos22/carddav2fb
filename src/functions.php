@@ -73,18 +73,7 @@ function filter(array $cards, array $filters): array
     $result = [];
 
     foreach ($cards as $card) {
-        $filterMatched = false;
-
-        foreach ($filters as $filterAttribute => $filterValues) {
-            if (isset($card->$filterAttribute)) {
-                if (filterMatches($card->$filterAttribute, $filterValues)) {
-                    $filterMatched = true;
-                    break;
-                }
-            }
-        }
-
-        if ($filterMatched) {
+        if (filtersMatch($card, $filters)) {
             continue;
         }
 
@@ -92,6 +81,19 @@ function filter(array $cards, array $filters): array
     }
 
     return $result;
+}
+
+function filtersMatch(object $card, array $filters): bool
+{
+    foreach ($filters as $attribute => $values) {
+        if (isset($card->$attribute)) {
+            if (filterMatches($card->$attribute, $values)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function filterMatches($attribute, $filterValues): bool

@@ -2,6 +2,7 @@
 
 namespace Andig\FritzBox;
 
+use Andig;
 use \SimpleXMLElement;
 
 class Converter
@@ -40,12 +41,10 @@ class Converter
 
     private function addVip()
     {
-        if (isset($this->card->category)) {
-            $vipCategories = $this->config['vipCategories'] ?? array();
-        
-            if (in_array($this->card->category, $vipCategories)) {
-                $this->contact->addChild('category', 1);
-            }
+        $vipCategories = $this->config['vip'] ?? array();
+
+        if (Andig\filtersMatch($this->card, $vipCategories)) {
+            $this->contact->addChild('category', 1);
         }
     }
 
@@ -56,7 +55,7 @@ class Converter
         // 	<number type="work" vanity="" prio="0" id="1">+400746653254</number></telephony>
 
         $telephony = $this->contact->addChild('telephony');
-        
+
         $replaceCharacters = $this->config['phoneReplaceCharacters'] ?? array();
         $phoneTypes = $this->config['phoneTypes'] ?? array();
 
