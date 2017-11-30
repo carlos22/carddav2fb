@@ -106,7 +106,7 @@ function filter(array $cards, array $filters): array
     return $result;
 }
 
-function filtersMatch(object $card, array $filters): bool
+function filtersMatch($card, array $filters): bool
 {
     foreach ($filters as $attribute => $values) {
         if (isset($card->$attribute)) {
