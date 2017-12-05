@@ -60,14 +60,14 @@ class RunCommand extends Command
         }
 
         // conversion
-        $phonebook = $this->config['phonebook'];
-        $conversions = $this->config['conversions'];
-        $excludes = $this->config['excludes'];
+        $filters = $this->config['filters'];
+        $filtered = filter($cards, $filters);
 
-        $filtered = filter($cards, $excludes);
         error_log(sprintf("Converted %d vcard(s)", count($filtered)));
 
         // fritzbox format
+        $phonebook = $this->config['phonebook'];
+        $conversions = $this->config['conversions'];
         $xml = export($phonebook['name'], $filtered, $conversions);
 
         // upload

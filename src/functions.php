@@ -91,19 +91,44 @@ function parse(array $cards): array
     return $vcards;
 }
 
+/**
+ * Filter included/excluded vcards
+ *
+ * @param array $cards
+ * @param array $filters
+ * @return array
+ */
 function filter(array $cards, array $filters): array
 {
-    $result = [];
+    // include selected
+    $includeFilter = $filters['include'] ?? [];
+    if (count($includeFilter)) {
+        $step1 = [];
 
-    foreach ($cards as $card) {
-        if (filtersMatch($card, $filters)) {
-            continue;
+        foreach ($cards as $card) {
+            if (filtersMatch($card, $includeFilter)) {
+                $step1[] = $card;
+            }
         }
-
-        $result[] = $card;
+    }
+    else {
+        // include all by default
+        $step1 = $cards;
     }
 
-    return $result;
+    $excludeFilter = $filters['exclude'] ?? [];
+    if (!count($excludeFilter)) {
+        return $step1;
+    }
+
+    $step2 = [];
+    foreach ($step1 as $card) {
+        if (!filtersMatch($card, $excludeFilter)) {
+            $step2[] = $card;
+        }
+    }
+
+    return $step2;
 }
 
 function filtersMatch($card, array $filters): bool

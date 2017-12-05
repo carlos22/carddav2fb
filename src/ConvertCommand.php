@@ -32,12 +32,9 @@ class ConvertCommand extends Command
         $filename = $input->getArgument('filename');
         $cards = json_decode(file_get_contents($filename));
 
-        $conversions = $this->config['conversions'];
-        $excludes = $this->config['excludes'];
-        $phonebook = $this->config['phonebook'];
-
         // filter
-        $filtered = filter($cards, $excludes);
+        $filters = $this->config['filters'];
+        $filtered = filter($cards, $filters);
 
         if ($json = $input->getOption('raw')) {
             file_put_contents($json, json_encode($filtered, self::JSON_OPTIONS));
@@ -46,6 +43,8 @@ class ConvertCommand extends Command
         error_log(sprintf("Converted %d cards", count($filtered)));
 
         // convert
+        $phonebook = $this->config['phonebook'];
+        $conversions = $this->config['conversions'];
         $xml = export($phonebook['name'], $filtered, $conversions);
 
         echo $xml->asXML();
