@@ -151,8 +151,18 @@ function filterMatches($attribute, $filterValues): bool
     }
 
     foreach ($filterValues as $filter) {
-        if ($attribute === $filter) {
-            return true;
+        if (is_array($attribute)) {
+            // check if any attribute matches
+            foreach ($attribute as $childAttribute) {
+                if ($childAttribute === $filter) {
+                    return true;
+                }
+            }
+        } else {
+            // check if simple attribute matches
+            if ($attribute === $filter) {
+                return true;
+            }
         }
     }
 
