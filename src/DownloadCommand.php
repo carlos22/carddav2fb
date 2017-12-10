@@ -51,7 +51,7 @@ class DownloadCommand extends Command
 
             error_log(sprintf("\nDownloaded %d vcard(s)", count($vcards)));
 
-            if ($file = $input->getOption('json')) {
+            if ($file = $input->getOption('raw')) {
                 $json = json_encode($vcards, self::JSON_OPTIONS);
                 file_put_contents($file, $json);
             }
