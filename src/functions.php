@@ -8,6 +8,12 @@ use Andig\FritzBox\Converter;
 use Andig\FritzBox\Api;
 use \SimpleXMLElement;
 
+/**
+ * Initialize backend from configuration
+ *
+ * @param array $config
+ * @return Backend
+ */
 function backendProvider(array $config): Backend
 {
     $server = $config['server'] ?? $config;
@@ -19,12 +25,25 @@ function backendProvider(array $config): Backend
     return $backend;
 }
 
+/**
+ * Download vcards from CardDAV server
+ *
+ * @param Backend $backend
+ * @param callable $callback
+ * @return array
+ */
 function download(Backend $backend, callable $callback=null): array
 {
     $backend->setProgress($callback);
     return $backend->getVcards();
 }
 
+/**
+ * Download images from CardDAV server
+ *
+ * @param array $cards
+ * @return int
+ */
 function downloadImages(Backend $backend, array $cards, callable $callback=null): array
 {
     foreach ($cards as $card) {
@@ -42,6 +61,12 @@ function downloadImages(Backend $backend, array $cards, callable $callback=null)
     return $cards;
 }
 
+/**
+ * Count downloaded images contained in list of vcards
+ *
+ * @param array $cards
+ * @return int
+ */
 function countImages(array $cards): int
 {
     $images = 0;
@@ -55,6 +80,12 @@ function countImages(array $cards): int
     return $images;
 }
 
+/**
+ * Parse an array of raw vcards into POPOs
+ *
+ * @param array $cards
+ * @return array
+ */
 function parse(array $cards): array
 {
     $vcards = [];
@@ -102,7 +133,8 @@ function filter(array $cards, array $filters): array
 {
     // include selected
     $includeFilter = $filters['include'] ?? [];
-    if (count($includeFilter)) {
+
+    if (countFilters($includeFilter)) {
         $step1 = [];
 
         foreach ($cards as $card) {
@@ -112,6 +144,11 @@ function filter(array $cards, array $filters): array
         }
     }
     else {
+        // filter defined but empty sub-rules?
+        if (count($includeFilter)) {
+            error_log('Include filter empty- including all cards');
+        }
+
         // include all by default
         $step1 = $cards;
     }
@@ -131,6 +168,32 @@ function filter(array $cards, array $filters): array
     return $step2;
 }
 
+/**
+ * Count populated filter rules
+ *
+ * @param array $filters
+ * @return int
+ */
+function countFilters(array $filters): int
+{
+    $filterCount = 0;
+
+    foreach ($filters as $key => $value) {
+        if (is_array($value)) {
+            $filterCount += count($value);
+        }
+    }
+
+    return $filterCount;
+}
+
+/**
+ * Check a list of filters against a card
+ *
+ * @param [type] $card
+ * @param array $filters
+ * @return bool
+ */
 function filtersMatch($card, array $filters): bool
 {
     foreach ($filters as $attribute => $values) {
@@ -144,6 +207,13 @@ function filtersMatch($card, array $filters): bool
     return false;
 }
 
+/**
+ * Check a filter against a single attribute
+ *
+ * @param [type] $attribute
+ * @param [type] $filterValues
+ * @return bool
+ */
 function filterMatches($attribute, $filterValues): bool
 {
     if (!is_array($filterValues)) {
@@ -169,6 +239,14 @@ function filterMatches($attribute, $filterValues): bool
     return false;
 }
 
+/**
+ * Export cards to fritzbox xml
+ *
+ * @param string $name
+ * @param array $cards
+ * @param array $conversions
+ * @return SimpleXMLElement
+ */
 function export(string $name, array $cards, array $conversions): SimpleXMLElement
 {
     $xml = new SimpleXMLElement(
@@ -194,7 +272,14 @@ EOT
     return $xml;
 }
 
-// https://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
+/**
+ * Attach xml element to parent
+ * https://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
+ *
+ * @param SimpleXMLElement $to
+ * @param SimpleXMLElement $from
+ * @return void
+ */
 function xml_adopt(SimpleXMLElement $to, SimpleXMLElement $from)
 {
     $toDom = dom_import_simplexml($to);
@@ -202,7 +287,16 @@ function xml_adopt(SimpleXMLElement $to, SimpleXMLElement $from)
     $toDom->appendChild($toDom->ownerDocument->importNode($fromDom, true));
 }
 
-
+/**
+ * Upload cards to fritzbox
+ *
+ * @param string $xml
+ * @param string $url
+ * @param string $user
+ * @param string $password
+ * @param int $phonebook
+ * @return void
+ */
 function upload(string $xml, string $url, string $user, string $password, int $phonebook=0)
 {
     $fritz = new Api($url, $user, $password, 1);
