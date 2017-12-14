@@ -60,10 +60,11 @@ $config = [
 			'HOME' => 'home'
 		],
 		'phoneReplaceCharacters' => [
-			'(' => '',
-			')' => '',
-			'/' => '',
-			'-' => ' '
+			'+49' => '',  //Router steht default in DE; '0049' könnte auch Teil einer Rufnummer sein
+            '('   => '',
+			')'   => '',
+			'/'   => '',
+			'-'   => ' '
 		]
 	]
 ];
