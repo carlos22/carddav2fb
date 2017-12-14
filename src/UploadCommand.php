@@ -16,7 +16,7 @@ class UploadCommand extends Command
     protected function configure()
     {
         $this->setName('upload')
-            ->setDescription('Upload to FritzBox')
+            ->setDescription('Upload to Fritz!Box')
             ->addArgument('filename', InputArgument::REQUIRED, 'filename');
 
         $this->addConfig();
@@ -34,6 +34,6 @@ class UploadCommand extends Command
 
         upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id'] ?? 0);
 
-        error_log("Uploaded fritz phonebook");
+        error_log("Uploaded Fritz!Box phonebook");
     }
 }
