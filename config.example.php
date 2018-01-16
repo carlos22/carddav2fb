@@ -45,10 +45,13 @@ $config = [
 				'PERS'
 			],
 		],
-		'realName' => [
+	'realName' => [
+			'{lastname}, {prefix} {nickname}',
+			'{lastname}, {prefix} {firstname}',
+			'{lastname}, {nickname}',
 			'{lastname}, {firstname}',
-			'{fullname}',
-			'{organization}'
+			'{organization}',
+			'{fullname}'
 		],
 		'phoneTypes' => [
 			'WORK' => 'work',

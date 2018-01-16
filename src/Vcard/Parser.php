@@ -174,6 +174,9 @@ class Parser implements \IteratorAggregate
                             $cardData->{$key} = $val;
                         }
                         break;
+                    case 'NICKNAME':
+                        $cardData->nickname = $value;
+                        break;    
                     case 'BDAY':
                         $cardData->birthday = $this->parseBirthday($value);
                         break;
