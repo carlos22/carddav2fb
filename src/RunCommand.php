@@ -26,21 +26,22 @@ class RunCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->loadConfig($input);
-        $progress = new ProgressBar($output);
 
-        // download
-        error_log("Downloading");
+        $vcards = array();
+        $xcards = array();
 
-        $server = $this->config['server'];
-        $backend = backendProvider($server);
-
-        $progress->start();
-        $vcards = download($backend, function () use ($progress) {
-            $progress->advance();
-        });
-        $progress->finish();
-
-        error_log(sprintf("\nDownloaded %d vcard(s)", count($vcards)));
+        foreach($this->config['server'] as $server) {
+            $progress = new ProgressBar($output);
+            error_log("Downloading vCard(s) from account ".$server['user']);
+            $backend = backendProvider($server);
+            $progress->start();
+            $xcards = download ($backend, function () use ($progress) {
+                $progress->advance();
+            });
+            $progress->finish();
+            $vcards = array_merge($vcards, $xcards);
+            error_log(sprintf("\nDownloaded %d vCard(s)", count($vcards)));
+        }
 
         // parse and convert
         error_log("Parsing vcards");

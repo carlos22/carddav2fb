@@ -8,18 +8,25 @@ $config = [
 	],
 
 	// or server
-	'server' => [
-		'url' => 'https://...',
-		'user' => '',
-		'password' => '',
-	],
+    'server' => [
+        [
+            'url' => 'https://...',
+            'user' => '',
+            'password' => '',
+            ],								/* add as many as you need
+        [
+            'url' => 'https://...',
+            'user' => '',
+            'password' => '',
+            ],								*/
+    ],
 
-	// or fritzbox
-	'fritzbox' => [
-		'url' => 'http://fritz.box',
-		'user' => '',
-		'password' => '',
-	],
+    // or fritzbox
+    'fritzbox' => [
+        'url' => 'http://fritz.box',
+        'user' => '',
+        'password' => '',
+    ],
 
     'filters' => [
         'include' => [
