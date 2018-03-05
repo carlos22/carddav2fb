@@ -468,6 +468,8 @@ class CardDAV2FB
                   $type = "other";
                 elseif(in_array("dom", $typearr_lower))
                   $type = "other";
+                elseif(in_array("voice", $typearr_lower))
+                  $type = "other";
                 else
                   continue;
               }
