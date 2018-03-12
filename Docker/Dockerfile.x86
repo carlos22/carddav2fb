@@ -1,0 +1,33 @@
+FROM debian:stretch
+MAINTAINER docker@intrepid.de
+
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get -y install \
+      php7.0-cli \
+      php7.0-curl \
+      php7.0-xml \
+      php7.0-mbstring \
+      git \
+      cron && \
+    cd /opt && \
+    git clone https://github.com/FoxRomeo/carddav2fb.git && \
+    groupadd -r carddav2fb && \
+    useradd --no-log-init -r -g carddav2fb carddav2fb && \
+    mkdir /opt/carddav2fb/share && \
+    chown carddav2fb:carddav2fb /opt/carddav2fb/share && \
+    rm -rf /var/lib/apt/lists/*
+
+
+# set outputfile to "/opt/carddav2fb/share/phonebook.xml"
+# $config['output_file'] = '/opt/carddav2fb/share/phonebook.xml';
+
+# -v <path_to_your>/config.php:/opt/carddav2fb/config.php:ro
+# -v <path_to_your>/crontab:/etc/cron.d/carddav2fb:ro
+# --add-host=fritz.box:<IP_OF_YOUR_FRITZBOX>
+
+WORKDIR /opt/carddav2fb
+CMD ["cron", "-f"]
+
