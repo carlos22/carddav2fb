@@ -1,1 +1,5 @@
+# for testing every 5 minutes
 */5 * * * * carddav2fb /usr/bin/php /opt/carddav2fb/carddav2fb.php
+
+# to minimize system load for normal operation use something less often
+# 0 0 * * * carddav2fb /usr/bin/php /opt/carddav2fb/carddav2fb.php
