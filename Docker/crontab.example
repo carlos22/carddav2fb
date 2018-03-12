@@ -1,0 +1,1 @@
+*/5 * * * * carddav2fb /usr/bin/php /opt/carddav2fb/carddav2fb.php
