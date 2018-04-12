@@ -21,7 +21,7 @@ edit `config.example.php` and save as `config.php`
 
 List all commands:
 
-    php carddav2fb.php run
+    php carddav2fb.php list
 
 Complete processing:
 
