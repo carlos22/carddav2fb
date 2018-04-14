@@ -32,6 +32,10 @@ class ConvertCommand extends Command
         $filename = $input->getArgument('filename');
         $cards = json_decode(file_get_contents($filename));
 
+        if (!is_array($cards)) {
+            throw new \Exception(sprintf('Could not read parsed vcards from %s', $filename));
+        }
+
         // filter
         $filters = $this->config['filters'];
         $filtered = filter($cards, $filters);

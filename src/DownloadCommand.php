@@ -32,24 +32,30 @@ class DownloadCommand extends Command
         $this->loadConfig($input);
 
         $vcards = array();
-        $xcards = array();
-		
-        if ($inputFile = $input->getArgument('filename')) {
+
+        $progress = new ProgressBar($output);
+
+        if ($filename = $input->getArgument('filename')) {
             // read from file
-            $vcards = json_decode(file_get_contents($inputFile));
+            $vcards = json_decode(file_get_contents($filename));
+
+            if (!is_array($vcards)) {
+                throw new \Exception(sprintf('Could not read unparsed vcards from %s', $filename));
+            }
         }
         else {
             // download
             foreach($this->config['server'] as $server) {
-                $progress = new ProgressBar($output);
                 error_log("Downloading vCard(s) from account ".$server['user']);
                 $backend = backendProvider($server);
+
                 $progress->start();
-                $xcards = download ($backend, function () use ($progress) {
+                $downloaded = download($backend, function () use ($progress) {
                     $progress->advance();
                 });
                 $progress->finish();
-                $vcards = array_merge($vcards, $xcards);
+
+                $vcards = array_merge($vcards, $downloaded);
                 error_log(sprintf("\nDownloaded %d vCard(s)", count($vcards)));
             }
 
