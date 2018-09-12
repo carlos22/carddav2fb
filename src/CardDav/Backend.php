@@ -33,18 +33,25 @@ class Backend
     private $url_vcard_extension = '.vcf';
 
     /**
-    * Authentication: username
-    *
-    * @var  string
-    */
+     * Authentication: username
+     *
+     * @var  string
+     */
     private $username;
 
     /**
-    * Authentication: password
-    *
-    * @var  string
-    */
+     * Authentication: password
+     *
+     * @var  string
+     */
     private $password;
+
+    /**
+     * Authentication: method
+     *
+     * @var  string|null
+     */
+    private $authentication;
 
     /**
      * Progress callback
@@ -88,10 +95,11 @@ class Backend
     /**
      * Set credentials
      */
-    public function setAuth(string $username, string $password)
+    public function setAuth(string $username, string $password, string $method = null)
     {
         $this->username = $username;
         $this->password = $password;
+        $this->authentication = $method;
     }
 
     /**
@@ -112,17 +120,29 @@ class Backend
         throw new \Exception('Received HTTP ' . $response->getStatusCode());
     }
 
-    public function fetchImage($uri)
+    private function getClient()
     {
-        $this->client = $this->client ?? new Client();
-        $request = new Request('GET', $uri);
-
-        if ($this->username) {
-            $credentials = base64_encode($this->username.':'.$this->password);
-            $request = $request->withHeader('Authorization', 'Basic '.$credentials);
+        if (!$this->client) {
+            $this->client = new Client($this->getClientOptions());
         }
 
-        $response = $this->client->send($request);
+        return $this->client;
+    }
+
+    private function getClientOptions($options = [])
+    {
+        if ($this->username) {
+            $options['auth'] = [$this->username, $this->password, $this->authentication];
+        }
+
+        return $options;
+    }
+
+    public function fetchImage($uri)
+    {
+        $request = new Request('GET', $uri);
+
+        $response = $this->getClient()->send($request);
 
         if (200 !== $response->getStatusCode()) {
             throw new \Exception('Received HTTP ' . $response->getStatusCode());
@@ -209,7 +229,6 @@ class Backend
      */
     private function query($url, $method, $content = null, $content_type = null)
     {
-        $this->client = $this->client ?? new Client();
         $request = new Request($method, $url, [
             'Depth' => '1'
         ]);
@@ -222,12 +241,7 @@ class Backend
             $request = $request->withBody($content);
         }
 
-        if ($this->username) {
-            $credentials = base64_encode($this->username.':'.$this->password);
-            $request = $request->withHeader('Authorization', 'Basic '.$credentials);
-        }
-
-        $response = $this->client->send($request);
+        $response = $this->getClient()->send($request);
         return $response;
     }
 }

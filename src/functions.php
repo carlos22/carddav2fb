@@ -17,10 +17,11 @@ use \SimpleXMLElement;
 function backendProvider(array $config): Backend
 {
     $server = $config['server'] ?? $config;
+    $authentication = $server['authentication'] ?? null;
 
     $backend = new Backend();
     $backend->setUrl($server['url']);
-    $backend->setAuth($server['user'], $server['password']);
+    $backend->setAuth($server['user'], $server['password'], $authentication);
 
     return $backend;
 }

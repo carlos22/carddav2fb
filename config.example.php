@@ -13,12 +13,15 @@ $config = [
             'url' => 'https://...',
             'user' => '',
             'password' => '',
-            ],								/* add as many as you need
+            // 'authentication' => 'digest' // uncomment for digest auth
+        ],
+/* add as many as you need
         [
             'url' => 'https://...',
             'user' => '',
             'password' => '',
-            ],								*/
+        ],
+*/
     ],
 
     // or fritzbox
