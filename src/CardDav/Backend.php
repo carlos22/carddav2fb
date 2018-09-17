@@ -59,6 +59,13 @@ class Backend
     private $callback;
 
     /**
+     * Do not use this directly! Rather use {@see getClient()}
+     *
+     * @var Client
+     */
+    private $client;
+
+    /**
      * Constructor
      * Sets the CardDAV server url
      *
