@@ -208,6 +208,8 @@ class Parser implements \IteratorAggregate
                         $cardData->version = $value;
                         break;
                     case 'ORG':
+                        if (substr($value, -1) == ';')    //  deletes semicolons that sometimes appear at the end
+                            $value = substr($value, 0, -1);
                         $cardData->organization = $value;
                         break;
                     case 'URL':
