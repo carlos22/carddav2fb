@@ -29,11 +29,8 @@ class UploadCommand extends Command
         $filename = $input->getArgument('filename');
         $xml = file_get_contents($filename);
 
-        $fritzbox = $this->config['fritzbox'];
-        $phonebook = $this->config['phonebook'];
-
-        upload($xml, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id'] ?? 0);
-
-        error_log("Uploaded Fritz!Box phonebook");
+        error_log("Uploading Fritz!Box phonebook");
+        upload($xml, $this->config);
+        error_log("Successful uploaded new Fritz!Box phonebook");
     }
 }

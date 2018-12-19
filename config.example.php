@@ -3,8 +3,9 @@
 $config = [
 	// phonebook
 	'phonebook' => [
-		'id' => 0,
-		'name' => 'Telefonbuch'
+		'id'        => 0,                 // only '0' can store images
+		'name'      => 'Telefonbuch',
+        'imagepath' => 'file:///var/InternerSpeicher/[YOURUSBSTICK]/FRITZ/fonpix/', // mandatory if you use the -i option
 	],
 
 	// or server
@@ -29,6 +30,7 @@ $config = [
         'url' => 'http://fritz.box',
         'user' => '',
         'password' => '',
+        'fonpix'   => '/[YOURUSBSTICK]/FRITZ/fonpix',   // the storage on your usb stick for uploading images
     ],
 
     'filters' => [

@@ -33,7 +33,7 @@ class ConvertCommand extends Command
         $cards = json_decode(file_get_contents($filename));
 
         if (!is_array($cards)) {
-            throw new \Exception(sprintf('Could not read parsed vcards from %s', $filename));
+            throw new \Exception(sprintf('Could not read parsed vCards from %s', $filename));
         }
 
         // filter
@@ -47,9 +47,7 @@ class ConvertCommand extends Command
         error_log(sprintf("Converted %d cards", count($filtered)));
 
         // convert
-        $phonebook = $this->config['phonebook'];
-        $conversions = $this->config['conversions'];
-        $xml = export($phonebook['name'], $filtered, $conversions);
+        $xml = export($filtered, $this->config);
 
         echo $xml->asXML();
     }

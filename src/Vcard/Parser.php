@@ -223,17 +223,17 @@ class Parser implements \IteratorAggregate
                         $cardData->title = $value;
                         break;
                     case 'PHOTO':
-                        if ($rawValue) {
-                            $cardData->rawPhoto = $value;
-                        } else {
-                            $cardData->photo = $value;
-                        }
-                        break;
                     case 'LOGO':
+                    case 'SOUND':                    
+                    case 'KEY':
+                        $element = strtolower($element);
                         if ($rawValue) {
-                            $cardData->rawLogo = $value;
+                            $rawField  = "raw" . ucfirst($element);
+                            $dataField = $element . "Data";
+                            $cardData->$rawField  = $value;
+                            $cardData->$dataField = implode(';',$types);
                         } else {
-                            $cardData->logo = $value;
+                            $cardData->$element = $value;
                         }
                         break;
                     case 'NOTE':

@@ -5,6 +5,7 @@ namespace Andig\CardDav;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Ringcentral\Psr7;
+use Andig\Vcard\Parser;
 
 /**
  * @author Christian Putzke <christian.putzke@graviox.de>
@@ -64,6 +65,11 @@ class Backend
      * @var Client
      */
     private $client;
+    
+    /**
+     * Set substitutions of links to embedded data
+     */
+    private $substitutes = [];
 
     /**
      * Constructor
@@ -74,6 +80,18 @@ class Backend
     public function __construct(string $url=null) {
         if ($url) {
             $this->setUrl($url);
+        }
+    }
+    
+    /**
+     * setting the properties/elements which should be substituted
+     *
+     * @param   array $elements        the properties whose value should be replaced ('LOGO', 'KEY', 'PHOTO' or 'SOUND')
+     */
+    public function setSubstitutes($elements) 
+    {
+        foreach ($elements as $element) {
+            $this->substitutes[] = strtolower($element);
         }
     }
 
@@ -145,17 +163,88 @@ class Backend
         return $options;
     }
 
-    public function fetchImage($uri)
+    /**
+     * If elements are declared as to be substituted,
+     * the data from possibly linked sources are embedded directly into the vCard
+     *
+     * @param   string $vcard               single parsed vCard
+     * @param   string $substituteID        the property whose value is to be replaced ('logo', 'key', 'photo' or 'sound')
+     * @param   string $server              the current CardDAV server adress
+     * @return  string                      single vCard with embedded value
+     */
+    private function embedBase64($vcard, $substituteID, $server) 
     {
+        if (!array_key_exists($substituteID, $vcard)) {
+            return $vcard;
+        }
+        if (!preg_match("/http/", $vcard->{$substituteID})) {    // no external URL set -> must be already base64 or local
+            return $vcard;    
+        }
+        // check if mime is linked onto the same server 
+        $serv = explode('/', $server, 4);                      // get the beginning of the current server adress
+        $link = explode('/', $vcard->{$substituteID}, 4);      // get the beginning of the linked adress
+        if (strcasecmp($serv[2], $link[2]) !== 0) {            // if they aren´t equal authorisation will fail!
+            return $vcard;
+        }
+        $embedded = $this->getLinkedData($vcard->{$substituteID});   // get the data from the external URL
+        $types = '';
+        switch ($vcard->version) {                             // the different vCard versions must be considered
+            case '3.0':
+                $types = "TYPE=" . strtoupper($embedded['subtype']) . ";ENCODING=b";
+                break;
+            case '4.0':
+                $types = "data:" . $embedded['mimetype'] . ";base64";
+                break;
+        }
+        $rawField  = "raw" . ucfirst($substituteID);
+        $dataField = $substituteID . "Data";
+        $vcard->$rawField  = $embedded['data'];
+        $vcard->$dataField = $types;  
+        return $vcard;
+    }
+
+    /**
+     * delivers an array including the previously linked data and its mime type details
+     * a mime type is composed of a type, a subtype, and optional parameters (e.g. "; charset=UTF-8")
+     * 
+     * @param    string $uri           URL of the external linked data
+     * @return   array ['mimetype',    e.g. "image/jpeg" 
+     *                  'type',        e.g. "audio"  
+     *                  'subtype',     e.g. "mpeg"
+     *                  'parameters',  whatever
+     *                  'data']        the base64 encoded data
+     */
+    public function getLinkedData($uri)
+    {
+        $externalData = array();
+        
+        $this->client = $this->client ?? new Client();
         $request = new Request('GET', $uri);
 
-        $response = $this->getClient()->send($request);
-
+        if ($this->username) {
+            $credentials = base64_encode($this->username . ':' . $this->password);
+            $request = $request->withHeader('Authorization', 'Basic ' . $credentials);
+        }
+        $response = $this->client->send($request);
+        
         if (200 !== $response->getStatusCode()) {
             throw new \Exception('Received HTTP ' . $response->getStatusCode());
         }
-
-        return (string)$response->getBody();
+        else {
+            $contentType = $response->getHeader('Content-Type');
+            
+            @list($mimeType,$parameters) = explode(';', $contentType[0], 2);
+            @list($type, $subType) = explode('/', $mimeType);
+                        
+            $externalData = [
+                'mimetype'   => $mimeType ?? '',
+                'type'       => $type ?? '',
+                'subtype'    => $subType ?? '',
+                'parameters' => $parameters ?? '',
+                'data'       => (string)$response->getBody(),
+            ];
+        }
+        return $externalData;
     }
 
     /**
@@ -172,11 +261,19 @@ class Backend
         if (in_array($response->getStatusCode(), [200,207])) {
             $body = (string)$response->getBody();
 
+            $parser = new Parser($body);
+            $vcard = $parser->getCardAtIndex(0);
+            
+            if (isset($this->substitutes)) {
+                foreach ($this->substitutes as $substitute) {
+                    $vcard = $this->embedBase64($vcard, $substitute, $this->url);
+                }
+            }
             if (is_callable($this->callback)) {
                 ($this->callback)();
             }
 
-            return $body;
+            return $vcard;
         }
 
         throw new \Exception('Received HTTP ' . $response->getStatusCode());

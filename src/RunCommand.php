@@ -29,56 +29,55 @@ class RunCommand extends Command
 
         $vcards = array();
         $xcards = array();
-
+        $substitutes = ($input->getOption('image')) ? ['PHOTO'] : [];
+        
         foreach($this->config['server'] as $server) {
             $progress = new ProgressBar($output);
             error_log("Downloading vCard(s) from account ".$server['user']);
+            
             $backend = backendProvider($server);
             $progress->start();
-            $xcards = download ($backend, function () use ($progress) {
+            $xcards = download ($backend, $substitutes, function () use ($progress) {
                 $progress->advance();
             });
             $progress->finish();
             $vcards = array_merge($vcards, $xcards);
-            error_log(sprintf("\nDownloaded %d vCard(s)", count($vcards)));
+            $quantity = count($vcards);
+            error_log(sprintf("\nDownloaded %d vCard(s)", $quantity));
         }
 
-        // parse and convert
-        error_log("Parsing vcards");
-        $cards = parse($vcards);
-
-        // images
-        if ($input->getOption('image')) {
-            error_log("Downloading images");
-
-            $progress->start();
-            $cards = downloadImages($backend, $cards, function() use ($progress) {
-                $progress->advance();
-            });
-            $progress->finish();
-
-            error_log(sprintf("\nDownloaded %d image(s)", countImages($cards)));
-        }
-
-        // conversion
+        // dissolve
+        error_log("Dissolving groups (e.g. iCloud)");
+        $cards = dissolveGroups($vcards);
+        $remain = count($cards);
+        error_log(sprintf("Dissolved %d group(s)", $quantity - $remain));
+                
+        // filter
+        error_log(sprintf("Filtering %d vCard(s)", $remain));
         $filters = $this->config['filters'];
         $filtered = filter($cards, $filters);
-
-        error_log(sprintf("Converted %d vcard(s)", count($filtered)));
-
+        error_log(sprintf("Filtered out %d vCard(s)", $remain - count($filtered)));
+        
+        // image upload
+        if ($input->getOption('image')) {
+            error_log("Detaching and uploading image(s)");
+            $pictures = uploadImages($filtered, $this->config['fritzbox']);
+            error_log(sprintf("Uploaded %d image file(s)", $pictures)); 
+        }
+        else {
+            unset($this->config['phonebook']['imagepath']);             // otherwise convert will set wrong links
+        }
+                
         // fritzbox format
-        $phonebook = $this->config['phonebook'];
-        $conversions = $this->config['conversions'];
-        $xml = export($phonebook['name'], $filtered, $conversions);
+        $xml = export($filtered, $this->config);
+        error_log(sprintf("Converted %d vCard(s)", count($filtered)));
 
         // upload
         error_log("Uploading");
 
         $xmlStr = $xml->asXML();
 
-        $fritzbox = $this->config['fritzbox'];
-        upload($xmlStr, $fritzbox['url'], $fritzbox['user'], $fritzbox['password'], $phonebook['id']);
-
-        error_log("Uploaded fritz phonebook");
+        upload($xmlStr, $this->config);
+        error_log("Successful uploaded new Fritz!Box phonebook");
     }
 }

@@ -32,13 +32,11 @@ class DownloadCommand extends Command
         $this->loadConfig($input);
 
         $vcards = array();
-
-        $progress = new ProgressBar($output);
-
+        $substitutes = ($input->getOption('image')) ? ['PHOTO'] : [];
+        
         if ($filename = $input->getArgument('filename')) {
             // read from file
             $vcards = json_decode(file_get_contents($filename));
-
             if (!is_array($vcards)) {
                 throw new \Exception(sprintf('Could not read unparsed vcards from %s', $filename));
             }
@@ -46,15 +44,15 @@ class DownloadCommand extends Command
         else {
             // download
             foreach($this->config['server'] as $server) {
+                $progress = new ProgressBar($output);
                 error_log("Downloading vCard(s) from account ".$server['user']);
+                
                 $backend = backendProvider($server);
-
                 $progress->start();
-                $downloaded = download($backend, function () use ($progress) {
+                $downloaded = download($backend, $substitutes, function () use ($progress) {
                     $progress->advance();
                 });
                 $progress->finish();
-
                 $vcards = array_merge($vcards, $downloaded);
                 error_log(sprintf("\nDownloaded %d vCard(s)", count($vcards)));
             }
@@ -65,26 +63,11 @@ class DownloadCommand extends Command
             }
         }
 
-        // parsing
-        error_log("Parsing vcards");
-
-        $cards = parse($vcards);
+        // dissolve
+        error_log("Dissolving groups (e.g. iCloud)");
+        $cards = dissolveGroups($vcards);
         $json = json_encode($cards, self::JSON_OPTIONS);
 
-        // images
-        if ($input->getOption('image')) {
-            error_log("Downloading images");
-
-            $progress->start();
-            $cards = downloadImages($backend, $cards, function() use ($progress) {
-                $progress->advance();
-            });
-            $progress->finish();
-
-            error_log(sprintf("\nDownloaded %d image(s)", countImages($cards)));
-        }
-
-        $json = json_encode($cards, self::JSON_OPTIONS);
         echo $json;
     }
 }

@@ -33,79 +33,70 @@ function backendProvider(array $config): Backend
  * @param callable $callback
  * @return array
  */
-function download(Backend $backend, callable $callback=null): array
+function download(Backend $backend, $substitutes, callable $callback=null): array
 {
     $backend->setProgress($callback);
+    $backend->setSubstitutes($substitutes);
     return $backend->getVcards();
 }
 
 /**
- * Download images from CardDAV server
+ * upload image files via ftp to the fritzbox fonpix directory
  *
- * @param array $cards
- * @return int
+ * @param $vcards     array     downloaded vCards
+ * @param $config     array
+ * @return                      number of transfered files
  */
-function downloadImages(Backend $backend, array $cards, callable $callback=null): array
-{
-    foreach ($cards as $card) {
-        if (isset($card->photo)) {
-            $uri = $card->photo;
-            $image = $backend->fetchImage($uri);
-            $card->photo_data = utf8_encode($image);
-
-            if (is_callable($callback)) {
-                $callback();
+function uploadImages(array $vcards, $config)
+{   
+    $options = array('ftp' => array('overwrite' => true));
+    $context = stream_context_create($options);
+    $i = 0;
+    
+    foreach ($vcards as $vcard) {
+        if (isset($vcard->rawPhoto)) {                                     // skip all other vCards
+            if (preg_match("/JPEG/", strtoupper($vcard->photoData))) {     // Fritz!Box only accept jpg-files
+                $imgFile = imagecreatefromstring($vcard->rawPhoto);
+                if ($imgFile !== false) {
+                    $ftp_destination = sprintf('ftp://%1$s:%2$s@%3$s/%4$s/%5$s.jpg',
+                        $config['user'], 
+                        $config['password'], 
+                        $config['url'], 
+                        $config['fonpix'],
+                        $vcard->uid
+                    );
+                    ob_start();
+                    imagejpeg($imgFile, NULL);
+                    $contents = ob_get_clean();
+                    if (file_put_contents($ftp_destination, $contents, 0, $context) !== false) {
+                        $i++;
+                    }
+                    imagedestroy($imgFile);
+                }
             }
         }
     }
-
-    return $cards;
+    return $i;
 }
 
 /**
- * Count downloaded images contained in list of vcards
- *
- * @param array $cards
- * @return int
- */
-function countImages(array $cards): int
-{
-    $images = 0;
-
-    foreach ($cards as $card) {
-        if (isset($card->photo_data)) {
-            $images++;
-        }
-    }
-
-    return $images;
-}
-
-/**
- * Parse an array of raw vcards into POPOs
+ * Dissolve the groups of iCloud contacts
  *
  * @param array $cards
  * @return array
  */
-function parse(array $cards): array
+function dissolveGroups (array $vcards): array
 {
-    $vcards = [];
     $groups = [];
 
-    // parse all vcards
-    foreach ($cards as $card) {
-        $parser = new Parser($card);
-        $vcard = $parser->getCardAtIndex(0);
-
-        // separate iCloud groups
+    foreach ($vcards as $key => $vcard) {          // separate iCloud groups
         if (isset($vcard->xabsmember)) {
             $groups[$vcard->fullname] = $vcard->xabsmember;
+            unset($vcards[$key]);
             continue;
         }
-
-        $vcards[] = $vcard;
     }
-
+    $vcards = array_values($vcards);
     // assign group memberships
     foreach ($vcards as $vcard) {
         foreach ($groups as $group => $members) {
@@ -113,13 +104,11 @@ function parse(array $cards): array
                 if (!isset($vcard->group)) {
                     $vcard->group = array();
                 }
-
                 $vcard->group = $group;
                 break;
             }
         }
     }
-
     return $vcards;
 }
 
@@ -243,12 +232,11 @@ function filterMatches($attribute, $filterValues): bool
 /**
  * Export cards to fritzbox xml
  *
- * @param string $name
  * @param array $cards
  * @param array $conversions
  * @return SimpleXMLElement
  */
-function export(string $name, array $cards, array $conversions): SimpleXMLElement
+function export(array $cards, array $conversions): SimpleXMLElement
 {
     $xml = new SimpleXMLElement(
         <<<EOT
@@ -260,7 +248,7 @@ EOT
     );
 
     $root = $xml->xpath('//phonebook')[0];
-    $root->addAttribute('name', $name);
+    $root->addAttribute('name', $conversions['phonebook']['name']);
 
     $converter = new Converter($conversions);
 
@@ -292,18 +280,17 @@ function xml_adopt(SimpleXMLElement $to, SimpleXMLElement $from)
  * Upload cards to fritzbox
  *
  * @param string $xml
- * @param string $url
- * @param string $user
- * @param string $password
- * @param int $phonebook
+ * @param array $config
  * @return void
  */
-function upload(string $xml, string $url, string $user, string $password, int $phonebook=0)
+function upload(string $xml, $config)
 {
-    $fritz = new Api($url, $user, $password, 1);
+    $fritzbox = $config['fritzbox'];
+    
+    $fritz = new Api($fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
 
     $formfields = array(
-        'PhonebookId' => $phonebook
+        'PhonebookId' => $config['phonebook']['id']
     );
 
     $filefields = array(
