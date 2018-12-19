@@ -36,4 +36,4 @@ Get help for a command:
 This script is released under Public Domain, some parts under MIT license. Make sure you understand which parts are which.
 
 ## Authors
-Copyright (c) 2012-2017 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz
+Copyright (c) 2012-2017 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz, Volker Püschel
