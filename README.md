@@ -31,6 +31,11 @@ Get help for a command:
 
     php carddav2fb.php run -h
 
+## Precondition for using image upload (command -i)
+
+  * your memory (USB stick) is indexed [Heimnetz -> Speicher (NAS) -> Speicher an der FRITZ!Box]
+  * ftp access is activ [Heimnetz -> Speicher (NAS) -> Heimnetzfreigabe]
+  * you use an standalone user (NOT! dslf-config) which has explicit permissions for FRITZ!Box settings, access to NAS content and read/write permission to all available memory [System -> FRITZ!Box-Benutzer -> [user] -> Berechtigungen]
 
 ## License
 This script is released under Public Domain, some parts under MIT license. Make sure you understand which parts are which.
