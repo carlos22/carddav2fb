@@ -9,6 +9,7 @@ class Converter
 {
     private $config;
     private $imagePath;
+    private $uniqueDials = array();
 
     public function __construct($config)
     {
@@ -23,23 +24,23 @@ class Converter
         $this->contact = new SimpleXMLElement('<contact />');
 
         $this->contact->addChild('carddav_uid',$this->card->uid);    // reference for image upload
-        
+
         $this->addVip();
 
         // add Person
         $person = $this->contact->addChild('person');
         $name = htmlspecialchars($this->getProperty('realName'));
         $person->addChild('realName', $name);
-        
+
         // add photo
         if (isset($this->card->rawPhoto)) {
             if (isset($this->imagePath)) {
                 $person->addChild('imageURL', $this->imagePath . $this->card->uid . '.jpg');
             }
         }
-        
+
         $this->addPhone();
-        
+
         $this->addEmail();
 
         return $this->contact;
@@ -95,9 +96,39 @@ class Converter
 
                     $phone->addAttribute('type', $type);
 
-                }    
+                }
                 if (strpos($numberType, 'pref') !== false) {
                     $phone->addAttribute('prio', 1);
+                }
+
+                // add quick dial number; Fritz!Box will add the prefix **7 automatically
+                if (isset($this->card->xquickdial)) {
+                    if (!in_array($this->card->xquickdial, $this->uniqueDials)) {    // quick dial number really unique?
+                        if (strpos($numberType, 'pref') !== false) {
+                            $phone->addAttribute('quickdial', $this->card->xquickdial);
+                            $this->uniqueDials[] = $this->card->xquickdial;          // keep quick dial number for cross check
+                            unset($this->card->xquickdial);                          // flush used quick dial number
+                        }
+                    }
+                    else {
+                        $format = "The quick dial number >%s< has been assigned more than once (%s)!";
+                        error_log(sprintf($format, $this->card->xquickdial, $number));
+                    }
+                }
+
+                // add vanity number; Fritz!Box will add the prefix **8 automatically
+                if (isset($this->card->xvanity)) {
+                    if (!in_array($this->card->xvanity, $this->uniqueDials)) {       // vanity string really unique?
+                        if (strpos($numberType, 'pref') !== false) {
+                            $phone->addAttribute('vanity', $this->card->xvanity);
+                            $this->uniqueDials[] = $this->card->xvanity;             // keep vanity string for cross check
+                            unset($this->card->xvanity);                             // flush used vanity number
+                        }
+                    }
+                    else {
+                        $format = "The vanity string >%s< has been assigned more than once (%s)!";
+                        error_log(sprintf($format, $this->card->xvanity, $number));
+                    }
                 }
             }
         }

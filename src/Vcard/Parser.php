@@ -255,6 +255,17 @@ class Parser implements \IteratorAggregate
                         }
                         $cardData->xabsmember[] = preg_replace('/^urn:uuid:/', '', $value);
                         break;
+                    /* User extended attributes for FritzBox */
+                    case 'X-FB-QUICKDIAL':            // 00-99; Fritz!Box will add the prefix **7 internal 
+                        if ($value >= 0 && $value <= 99) {
+                            $cardData->xquickdial =  $value;
+                        }
+                        break;
+                    case 'X-FB-VANITY':               // max. 8 CAPITAL letters; Fritz!Box will add the prefix **8 internal
+                        if (ctype_alpha($value)) {
+                            $cardData->xvanity = substr(strtoupper($value), 0, 8);
+                        }
+                        break;
                 }
             }
         }
