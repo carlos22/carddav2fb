@@ -65,7 +65,7 @@ class Backend
      * @var Client
      */
     private $client;
-    
+
     /**
      * Set substitutions of links to embedded data
      */
@@ -82,19 +82,25 @@ class Backend
             $this->setUrl($url);
         }
     }
-    
+
     /**
-     * setting the properties/elements which should be substituted
+     * Set the properties/elements to be substituted
      *
      * @param   array $elements        the properties whose value should be replaced ('LOGO', 'KEY', 'PHOTO' or 'SOUND')
      */
-    public function setSubstitutes($elements) 
+    public function setSubstitutes($elements)
     {
         foreach ($elements as $element) {
             $this->substitutes[] = strtolower($element);
         }
     }
 
+    /**
+     * Set and normalize server url
+     *
+     * @param string $url
+     * @return void
+     */
     public function setUrl(string $url)
     {
         $this->url = $url;
@@ -145,7 +151,12 @@ class Backend
         throw new \Exception('Received HTTP ' . $response->getStatusCode());
     }
 
-    private function getClient()
+    /**
+     * Get initialized HTTP client
+     *
+     * @return Client
+     */
+    private function getClient(): Client
     {
         if (!$this->client) {
             $this->client = new Client($this->getClientOptions());
@@ -154,7 +165,13 @@ class Backend
         return $this->client;
     }
 
-    private function getClientOptions($options = [])
+    /**
+     * HTTP client options
+     *
+     * @param array $options
+     * @return array
+     */
+    private function getClientOptions($options = []): array
     {
         if ($this->username) {
             $options['auth'] = [$this->username, $this->password, $this->authentication];
@@ -172,15 +189,15 @@ class Backend
      * @param   string $server              the current CardDAV server adress
      * @return  string                      single vCard with embedded value
      */
-    private function embedBase64($vcard, $substituteID, $server) 
+    private function embedBase64($vcard, $substituteID, $server)
     {
         if (!array_key_exists($substituteID, $vcard)) {
             return $vcard;
         }
         if (!preg_match("/http/", $vcard->{$substituteID})) {    // no external URL set -> must be already base64 or local
-            return $vcard;    
+            return $vcard;
         }
-        // check if mime is linked onto the same server 
+        // check if mime is linked onto the same server
         $serv = explode('/', $server, 4);                      // get the beginning of the current server adress
         $link = explode('/', $vcard->{$substituteID}, 4);      // get the beginning of the linked adress
         if (strcasecmp($serv[2], $link[2]) !== 0) {            // if they aren´t equal authorisation will fail!
@@ -199,43 +216,41 @@ class Backend
         $rawField  = "raw" . ucfirst($substituteID);
         $dataField = $substituteID . "Data";
         $vcard->$rawField  = $embedded['data'];
-        $vcard->$dataField = $types;  
+        $vcard->$dataField = $types;
         return $vcard;
     }
 
     /**
-     * delivers an array including the previously linked data and its mime type details
+     * Delivers an array including the previously linked data and its mime type details
      * a mime type is composed of a type, a subtype, and optional parameters (e.g. "; charset=UTF-8")
-     * 
+     *
      * @param    string $uri           URL of the external linked data
-     * @return   array ['mimetype',    e.g. "image/jpeg" 
-     *                  'type',        e.g. "audio"  
+     * @return   array ['mimetype',    e.g. "image/jpeg"
+     *                  'type',        e.g. "audio"
      *                  'subtype',     e.g. "mpeg"
      *                  'parameters',  whatever
      *                  'data']        the base64 encoded data
+     * @throws Exception
      */
     public function getLinkedData($uri)
     {
-        $externalData = array();
-        
-        $this->client = $this->client ?? new Client();
         $request = new Request('GET', $uri);
 
         if ($this->username) {
             $credentials = base64_encode($this->username . ':' . $this->password);
             $request = $request->withHeader('Authorization', 'Basic ' . $credentials);
         }
-        $response = $this->client->send($request);
-        
+        $response = $this->getClient()->send($request);
+
         if (200 !== $response->getStatusCode()) {
             throw new \Exception('Received HTTP ' . $response->getStatusCode());
         }
         else {
             $contentType = $response->getHeader('Content-Type');
-            
+
             @list($mimeType,$parameters) = explode(';', $contentType[0], 2);
             @list($type, $subType) = explode('/', $mimeType);
-                        
+
             $externalData = [
                 'mimetype'   => $mimeType ?? '',
                 'type'       => $type ?? '',
@@ -243,16 +258,16 @@ class Backend
                 'parameters' => $parameters ?? '',
                 'data'       => (string)$response->getBody(),
             ];
+            return $externalData;
         }
-        return $externalData;
     }
 
     /**
-    * Gets a clean vCard from the CardDAV server
-    *
-    * @param    string  $vcard_id   vCard id on the CardDAV server
-    * @return   string              vCard (text/vcard)
-    */
+     * Gets a clean vCard from the CardDAV server
+     *
+     * @param    string  $vcard_id   vCard id on the CardDAV server
+     * @return   string              vCard (text/vcard)
+     */
     public function getVcard($vcard_id)
     {
         $vcard_id = str_replace($this->url_vcard_extension, null, $vcard_id);
@@ -263,7 +278,7 @@ class Backend
 
             $parser = new Parser($body);
             $vcard = $parser->getCardAtIndex(0);
-            
+
             if (isset($this->substitutes)) {
                 foreach ($this->substitutes as $substitute) {
                     $vcard = $this->embedBase64($vcard, $substitute, $this->url);

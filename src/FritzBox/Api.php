@@ -19,15 +19,12 @@ class Api
     protected $sid = '0000000000000000';
 
     /**
-     * the constructor, initializes the object and calls the login method
+     * Execute fb login
      *
      * @access public
      */
     public function __construct($url = 'https://fritz.box', $user_name = false, $password = false, $force_local_login = false)
     {
-        // init the config object
-        // $this->config = new Config();
-
         // set FRITZ!Box-IP and URL
         $this->url = $url;
         $this->username = $user_name;
