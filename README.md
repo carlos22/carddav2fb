@@ -2,6 +2,15 @@
 
 This is an entirely simplified version of https://github.com/jens-maus/carddav2fb. The Vcard parser has been replaced by an extended version of https://github.com/jeroendesloovere/vcard.
 
+## Features
+
+  * download from any number of CardDAV servers
+  * selection (include/exclude) by categories or groups (e.g. iCloud)
+  * upload of contact pictures to display them on the FRITZ!Fon (handling see below)
+  * transfer of quick dial and vanity numbers (see wiki for handling details)
+  * if more than nine phone numbers are included, the contact will be divided into a corresponding number of phonebook entries (any existing email addresses are assigned to the first set [there is no quantity limit!])
+  * the contact's UID of the CardDAV server is added to the phonebook entry (not visible in the FRITZ! Box GUI)
+
 ## Requirements
 
   * PHP 7.0 (`apt-get install php7.0 php7.0-curl php7.0-mbstring php7.0-xml`)

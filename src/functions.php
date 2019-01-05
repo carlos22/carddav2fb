@@ -48,20 +48,20 @@ function download(Backend $backend, $substitutes, callable $callback=null): arra
  * @return                      number of transfered files
  */
 function uploadImages(array $vcards, $config)
-{   
+{
     $options = array('ftp' => array('overwrite' => true));
     $context = stream_context_create($options);
     $i = 0;
-    
+
     foreach ($vcards as $vcard) {
         if (isset($vcard->rawPhoto)) {                                     // skip all other vCards
             if (preg_match("/JPEG/", strtoupper($vcard->photoData))) {     // Fritz!Box only accept jpg-files
                 $imgFile = imagecreatefromstring($vcard->rawPhoto);
                 if ($imgFile !== false) {
                     $ftp_destination = sprintf('ftp://%1$s:%2$s@%3$s/%4$s/%5$s.jpg',
-                        $config['user'], 
-                        $config['password'], 
-                        $config['url'], 
+                        $config['user'],
+                        $config['password'],
+                        $config['url'],
                         $config['fonpix'],
                         $vcard->uid
                     );
@@ -257,11 +257,11 @@ EOT
     $converter = new Converter($conversions);
 
     foreach ($cards as $card) {
-        $contact = $converter->convert($card);
-        // $root->addChild('contact', $contact);
-        xml_adopt($root, $contact);
+        $contacts = $converter->convert($card);
+        foreach ($contacts as $contact) {
+            xml_adopt($root, $contact);
+        }
     }
-
     return $xml;
 }
 
@@ -290,7 +290,7 @@ function xml_adopt(SimpleXMLElement $to, SimpleXMLElement $from)
 function upload(string $xml, $config)
 {
     $fritzbox = $config['fritzbox'];
-    
+
     $fritz = new Api($fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
 
     $formfields = array(
