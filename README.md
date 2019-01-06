@@ -9,6 +9,7 @@ This is an entirely simplified version of https://github.com/jens-maus/carddav2f
   * upload of contact pictures to display them on the FRITZ!Fon (handling see below)
   * transfer of quick dial and vanity numbers (see wiki for handling details)
   * if more than nine phone numbers are included, the contact will be divided into a corresponding number of phonebook entries (any existing email addresses are assigned to the first set [there is no quantity limit!])
+  * phone numbers are sorted by type. The order of the conversion values ('phoneTypes') determines the order in the phone book entry
   * the contact's UID of the CardDAV server is added to the phonebook entry (not visible in the FRITZ! Box GUI)
 
 ## Requirements

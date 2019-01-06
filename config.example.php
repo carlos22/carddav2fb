@@ -3,7 +3,7 @@
 $config = [
 	// phonebook
 	'phonebook' => [
-		'id'        => 0,                 // only '0' can store images
+		'id'        => 0,                                              // only "0" can store quickdial and vanity numbers
 		'name'      => 'Telefonbuch',
         'imagepath' => 'file:///var/InternerSpeicher/[YOURUSBSTICK]/FRITZ/fonpix/', // mandatory if you use the -i option
 	],
@@ -57,7 +57,10 @@ $config = [
 				'PERS'
 			],
 		],
-	'realName' => [
+        /**
+		 * 'realName' conversions are processed consecutively. Order decides!
+		 */
+	    'realName' => [
 			'{lastname}, {prefix} {nickname}',
 			'{lastname}, {prefix} {firstname}',
 			'{lastname}, {nickname}',
@@ -65,6 +68,10 @@ $config = [
 			'{organization}',
 			'{fullname}'
 		],
+		/**
+		 * 'phoneTypes':
+		 * The order of the target values (first occurrence) determines the sorting of the telephone numbers
+		 */
 		'phoneTypes' => [
 			'WORK' => 'work',
 			'HOME' => 'home',
@@ -74,8 +81,11 @@ $config = [
 			'WORK' => 'work',
 			'HOME' => 'home'
 		],
+		/**
+		 * 'phoneReplaceCharacters' conversions are processed consecutively. Order decides!
+		 */
 		'phoneReplaceCharacters' => [
-			'+49' => '',  //Router steht default in DE; '0049' könnte auch Teil einer Rufnummer sein
+			'+49' => '',  // router is usually operated in 'DE; '0049' could also be part of a phone number
             '('   => '',
 			')'   => '',
 			'/'   => '',
