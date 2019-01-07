@@ -77,7 +77,7 @@ class RunCommand extends Command
                 
         // fritzbox format
         $xml = export($filtered, $this->config);
-        error_log(sprintf("Converted %d vCard(s)", count($filtered)));
+        error_log(sprintf("\nConverted %d vCard(s)", count($filtered)));
 
         // upload
         error_log("Uploading");
