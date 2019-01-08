@@ -48,7 +48,7 @@ Get help for a command:
   * you use an standalone user (NOT! dslf-config) which has explicit permissions for FRITZ!Box settings, access to NAS content and read/write permission to all available memory [System -> FRITZ!Box-Benutzer -> [user] -> Berechtigungen]
 
 ## License
-This script is released under Public Domain, some parts under MIT license. Make sure you understand which parts are which.
+This script is released under Public Domain, some parts under GNU AGPL or MIT license. Make sure you understand which parts are which.
 
 ## Authors
-Copyright (c) 2012-2017 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz, Volker Püschel
+Copyright (c) 2012-2017 Karl Glatz, Christian Putzke, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz, Volker Püschel

@@ -10,10 +10,6 @@ use Andig\Vcard\Parser;
 /**
  * @author Christian Putzke <christian.putzke@graviox.de>
  * @copyright Christian Putzke
- * @link http://www.graviox.de/
- * @link https://twitter.com/cputzke/
- * @since 24.05.2015
- * @version 0.7
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  */
 
