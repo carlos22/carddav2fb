@@ -34,7 +34,7 @@ class RunCommand extends Command
         foreach ($this->config['server'] as $server) {
             $progress = new ProgressBar($output);
             error_log("Downloading vCard(s) from account ".$server['user']);
-            
+
             $backend = backendProvider($server);
             $progress->start();
             $xcards = download($backend, $substitutes, function () use ($progress) {
@@ -51,20 +51,20 @@ class RunCommand extends Command
         $cards = dissolveGroups($vcards);
         $remain = count($cards);
         error_log(sprintf("Dissolved %d group(s)", $quantity - $remain));
-                
+
         // filter
         error_log(sprintf("Filtering %d vCard(s)", $remain));
         $filters = $this->config['filters'];
         $filtered = filter($cards, $filters);
         error_log(sprintf("Filtered out %d vCard(s)", $remain - count($filtered)));
-        
+
         // image upload
         if ($input->getOption('image')) {
             error_log("Detaching and uploading image(s)");
             $imgProgress = new ProgressBar($output);
             $imgProgress->start(count($filtered));
-            $pictures = uploadImages($filtered, $this->config['fritzbox'], function () use ($imgProgress) {
-                $imgProgress->advance();
+            $pictures = uploadImages($filtered, $this->config['fritzbox'], $this->config['phonebook'], function () use ($imgProgress) {
+                    $imgProgress->advance();
             });
             if ($pictures) {
                 error_log(sprintf("Uploaded/refreshed %d of %d image file(s)", $pictures[0], $pictures[1]));
@@ -73,7 +73,7 @@ class RunCommand extends Command
         } else {
             unset($this->config['phonebook']['imagepath']);             // otherwise convert will set wrong links
         }
-                
+
         // fritzbox format
         $xml = export($filtered, $this->config);
         error_log(sprintf("\nConverted %d vCard(s)", count($filtered)));

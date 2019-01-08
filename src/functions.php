@@ -45,12 +45,20 @@ function download(Backend $backend, $substitutes, callable $callback=null): arra
  *
  * @param $vcards     array     downloaded vCards
  * @param $config     array
- * @return            array     number of uploaded/refreshed images; number of total found images
+ * @return            mixed     false or [number of uploaded images, number of total found images]
  */
-function uploadImages(array $vcards, $config, callable $callback=null)
+function uploadImages(array $vcards, $config, $configPhonebook, callable $callback=null)
 {
     $countUploadedImages = 0;
     $countAllImages = 0;
+    $mapFTPUIDtoFTPImageName = [];                      // "9e40f1f9-33df-495d-90fe-3a1e23374762" => "9e40f1f9-33df-495d-90fe-3a1e23374762_190106123906.jpg"
+    $timestampPostfix = substr(date("YmdHis"), 2);      // timestamp, e.g., 190106123906
+    $configImagepath = $configPhonebook['imagepath'] ?? NULL;
+    if (!$configImagepath) {
+        error_log("ERROR: No image upload possible. Missing phonebook/imagepath in config.");
+        return false;
+    }
+    $configImagepath = rtrim($configImagepath, '/') . '/';  // ensure one slash at end
 
     // Prepare FTP connection
     $ftpserver = $config['url'];
@@ -65,32 +73,58 @@ function uploadImages(array $vcards, $config, callable $callback=null)
         return false;
     }
     if (!ftp_chdir($ftp_conn, $config['fonpix'])) {
-        error_log("ERROR: Could change to dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
+        error_log("ERROR: Could not change to dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
         return false;
     }
+
+    // Build up dictionary to look up UID => current FTP image file
+    $ftpFiles = ftp_nlist($ftp_conn, ".");
+    if (!$ftpFiles) {
+        error_log("ERROR: Could not list dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
+        return false;
+    }
+    foreach ($ftpFiles as $ftpFile) {
+        $ftpUid = preg_replace("/\_.*/", "", $ftpFile);   // new filename with time stamp postfix
+        $ftpUid = preg_replace("/\.jpg/i", "", $ftpUid); // old filename
+        $mapFTPUIDtoFTPImageName[$ftpUid] = $ftpFile;
+    }
+
     foreach ($vcards as $vcard) {
         if (is_callable($callback)) {
             ($callback)();
         }
 
-        if (isset($vcard->rawPhoto)) {                                     // skip all other vCards
+        if (isset($vcard->rawPhoto)) {                                     // skip vCards without image
             if (preg_match("/JPEG/", strtoupper(substr($vcard->photoData, 0, 256)))) {     // Fritz!Box only accept jpg-files
                 $countAllImages++;
-                $remotefilename = sprintf('%1$s.jpg', $vcard->uid);
-                // We only upload if filesize differs. Non existing server file will have size -1
-                if (ftp_size($ftp_conn, $remotefilename) == strlen($vcard->rawPhoto)) {
-                    continue;
+
+                // Check if we can skip upload
+                $newFTPimage = sprintf('%1$s_%2$s.jpg', $vcard->uid, $timestampPostfix);
+                if (array_key_exists($vcard->uid, $mapFTPUIDtoFTPImageName)) {
+                    $currentFTPimage = $mapFTPUIDtoFTPImageName[$vcard->uid];
+                    if (ftp_size($ftp_conn, $currentFTPimage) == strlen($vcard->rawPhoto)) {
+                        // No upload needed, but store old image URL in vCard
+                        $vcard->imageURL = $configImagepath . $currentFTPimage;
+                        continue;
+                    }
+                    // we already have an old image, but the new image differs in size
+                    ftp_delete($ftp_conn, $currentFTPimage);
                 }
+
+                // Upload new image file
                 $memstream = fopen('php://memory', 'r+');     // we use a fast in-memory file stream
                 fputs($memstream, $vcard->rawPhoto);
                 rewind($memstream);
 
-                // upload file
-                if (ftp_fput($ftp_conn, $remotefilename, $memstream, FTP_BINARY)) {
+                // upload new image
+                if (ftp_fput($ftp_conn, $newFTPimage, $memstream, FTP_BINARY)) {
                     $countUploadedImages++;
+                    // upload of new image done, now store new image URL in vCard (new Random Postfix!)
+                    $vcard->imageURL = $configImagepath . $newFTPimage;
                 } else {
-                    error_log("Error uploading $remotefilename.\n");
+                    error_log("Error uploading $newFTPimage.\n");
                     unset($vcard->rawPhoto);                           // no wrong link will set in phonebook
+                    unset($vcard->imageURL);                           // no wrong link will set in phonebook
                 }
                 fclose($memstream);
             }
