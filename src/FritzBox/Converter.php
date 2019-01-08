@@ -6,7 +6,6 @@ use Andig;
 use \SimpleXMLElement;
 
 class Converter
-
 {
     private $config;
     private $imagePath;
@@ -18,7 +17,7 @@ class Converter
     public function __construct($config)
     {
         $this->config    = $config['conversions'];
-        $this->imagePath = $config['phonebook']['imagepath'] ?? NULL;
+        $this->imagePath = $config['phonebook']['imagepath'] ?? null;
         $this->phoneSort = $this->getPhoneTypesSortOrder();
     }
 
@@ -32,7 +31,7 @@ class Converter
 
         while ((count($this->numbers)) || (count($this->adresses))) {
             $this->contact = new SimpleXMLElement('<contact />');
-            $this->contact->addChild('carddav_uid',$this->card->uid);    // reference for image upload
+            $this->contact->addChild('carddav_uid', $this->card->uid);    // reference for image upload
             $this->addVip();
             // add Person
             $person = $this->contact->addChild('person');
@@ -145,8 +144,7 @@ class Converter
                     $numberType = strtolower($numberType);
                     if (stripos($numberType, 'fax') !== false) {
                         $type = 'fax_work';
-                    }
-                    else {
+                    } else {
                         foreach ($phoneTypes as $type => $value) {
                             if (stripos($numberType, $type) !== false) {
                                 $type = $value;
@@ -167,8 +165,7 @@ class Converter
                             $this->uniqueDials[] = $this->card->xquickdial;          // keep quick dial number for cross check
                             unset($this->card->xquickdial);                          // flush used quick dial number
                         }
-                    }
-                    else {
+                    } else {
                         $format = "The quick dial number >%s< has been assigned more than once (%s)!";
                         error_log(sprintf($format, $this->card->xquickdial, $number));
                     }
@@ -181,8 +178,7 @@ class Converter
                             $this->uniqueDials[] = $this->card->xvanity;             // keep vanity string for cross check
                             unset($this->card->xvanity);                             // flush used vanity number
                         }
-                    }
-                    else {
+                    } else {
                         $format = "The vanity string >%s< has been assigned more than once (%s)!";
                         error_log(sprintf($format, $this->card->xvanity, $number));
                     }
@@ -190,13 +186,14 @@ class Converter
             }
         }
         if (count($phoneNumbers) > 1) {
-            usort($phoneNumbers, function($a, $b) {
+            usort($phoneNumbers, function ($a, $b) {
                 $idx1 = array_search($a['type'], $this->phoneSort, true);
                 $idx2 = array_search($b['type'], $this->phoneSort, true);
-                if ($idx1 == $idx2)
+                if ($idx1 == $idx2) {
                     return ($a['number'] > $b['number']) ? 1 : -1;
-                else
+                } else {
                     return ($idx1 > $idx2) ? 1 : -1;
+                }
             });
         }
         return $phoneNumbers;

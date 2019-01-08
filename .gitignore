@@ -2,3 +2,4 @@
 /config.php
 /cards.xml
 /vendor/
+php-cs-fixer.config

@@ -1,14 +1,14 @@
 <?php
 
 $config = [
-	// phonebook
-	'phonebook' => [
-		'id'        => 0,                                              // only "0" can store quickdial and vanity numbers
-		'name'      => 'Telefonbuch',
+    // phonebook
+    'phonebook' => [
+        'id'        => 0,                                              // only "0" can store quickdial and vanity numbers
+        'name'      => 'Telefonbuch',
         'imagepath' => 'file:///var/InternerSpeicher/[YOURUSBSTICK]/FRITZ/fonpix/', // mandatory if you use the -i option
-	],
+    ],
 
-	// or server
+    // or server
     'server' => [
         [
             'url' => 'https://...',
@@ -48,48 +48,48 @@ $config = [
         ],
     ],
 
-	'conversions' => [
-		'vip' => [
-			'category' => [
-				'vip1'
-			],
-			'group' => [
-				'PERS'
-			],
-		],
+    'conversions' => [
+        'vip' => [
+            'category' => [
+                'vip1'
+            ],
+            'group' => [
+                'PERS'
+            ],
+        ],
         /**
-		 * 'realName' conversions are processed consecutively. Order decides!
-		 */
-	    'realName' => [
-			'{lastname}, {prefix} {nickname}',
-			'{lastname}, {prefix} {firstname}',
-			'{lastname}, {nickname}',
-			'{lastname}, {firstname}',
-			'{organization}',
-			'{fullname}'
-		],
-		/**
-		 * 'phoneTypes':
-		 * The order of the target values (first occurrence) determines the sorting of the telephone numbers
-		 */
-		'phoneTypes' => [
-			'WORK' => 'work',
-			'HOME' => 'home',
-			'CELL' => 'mobile'
-		],
-		'emailTypes' => [
-			'WORK' => 'work',
-			'HOME' => 'home'
-		],
-		/**
-		 * 'phoneReplaceCharacters' conversions are processed consecutively. Order decides!
-		 */
-		'phoneReplaceCharacters' => [
-			'+49' => '',  // router is usually operated in 'DE; '0049' could also be part of a phone number
+         * 'realName' conversions are processed consecutively. Order decides!
+         */
+        'realName' => [
+            '{lastname}, {prefix} {nickname}',
+            '{lastname}, {prefix} {firstname}',
+            '{lastname}, {nickname}',
+            '{lastname}, {firstname}',
+            '{organization}',
+            '{fullname}'
+        ],
+        /**
+         * 'phoneTypes':
+         * The order of the target values (first occurrence) determines the sorting of the telephone numbers
+         */
+        'phoneTypes' => [
+            'WORK' => 'work',
+            'HOME' => 'home',
+            'CELL' => 'mobile'
+        ],
+        'emailTypes' => [
+            'WORK' => 'work',
+            'HOME' => 'home'
+        ],
+        /**
+         * 'phoneReplaceCharacters' conversions are processed consecutively. Order decides!
+         */
+        'phoneReplaceCharacters' => [
+            '+49' => '',  // router is usually operated in 'DE; '0049' could also be part of a phone number
             '('   => '',
-			')'   => '',
-			'/'   => '',
-			'-'   => ' '
-		]
-	]
+            ')'   => '',
+            '/'   => '',
+            '-'   => ' '
+        ]
+    ]
 ];

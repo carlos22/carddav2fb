@@ -40,10 +40,9 @@ class DownloadCommand extends Command
             if (!is_array($vcards)) {
                 throw new \Exception(sprintf('Could not read unparsed vcards from %s', $filename));
             }
-        }
-        else {
+        } else {
             // download
-            foreach($this->config['server'] as $server) {
+            foreach ($this->config['server'] as $server) {
                 $progress = new ProgressBar($output);
                 error_log("Downloading vCard(s) from account ".$server['user']);
                 

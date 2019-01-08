@@ -48,9 +48,9 @@ function download(Backend $backend, $substitutes, callable $callback=null): arra
  * @return            array     number of uploaded/refreshed images; number of total found images
  */
 function uploadImages(array $vcards, $config, callable $callback=null)
-{   
+{
     $countUploadedImages = 0;
-    $countAllImages = 0;    
+    $countAllImages = 0;
 
     // Prepare FTP connection
     $ftpserver = $config['url'];
@@ -63,11 +63,11 @@ function uploadImages(array $vcards, $config, callable $callback=null)
     if (!ftp_login($ftp_conn, $config['user'], $config['password'])) {
         error_log("ERROR: Could not log in ".$config['user']." to ftp server ".$ftpserver." for image upload.");
         return false;
-    } 
-    if (!ftp_chdir($ftp_conn, $config['fonpix'])){
+    }
+    if (!ftp_chdir($ftp_conn, $config['fonpix'])) {
         error_log("ERROR: Could change to dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
         return false;
-    } 
+    }
     foreach ($vcards as $vcard) {
         if (is_callable($callback)) {
             ($callback)();
@@ -86,7 +86,7 @@ function uploadImages(array $vcards, $config, callable $callback=null)
                 rewind($memstream);
 
                 // upload file
-                if (ftp_fput($ftp_conn, $remotefilename, $memstream, FTP_BINARY)){
+                if (ftp_fput($ftp_conn, $remotefilename, $memstream, FTP_BINARY)) {
                     $countUploadedImages++;
                 } else {
                     error_log("Error uploading $remotefilename.\n");
@@ -108,7 +108,7 @@ function uploadImages(array $vcards, $config, callable $callback=null)
  * @param array $cards
  * @return array
  */
-function dissolveGroups (array $vcards): array
+function dissolveGroups(array $vcards): array
 {
     $groups = [];
 
@@ -159,8 +159,7 @@ function filter(array $cards, array $filters): array
                 $step1[] = $card;
             }
         }
-    }
-    else {
+    } else {
         // filter defined but empty sub-rules?
         if (count($includeFilter)) {
             error_log('Include filter empty- including all cards');

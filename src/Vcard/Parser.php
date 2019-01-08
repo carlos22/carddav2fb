@@ -176,7 +176,7 @@ class Parser implements \IteratorAggregate
                         break;
                     case 'NICKNAME':
                         $cardData->nickname = $value;
-                        break;    
+                        break;
                     case 'BDAY':
                         $cardData->birthday = $this->parseBirthday($value);
                         break;
@@ -208,8 +208,9 @@ class Parser implements \IteratorAggregate
                         $cardData->version = $value;
                         break;
                     case 'ORG':
-                        if (substr($value, -1) == ';')    //  deletes semicolons that sometimes appear at the end
+                        if (substr($value, -1) == ';') {    //  deletes semicolons that sometimes appear at the end
                             $value = substr($value, 0, -1);
+                        }
                         $cardData->organization = $value;
                         break;
                     case 'URL':
@@ -224,14 +225,14 @@ class Parser implements \IteratorAggregate
                         break;
                     case 'PHOTO':
                     case 'LOGO':
-                    case 'SOUND':                    
+                    case 'SOUND':
                     case 'KEY':
                         $element = strtolower($element);
                         if ($rawValue) {
                             $rawField  = "raw" . ucfirst($element);
                             $dataField = $element . "Data";
                             $cardData->$rawField  = $value;
-                            $cardData->$dataField = implode(';',$types);
+                            $cardData->$dataField = implode(';', $types);
                         } else {
                             $cardData->$element = $value;
                         }
@@ -256,7 +257,7 @@ class Parser implements \IteratorAggregate
                         $cardData->xabsmember[] = preg_replace('/^urn:uuid:/', '', $value);
                         break;
                     /* User extended attributes for FritzBox */
-                    case 'X-FB-QUICKDIAL':            // 00-99; Fritz!Box will add the prefix **7 internal 
+                    case 'X-FB-QUICKDIAL':            // 00-99; Fritz!Box will add the prefix **7 internal
                         if ($value >= 0 && $value <= 99) {
                             $cardData->xquickdial =  $value;
                         }

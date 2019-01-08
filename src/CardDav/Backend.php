@@ -77,7 +77,8 @@ class Backend
      *
      * @param   string  $url    CardDAV server url
      */
-    public function __construct(string $url=null) {
+    public function __construct(string $url=null)
+    {
         if ($url) {
             $this->setUrl($url);
         }
@@ -244,11 +245,10 @@ class Backend
 
         if (200 !== $response->getStatusCode()) {
             throw new \Exception('Received HTTP ' . $response->getStatusCode());
-        }
-        else {
+        } else {
             $contentType = $response->getHeader('Content-Type');
 
-            @list($mimeType,$parameters) = explode(';', $contentType[0], 2);
+            @list($mimeType, $parameters) = explode(';', $contentType[0], 2);
             @list($type, $subType) = explode('/', $mimeType);
 
             $externalData = [
