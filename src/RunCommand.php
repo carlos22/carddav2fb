@@ -27,10 +27,19 @@ class RunCommand extends Command
     {
         $this->loadConfig($input);
 
+        // we want to check for image upload show stoppers as early as possible
+        if ($input->getOption('image')) {
+            $precresult = $this->uploadImagePreconditionsOK($this->config['fritzbox'], $this->config['phonebook']);
+            if ($precresult !== true) {
+                error_log($precresult."\n");
+                return(21);                     // error code to evaluate by shell
+            }
+        }
+
         $vcards = array();
         $xcards = array();
         $substitutes = ($input->getOption('image')) ? ['PHOTO'] : [];
-        
+
         foreach ($this->config['server'] as $server) {
             $progress = new ProgressBar($output);
             error_log("Downloading vCard(s) from account ".$server['user']);
@@ -86,4 +95,31 @@ class RunCommand extends Command
         upload($xmlStr, $this->config);
         error_log("Successful uploaded new Fritz!Box phonebook");
     }
+
+
+    /**
+     * checks if preconditions for upload images are OK
+     *
+     * @return            mixed     (true if all preconditions OK, error string otherwise)
+     */
+    private function uploadImagePreconditionsOK($configFritz, $configPhonebook)
+    {
+        if (!function_exists("ftp_connect")) {
+            return "ERROR: FTP functions not available in your PHP installation.\n".
+                    "       Image upload not possible (remove -i switch)\n".
+                    "       Ensure PHP was installed with --enable-ftp\n".
+                    "       Ensure php.ini does not list ftp_* functions in 'disable_functions'\n".
+                    "       In shell run: php -r \"phpinfo();\" | grep FTP";
+        }
+        if (!$configFritz['fonpix']) {
+            return "ERROR: config.php missing fritzbox/fonpix setting.\n".
+                    "       Image upload not possible (remove -i switch).";
+        }
+        if (!$configPhonebook['imagepath']) {
+            return "ERROR: config.php missing phonebook/imagepath setting.\n".
+                    "       Image upload not possible (remove -i switch).";
+        }
+        return true;
+    }
+
 }

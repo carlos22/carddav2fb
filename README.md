@@ -51,4 +51,4 @@ Get help for a command:
 This script is released under Public Domain, some parts under GNU AGPL or MIT license. Make sure you understand which parts are which.
 
 ## Authors
-Copyright (c) 2012-2017 Karl Glatz, Christian Putzke, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz, Volker Püschel
+Copyright (c) 2012-2019 Karl Glatz, Christian Putzke, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz, Volker Püschel
