@@ -165,6 +165,15 @@ class Parser implements \IteratorAggregate
                     $i++;
                 }
 
+                // Unquote COMMA, SEMICOLON and BACKSPACE as per RFC 6350 chap. 3.4
+                // https://tools.ietf.org/html/rfc6350#section-3.4
+                // But we don't do this on potential binary data!
+                if (!$rawValue) {
+                    $value = str_replace("\\,", ",", $value);       //     \, => ,
+                    $value = str_replace("\\;", ";", $value);       //     \; => ;
+                    $value = str_replace("\\\\", "\\", $value);     //     \\ => \
+                }
+
                 switch (strtoupper($element)) {
                     case 'FN':
                         $cardData->fullname = $value;

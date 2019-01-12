@@ -35,8 +35,8 @@ class Converter
             $this->addVip();
             // add Person
             $person = $this->contact->addChild('person');
-            $name = htmlspecialchars($this->getProperty('realName'));
-            $person->addChild('realName', $name);
+            $realName = htmlspecialchars($this->getProperty('realName'));
+            $person->addChild('realName', $realName);
             // add photo
             if (isset($this->card->rawPhoto) && isset($this->card->imageURL)) {
                 if (isset($this->configImagePath)) {
