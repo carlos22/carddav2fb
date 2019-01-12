@@ -31,7 +31,7 @@ class RunCommand extends Command
         if ($input->getOption('image')) {
             $precresult = $this->uploadImagePreconditionsOK($this->config['fritzbox'], $this->config['phonebook']);
             if ($precresult !== true) {
-                error_log($precresult."\n");
+                error_log($precresult.PHP_EOL);
                 return(21);                     // error code to evaluate by shell
             }
         }
@@ -52,7 +52,7 @@ class RunCommand extends Command
             $progress->finish();
             $vcards = array_merge($vcards, $xcards);
             $quantity = count($vcards);
-            error_log(sprintf("\nDownloaded %d vCard(s)", $quantity));
+            error_log(sprintf(PHP_EOL."Downloaded %d vCard(s)", $quantity));
         }
 
         // dissolve
@@ -85,7 +85,7 @@ class RunCommand extends Command
 
         // fritzbox format
         $xml = export($filtered, $this->config);
-        error_log(sprintf("\nConverted %d vCard(s)", count($filtered)));
+        error_log(sprintf(PHP_EOL."Converted %d vCard(s)", count($filtered)));
 
         // upload
         error_log("Uploading");
@@ -105,18 +105,18 @@ class RunCommand extends Command
     private function uploadImagePreconditionsOK($configFritz, $configPhonebook)
     {
         if (!function_exists("ftp_connect")) {
-            return "ERROR: FTP functions not available in your PHP installation.\n".
-                    "       Image upload not possible (remove -i switch)\n".
-                    "       Ensure PHP was installed with --enable-ftp\n".
-                    "       Ensure php.ini does not list ftp_* functions in 'disable_functions'\n".
+            return "ERROR: FTP functions not available in your PHP installation.".PHP_EOL.
+                    "       Image upload not possible (remove -i switch)".PHP_EOL.
+                    "       Ensure PHP was installed with --enable-ftp".PHP_EOL.
+                    "       Ensure php.ini does not list ftp_* functions in 'disable_functions'".PHP_EOL.
                     "       In shell run: php -r \"phpinfo();\" | grep FTP";
         }
         if (!$configFritz['fonpix']) {
-            return "ERROR: config.php missing fritzbox/fonpix setting.\n".
+            return "ERROR: config.php missing fritzbox/fonpix setting.".PHP_EOL.
                     "       Image upload not possible (remove -i switch).";
         }
         if (!$configPhonebook['imagepath']) {
-            return "ERROR: config.php missing phonebook/imagepath setting.\n".
+            return "ERROR: config.php missing phonebook/imagepath setting.".PHP_EOL.
                     "       Image upload not possible (remove -i switch).";
         }
         return true;
