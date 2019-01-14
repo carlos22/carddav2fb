@@ -33,7 +33,7 @@ class Api
     public function __construct($url = 'https://fritz.box', $username = false, $password = false)
     {
         // set FRITZ!Box-IP and URL
-        $this->url = $url;
+        $this->url = rtrim($url, '/');
         $this->username = $username;
         $this->password = $password;
 
@@ -108,7 +108,7 @@ class Api
             ];
         }
 
-        $url = rtrim($this->url, '/') . '/cgi-bin/firmwarecfg';
+        $url = $this->url . '/cgi-bin/firmwarecfg';
         $resp = $this->getClient()->request('POST', $url, [
             'multipart' => $multipart,
         ]);
@@ -127,8 +127,7 @@ class Api
      */
     protected function initSID()
     {
-        $loginpage = '/login_sid.lua';
-        $url = rtrim($this->url, '/') . $loginpage;
+        $url = $this->url . '/login_sid.lua';
 
         // read the current status
         $resp = $this->getClient()->request('GET', $url);
