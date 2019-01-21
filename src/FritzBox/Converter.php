@@ -29,7 +29,7 @@ class Converter
         $this->numbers  = $this->getPhoneNumbers();                      // get array of prequalified phone numbers
         $this->adresses = $this->getEmailAdresses();                     // get array of prequalified email adresses
 
-        while ((count($this->numbers)) || (count($this->adresses))) {
+        while (count($this->numbers)) {
             $this->contact = new SimpleXMLElement('<contact />');
             $this->contact->addChild('carddav_uid', $this->card->uid);    // reference for image upload
             $this->addVip();
