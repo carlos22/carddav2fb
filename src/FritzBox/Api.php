@@ -32,7 +32,6 @@ class Api
      */
     public function __construct($url = 'https://fritz.box', $username = false, $password = false)
     {
-        // set FRITZ!Box-IP and URL
         $this->url = rtrim($url, '/');
         $this->username = $username;
         $this->password = $password;
