@@ -119,6 +119,10 @@ class RunCommand extends Command
             return "ERROR: config.php missing phonebook/imagepath setting.".PHP_EOL.
                     "       Image upload not possible (remove -i switch).";
         }
+        if ($configFritz['user'] == 'dslf-conf') {
+            return "ERROR: TR-064 default user dslf-conf has no permission for ftp access.".PHP_EOL.
+                    "       Image upload not possible (remove -i switch).";
+        }
         return true;
     }
 
