@@ -133,16 +133,15 @@ class Backend
     /**
      * Gets all vCards including additional information from the CardDAV server
      *
-     * @param   boolean $include_vcards     Include vCards within the response (simplified only)
-     * @return  string                      Raw or simplified XML response
+     * @return  string Raw or simplified XML response
      */
-    public function getVcards($include_vcards = true)
+    public function getVcards()
     {
         $response = $this->query($this->url, 'PROPFIND');
 
         if (in_array($response->getStatusCode(), [200,207])) {
             $body = (string)$response->getBody();
-            return $this->simplify($body, $include_vcards);
+            return $this->processPropFindResponse($body);
         }
 
         throw new \Exception('Received HTTP ' . $response->getStatusCode());
@@ -291,12 +290,12 @@ class Backend
     }
 
     /**
-     * Simplify CardDAV XML response
+     * Process CardDAV XML response
      *
      * @param   string  $response           CardDAV XML response
      * @return  string                      Simplified CardDAV XML response
      */
-    private function simplify(string $response): array
+    private function processPropFindResponse(string $response): array
     {
         $response = $this->cleanResponse($response);
         $xml = new \SimpleXMLElement($response);
