@@ -75,10 +75,10 @@ class RunCommand extends Command
             $pictures = uploadImages($filtered, $this->config['fritzbox'], $this->config['phonebook'], function () use ($imgProgress) {
                     $imgProgress->advance();
             });
-            if ($pictures) {
-                error_log(sprintf("Uploaded/refreshed %d of %d image file(s)", $pictures[0], $pictures[1]));
-            }
             $imgProgress->finish();
+            if ($pictures) {
+                error_log(sprintf(PHP_EOL."Uploaded/refreshed %d of %d image file(s)", $pictures[0], $pictures[1]));
+            }
         } else {
             unset($this->config['phonebook']['imagepath']);             // otherwise convert will set wrong links
         }
