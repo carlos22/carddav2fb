@@ -96,7 +96,7 @@ class Backend
     /**
      * Gets all vCards including additional information from the CardDAV server
      *
-     * @return  string Raw or simplified XML response
+     * @return  array   All parsed Vcards from backend
      */
     public function getVcards()
     {
@@ -109,12 +109,12 @@ class Backend
      * If elements are declared as to be substituted,
      * the data from possibly linked sources are embedded directly into the vCard
      *
-     * @param   string $vcard               single parsed vCard
+     * @param   array $vcard                single parsed vCard
      * @param   string $substituteID        the property whose value is to be replaced ('logo', 'key', 'photo' or 'sound')
      * @param   string $server              the current CardDAV server adress
-     * @return  string                      single vCard with embedded value
+     * @return  array                       single vCard with embedded value
      */
-    private function embedBase64($vcard, $substituteID, $server)
+    private function embedBase64(array $vcard, $substituteID, $server)
     {
         if (!array_key_exists($substituteID, $vcard)) {
             return $vcard;
@@ -155,7 +155,7 @@ class Backend
      *                  'subtype',     e.g. "mpeg"
      *                  'parameters',  whatever
      *                  'data']        the base64 encoded data
-     * @throws Exception
+     * @throws \Exception
      */
     public function getLinkedData($uri)
     {
@@ -179,7 +179,7 @@ class Backend
      * Gets a clean vCard from the CardDAV server
      *
      * @param    string  $vcard_id   vCard id on the CardDAV server
-     * @return   string              vCard (text/vcard)
+     * @return   array               vCard (text/vcard)
      */
     public function getVcard($vcard_id)
     {
@@ -207,7 +207,7 @@ class Backend
      * Process CardDAV XML response
      *
      * @param   string  $response           CardDAV XML response
-     * @return  string                      Simplified CardDAV XML response
+     * @return  array                       Parsed Vcards from CardDAV XML response
      */
     private function processPropFindResponse(string $response): array
     {

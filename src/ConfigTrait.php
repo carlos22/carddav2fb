@@ -24,6 +24,7 @@ trait ConfigTrait
             throw new \Exception('Config file ' . $configFile . ' does not exist');
         }
 
+        $config = []; // make phpstan happy
         require_once($configFile);
         $this->config = $config;
     }

@@ -52,7 +52,7 @@ class Api
      * @param array $formFields
      * @param array $fileFields
      * @return string POST result
-     * @throws Exception
+     * @throws \Exception
      */
     public function postFile(array $formFields, array $fileFields)
     {
@@ -94,7 +94,7 @@ class Api
     /**
      * Login, throws on failure
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function login()
     {

@@ -9,8 +9,16 @@ class Converter
 {
     private $config;
     private $configImagePath;
+
+    /** @var mixed */
+    private $card;
+    /** @var array */
     private $numbers;
+    /** @var array */
     private $adresses;
+    /** @var SimpleXMLElement */
+    private $contact;
+
     private $uniqueDials = [];
     private $phoneSort = [];
 

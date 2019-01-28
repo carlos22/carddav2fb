@@ -44,10 +44,11 @@ function download(Backend $backend, $substitutes, callable $callback=null): arra
 /**
  * upload image files via ftp to the fritzbox fonpix directory
  *
- * @param $vcards     array     downloaded vCards
- * @param $config     array
- * @param $phonebook  array
- * @return            mixed     false or [number of uploaded images, number of total found images]
+ * @param array $vcards downloaded vCards
+ * @param array $config
+ * @param array $phonebook
+ * @param callable $callback
+ * @return mixed false or [number of uploaded images, number of total found images]
  */
 function uploadImages(array $vcards, array $config, array $phonebook, callable $callback=null)
 {
@@ -148,7 +149,7 @@ EOD
 /**
  * Dissolve the groups of iCloud contacts
  *
- * @param array $cards
+ * @param array $vcards
  * @return array
  */
 function dissolveGroups(array $vcards): array
@@ -249,7 +250,7 @@ function countFilters(array $filters): int
 /**
  * Check a list of filters against a card
  *
- * @param [type] $card
+ * @param mixed $card
  * @param array $filters
  * @return bool
  */
@@ -269,14 +270,14 @@ function filtersMatch($card, array $filters): bool
 /**
  * Check a filter against a single attribute
  *
- * @param [type] $attribute
- * @param [type] $filterValues
+ * @param mixed $attribute
+ * @param mixed $filterValues
  * @return bool
  */
 function filterMatches($attribute, $filterValues): bool
 {
     if (!is_array($filterValues)) {
-        $filterValues = array($filterMatches);
+        $filterValues = array($filterValues);
     }
 
     foreach ($filterValues as $filter) {
