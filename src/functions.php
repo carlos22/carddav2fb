@@ -46,45 +46,47 @@ function download(Backend $backend, $substitutes, callable $callback=null): arra
  *
  * @param $vcards     array     downloaded vCards
  * @param $config     array
+ * @param $phonebook  array
  * @return            mixed     false or [number of uploaded images, number of total found images]
  */
-function uploadImages(array $vcards, $config, $configPhonebook, callable $callback=null)
+function uploadImages(array $vcards, array $config, array $phonebook, callable $callback=null)
 {
     $countUploadedImages = 0;
     $countAllImages = 0;
     $mapFTPUIDtoFTPImageName = [];                      // "9e40f1f9-33df-495d-90fe-3a1e23374762" => "9e40f1f9-33df-495d-90fe-3a1e23374762_190106123906.jpg"
     $timestampPostfix = substr(date("YmdHis"), 2);      // timestamp, e.g., 190106123906
-    $configImagepath = $configPhonebook['imagepath'] ?? NULL;
-    if (!$configImagepath) {
+    $imgPath = $phonebook['imagepath'] ?? NULL;
+    if (!$imgPath) {
         error_log(PHP_EOL."ERROR: No image upload possible. Missing phonebook/imagepath in config.");
         return false;
     }
-    $configImagepath = rtrim($configImagepath, '/') . '/';  // ensure one slash at end
+    $imgPath = rtrim($imgPath, '/') . '/';  // ensure one slash at end
 
     // Prepare FTP connection
-    $ftpserver = $config['url'];
-    $ftpserver = str_replace("http://", "", $ftpserver);    // config.example.php has http:// which breaks FTP connect
-    $ftp_conn = ftp_connect($ftpserver);
-    if (!$ftp_conn) {
-        error_log(PHP_EOL."ERROR: Could not connect to ftp server ".$ftpserver." for image upload.");
-        return false;
+    $ftpserver = parse_url($config['url'], PHP_URL_HOST) ? parse_url($config['url'], PHP_URL_HOST) : $config['url'];
+    $connectFunc = ($config['plainFTP'] ?? false) ? 'ftp_connect' : 'ftp_ssl_connect';
+
+    if ($connectFunc == 'ftp_ssl_connect' && !function_exists('ftp_ssl_connect')) {
+        throw new \Exception("PHP lacks support for 'ftp_ssl_connect', please use `plainFTP` to switch to unencrypted FTP.");
+    }
+
+    if (false === ($ftp_conn = $connectFunc($ftpserver))) {
+        throw new \Exception("Could not connect to ftp server ".$ftpserver." for image upload.");
     }
     if (!ftp_login($ftp_conn, $config['user'], $config['password'])) {
-        error_log(PHP_EOL."ERROR: Could not log in ".$config['user']." to ftp server ".$ftpserver." for image upload.");
-        return false;
+        throw new \Exception("Could not log in ".$config['user']." to ftp server ".$ftpserver." for image upload.");
     }
     if (!ftp_chdir($ftp_conn, $config['fonpix'])) {
-        error_log(PHP_EOL."ERROR: Could not change to dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
-        return false;
+        throw new \Exception("Could not change to dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
     }
 
     // Build up dictionary to look up UID => current FTP image file
-    $ftpFiles = ftp_nlist($ftp_conn, ".");
-    if (!$ftpFiles) {
+    if (false === ($ftpFiles = ftp_nlist($ftp_conn, "."))) {
         $ftpFiles = [];
     }
+
     foreach ($ftpFiles as $ftpFile) {
-        $ftpUid = preg_replace("/\_.*/", "", $ftpFile);   // new filename with time stamp postfix
+        $ftpUid = preg_replace("/\_.*/", "", $ftpFile);  // new filename with time stamp postfix
         $ftpUid = preg_replace("/\.jpg/i", "", $ftpUid); // old filename
         $mapFTPUIDtoFTPImageName[$ftpUid] = $ftpFile;
     }
@@ -104,7 +106,7 @@ function uploadImages(array $vcards, $config, $configPhonebook, callable $callba
                     $currentFTPimage = $mapFTPUIDtoFTPImageName[$vcard->uid];
                     if (ftp_size($ftp_conn, $currentFTPimage) == strlen($vcard->rawPhoto)) {
                         // No upload needed, but store old image URL in vCard
-                        $vcard->imageURL = $configImagepath . $currentFTPimage;
+                        $vcard->imageURL = $imgPath . $currentFTPimage;
                         continue;
                     }
                     // we already have an old image, but the new image differs in size
@@ -120,9 +122,9 @@ function uploadImages(array $vcards, $config, $configPhonebook, callable $callba
                 if (ftp_fput($ftp_conn, $newFTPimage, $memstream, FTP_BINARY)) {
                     $countUploadedImages++;
                     // upload of new image done, now store new image URL in vCard (new Random Postfix!)
-                    $vcard->imageURL = $configImagepath . $newFTPimage;
+                    $vcard->imageURL = $imgPath . $newFTPimage;
                 } else {
-                    error_log("Error uploading $newFTPimage.".PHP_EOL);
+                    error_log(PHP_EOL."Error uploading $newFTPimage.");
                     unset($vcard->rawPhoto);                           // no wrong link will set in phonebook
                     unset($vcard->imageURL);                           // no wrong link will set in phonebook
                 }
@@ -132,16 +134,15 @@ function uploadImages(array $vcards, $config, $configPhonebook, callable $callba
     }
     ftp_close($ftp_conn);
 
-    error_log(PHP_EOL);
     if ($countAllImages > MAX_IMAGE_COUNT) {
-        error_log("WARNING: You have ".$countAllImages." contact images on FritzBox");
-        error_log("         FritzFon may handle only up to ".MAX_IMAGE_COUNT." images.");
-        error_log("         (see: https://github.com/andig/carddav2fb/issues/92)");
-        error_log("         Some images may not display properly.");
-        error_log("");
+        error_log(sprintf(<<<EOD
+"WARNING: You have %d contact images on FritzBox. FritzFon may handle only up to %d images.
+          Some images may not display properly, see: https://github.com/andig/carddav2fb/issues/92.
+EOD
+        , $countAllImages, MAX_IMAGE_COUNT));
     }
 
-    return array($countUploadedImages, $countAllImages);
+    return [$countUploadedImages, $countAllImages];
 }
 
 /**

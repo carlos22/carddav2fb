@@ -36,7 +36,8 @@ $config = [
         'fonpix'   => '/[YOURUSBSTICK]/FRITZ/fonpix',   // the storage on your usb stick for uploading images
         'http' => [           // http client options are directly passed to Guzzle http client
             // 'verify' => false, // uncomment to disable certificate check
-        ]
+        ],
+        'plainFTP' => false, // set true to use FTP instead of FTPS e.g. on Windows
     ],
 
     'filters' => [
