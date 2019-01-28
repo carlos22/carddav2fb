@@ -78,7 +78,7 @@ class Parser implements \IteratorAggregate
      *
      * @param int $i
      *
-     * @return stdClass
+     * @return \stdClass
      *    The card data object.
      */
     public function getCardAtIndex($i)

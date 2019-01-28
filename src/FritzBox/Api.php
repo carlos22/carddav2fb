@@ -15,12 +15,6 @@ class Api
     use ClientTrait;
 
     /** @var  string */
-    protected $username;
-
-    /** @var  string */
-    protected $password;
-
-    /** @var  string */
     protected $url;
 
     /** @var  string */
@@ -31,7 +25,7 @@ class Api
      *
      * @access public
      */
-    public function __construct($url = 'https://fritz.box')
+    public function __construct(string $url = 'https://fritz.box')
     {
         $this->url = rtrim($url, '/');
     }
@@ -41,7 +35,7 @@ class Api
      *
      * @return string SID
      */
-    public function getSID()
+    public function getSID(): string
     {
         return $this->sid;
     }
@@ -54,12 +48,12 @@ class Api
      * @return string POST result
      * @throws \Exception
      */
-    public function postFile(array $formFields, array $fileFields)
+    public function postFile(array $formFields, array $fileFields): string
     {
         $multipart = [];
 
         // sid must be first parameter
-        $formFields = array_merge(array('sid' => $this->sid), $formFields);
+        $formFields = array_merge(['sid' => $this->sid], $formFields);
 
         foreach ($formFields as $key => $val) {
             $multipart[] = [
@@ -83,10 +77,6 @@ class Api
         $resp = $this->getClient()->request('POST', $url, [
             'multipart' => $multipart,
         ]);
-
-        if (200 !== $resp->getStatusCode()) {
-            throw new \Exception('Received HTTP ' . $resp->getStatusCode());
-        }
 
         return (string)$resp->getBody();
     }
@@ -126,6 +116,6 @@ class Api
             return;
         }
 
-        throw new \Exception('ERROR: Login failed with an unknown response.');
+        throw new \Exception('Login failed with an unknown response - please check credentials.');
     }
 }

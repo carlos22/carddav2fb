@@ -21,7 +21,7 @@ jobs:
         - composer require --dev "phpstan/phpstan"
       script:
         # Static analyzer check
-        - ./vendor/bin/phpstan analyze --level=4 --no-progress src
+        - ./vendor/bin/phpstan analyze --level=5 --no-progress src
     - stage: CodeStyle
       php: 7.1
       install:

@@ -12,16 +12,16 @@ use GuzzleHttp\Client;
 
 trait ClientTrait
 {
-    /** @var string|null */
+    /** @var string */
     protected $username;
 
-    /** @var string|null */
+    /** @var string */
     protected $password;
 
     /** @var array */
     protected $clientOptions = [];
 
-    /** @var Client */
+    /** @var Client|null */
     private $client;
 
     /**
@@ -64,7 +64,7 @@ trait ClientTrait
      * @param array $options
      * @return array
      */
-    protected function getClientOptions($options = []): array
+    protected function getClientOptions(array $options = []): array
     {
         // merge default options
         $options = array_merge($this->clientOptions, $options);
@@ -78,5 +78,4 @@ trait ClientTrait
 
         return $options;
     }
-
 }

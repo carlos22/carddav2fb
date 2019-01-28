@@ -4,6 +4,7 @@ namespace Andig\FritzBox;
 
 use Andig;
 use \SimpleXMLElement;
+use \stdClass;
 
 class Converter
 {
@@ -22,14 +23,21 @@ class Converter
     private $uniqueDials = [];
     private $phoneSort = [];
 
-    public function __construct($config)
+    public function __construct(array $config)
     {
         $this->config    = $config['conversions'];
-        $this->configImagePath = $config['phonebook']['imagepath'] ?? NULL;
+        $this->configImagePath = @$config['phonebook']['imagepath'];
         $this->phoneSort = $this->getPhoneTypesSortOrder();
     }
 
-    public function convert($card)
+    /**
+     * Convert Vcard to FritzBox XML
+     * All convertsion steps operate on $this->card/contact
+     *
+     * @param stdClass $card
+     * @return SimpleXMLElement[]
+     */
+    public function convert(stdClass $card): array
     {
         $this->card = $card;
         $contacts = [];
@@ -61,14 +69,17 @@ class Converter
             }
             $contacts[] = $this->contact;
         }
+
         return $contacts;
     }
 
     /**
-     * returns a simple array depending on the order of phonetype conversions
+     * Return a simple array depending on the order of phonetype conversions
      * whose order should determine the sorting of the telephone numbers
+     *
+     * @return array
      */
-    private function getPhoneTypesSortOrder()
+    private function getPhoneTypesSortOrder(): array
     {
         $seqArr = array_values(array_map('strtolower', $this->config['phoneTypes']));
         $seqArr[] = 'other';                               // ensures that the default value is included
@@ -77,10 +88,10 @@ class Converter
 
     private function addVip()
     {
-        $vipCategories = $this->config['vip'] ?? array();
+        $vipCategories = $this->config['vip'] ?? [];
 
         if (Andig\filtersMatch($this->card, $vipCategories)) {
-            $this->contact->addChild('category', 1);
+            $this->contact->addChild('category', '1');
         }
     }
 
@@ -88,25 +99,22 @@ class Converter
     {
         $telephony = $this->contact->addChild('telephony');
         $phoneCounter = 0;
-        while (count($this->numbers)) {
-            $phone = $telephony->addChild('number', $this->numbers[0]['number']);
-            $phone->addAttribute('id', $phoneCounter);
-            if (isset($this->numbers[0]['type'])) {
-                $phone->addAttribute('type', $this->numbers[0]['type']);
+
+        foreach ($this->numbers as $number) {
+            $phone = $telephony->addChild('number', $number['number']);
+            $phone->addAttribute('id', (string)$phoneCounter);
+
+            foreach (['type', 'quickdial', 'vanity'] as $attribute) {
+                if (isset($number[$attribute])) {
+                    $phone->addAttribute($attribute, $number[$attribute]);
+                }
             }
-            if (isset($this->numbers[0]['pref'])) {
-                $phone->addAttribute('prio', $this->numbers[0]['pref']);
+            if (isset($number['pref'])) {
+                $phone->addAttribute('prio', $number['pref']);
             }
-            if (isset($this->numbers[0]['quickdial'])) {
-                $phone->addAttribute('quickdial', $this->numbers[0]['quickdial']);
-            }
-            if (isset($this->numbers[0]['vanity'])) {
-                $phone->addAttribute('vanity', $this->numbers[0]['vanity']);
-            }
-            array_shift($this->numbers);
-            $phoneCounter++;
+
             // not more than nine phone numbers per contact
-            if ($phoneCounter == 9) {
+            if (++$phoneCounter == 9) {
                 break;
             }
         }
@@ -116,40 +124,49 @@ class Converter
     {
         $services = $this->contact->addChild('services');
         $eMailCounter = 0;
-        while (count($this->adresses)) {
-            $email = $services->addChild('email', $this->adresses[0]['email']);
-            $email->addAttribute('id', $eMailCounter);
-            if (isset($this->adresses[0]['classifier'])) {
-                $email->addAttribute('classifier', $this->adresses[0]['classifier']);
+
+        foreach ($this->adresses as $address) {
+            $email = $services->addChild('email', $address['email']);
+            $email->addAttribute('id', (string)$eMailCounter);
+
+            if (isset($address['classifier'])) {
+                $email->addAttribute('classifier', $address['classifier']);
             }
-            array_shift($this->adresses);
+
             $eMailCounter++;
         }
     }
 
     /**
-     * delivers an array of prequalified phone numbers. This is neccesseary to
+     * Return an array of prequalified phone numbers. This is neccesseary to
      * handle the maximum of nine phone numbers per FRITZ!Box phonebook contacts
+     *
+     * @return array
      */
-    private function getPhoneNumbers()
+    private function getPhoneNumbers(): array
     {
         $phoneNumbers = [];
 
-        $replaceCharacters = $this->config['phoneReplaceCharacters'] ?? array();
-        $phoneTypes = $this->config['phoneTypes'] ?? array();
+        $replaceCharacters = $this->config['phoneReplaceCharacters'] ?? [];
+        $phoneTypes = $this->config['phoneTypes'] ?? [];
+
         if (isset($this->card->phone)) {
-            $idnum = -1;
             foreach ($this->card->phone as $numberType => $numbers) {
+                $addNumber = []; // TODO: this catches a small bug in the logic below
+
                 foreach ($numbers as $number) {
-                    $idnum++;
+                    $addNumber = [];
+
                     if (count($replaceCharacters)) {
                         $number = str_replace("\xc2\xa0", "\x20", $number);   // delete the wrong ampersand conversion
                         $number = strtr($number, $replaceCharacters);
                         $number = trim(preg_replace('/\s+/', ' ', $number));
                     }
-                    $phoneNumbers[$idnum]['number'] = $number;
+
+                    $addNumber['number'] = $number;
                     $type = 'other';
                     $numberType = strtolower($numberType);
+
                     if (stripos($numberType, 'fax') !== false) {
                         $type = 'fax_work';
                     } else {
@@ -160,16 +177,18 @@ class Converter
                             }
                         }
                     }
-                    $phoneNumbers[$idnum]['type'] = $type;
+                    $addNumber['type'] = $type;
                 }
+
                 if (strpos($numberType, 'pref') !== false) {
-                    $phoneNumbers[$idnum]['pref'] = 1;
+                    $addNumber['pref'] = 1;
                 }
+
                 // add quick dial number; Fritz!Box will add the prefix **7 automatically
                 if (isset($this->card->xquickdial)) {
                     if (!in_array($this->card->xquickdial, $this->uniqueDials)) {    // quick dial number really unique?
                         if (strpos($numberType, 'pref') !== false) {
-                            $phoneNumbers[$idnum]['quickdial'] = $this->card->xquickdial;
+                            $addNumber['quickdial'] = $this->card->xquickdial;
                             $this->uniqueDials[] = $this->card->xquickdial;          // keep quick dial number for cross check
                             unset($this->card->xquickdial);                          // flush used quick dial number
                         }
@@ -178,11 +197,12 @@ class Converter
                         error_log(sprintf($format, $this->card->xquickdial, $number));
                     }
                 }
+
                 // add vanity number; Fritz!Box will add the prefix **8 automatically
                 if (isset($this->card->xvanity)) {
                     if (!in_array($this->card->xvanity, $this->uniqueDials)) {       // vanity string really unique?
                         if (strpos($numberType, 'pref') !== false) {
-                            $phoneNumbers[$idnum]['vanity'] = $this->card->xvanity;
+                            $addNumber['vanity'] = $this->card->xvanity;
                             $this->uniqueDials[] = $this->card->xvanity;             // keep vanity string for cross check
                             unset($this->card->xvanity);                             // flush used vanity number
                         }
@@ -191,8 +211,12 @@ class Converter
                         error_log(sprintf($format, $this->card->xvanity, $number));
                     }
                 }
+
+                $phoneNumbers[] = $addNumber;
             }
         }
+
+        // sort phone numbers
         if (count($phoneNumbers) > 1) {
             usort($phoneNumbers, function ($a, $b) {
                 $idx1 = array_search($a['type'], $this->phoneSort, true);
@@ -204,23 +228,27 @@ class Converter
                 }
             });
         }
+
         return $phoneNumbers;
     }
 
     /**
-     * delivers an array of prequalified email adresses. There is no limitation
+     * Return an array of prequalified email adresses. There is no limitation
      * for the amount of email adresses in FRITZ!Box phonebook contacts.
+     *
+     * @return array
      */
     private function getEmailAdresses()
     {
         $mailAdresses = [];
-        $emailTypes = $this->config['emailTypes'] ?? array();
+        $emailTypes = $this->config['emailTypes'] ?? [];
 
         if (isset($this->card->email)) {
             foreach ($this->card->email as $emailType => $addresses) {
                 foreach ($addresses as $idx => $addr) {
                     $mailAdresses[$idx]['email'] = $addr;
                     $mailAdresses[$idx]['id'] = $idx;
+
                     foreach ($emailTypes as $type => $value) {
                         if (strpos($emailType, $type) !== false) {
                             $mailAdresses[$idx]['classifier'] = $value;
@@ -230,12 +258,13 @@ class Converter
                 }
             }
         }
+
         return $mailAdresses;
     }
 
     private function getProperty(string $property): string
     {
-        if (null === ($rules = $this->config[$property] ?? null)) {
+        if (null === ($rules = @$this->config[$property])) {
             throw new \Exception("Missing conversion definition for `$property`");
         }
 

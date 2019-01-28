@@ -29,30 +29,28 @@ class RunCommand extends Command
 
         // we want to check for image upload show stoppers as early as possible
         if ($input->getOption('image')) {
-            $precresult = $this->uploadImagePreconditionsOK($this->config['fritzbox'], $this->config['phonebook']);
-            if ($precresult !== true) {
-                error_log($precresult.PHP_EOL);
-                return(21);                     // error code to evaluate by shell
-            }
+            $this->uploadImagePreconditions($this->config['fritzbox'], $this->config['phonebook']);
         }
 
-        $vcards = array();
-        $xcards = array();
+        $quantity = 0;
+        $vcards = [];
+        $xcards = [];
         $substitutes = ($input->getOption('image')) ? ['PHOTO'] : [];
 
         foreach ($this->config['server'] as $server) {
-            $progress = new ProgressBar($output);
             error_log("Downloading vCard(s) from account ".$server['user']);
-
             $backend = backendProvider($server);
+
+            $progress = new ProgressBar($output);
             $progress->start();
             $xcards = download($backend, $substitutes, function () use ($progress) {
                 $progress->advance();
             });
             $progress->finish();
+
             $vcards = array_merge($vcards, $xcards);
-            $quantity = count($vcards);
-            error_log(sprintf(PHP_EOL."Downloaded %d vCard(s)", $quantity));
+            $quantity += count($vcards);
+            error_log(sprintf("Downloaded %d vCard(s)", $quantity));
         }
 
         // dissolve
@@ -70,14 +68,16 @@ class RunCommand extends Command
         // image upload
         if ($input->getOption('image')) {
             error_log("Detaching and uploading image(s)");
-            $imgProgress = new ProgressBar($output);
-            $imgProgress->start(count($filtered));
-            $pictures = uploadImages($filtered, $this->config['fritzbox'], $this->config['phonebook'], function () use ($imgProgress) {
-                    $imgProgress->advance();
+
+            $progress = new ProgressBar($output);
+            $progress->start(count($filtered));
+            $pictures = uploadImages($filtered, $this->config['fritzbox'], $this->config['phonebook'], function () use ($progress) {
+                $progress->advance();
             });
-            $imgProgress->finish();
+            $progress->finish();
+
             if ($pictures) {
-                error_log(sprintf(PHP_EOL."Uploaded/refreshed %d of %d image file(s)", $pictures[0], $pictures[1]));
+                error_log(sprintf("Uploaded/refreshed %d of %d image file(s)", $pictures[0], $pictures[1]));
             }
         } else {
             unset($this->config['phonebook']['imagepath']);             // otherwise convert will set wrong links
@@ -102,28 +102,42 @@ class RunCommand extends Command
      *
      * @return            mixed     (true if all preconditions OK, error string otherwise)
      */
-    private function uploadImagePreconditionsOK($configFritz, $configPhonebook)
+    private function uploadImagePreconditions($configFritz, $configPhonebook)
     {
         if (!function_exists("ftp_connect")) {
-            return "ERROR: FTP functions not available in your PHP installation.".PHP_EOL.
-                    "       Image upload not possible (remove -i switch)".PHP_EOL.
-                    "       Ensure PHP was installed with --enable-ftp".PHP_EOL.
-                    "       Ensure php.ini does not list ftp_* functions in 'disable_functions'".PHP_EOL.
-                    "       In shell run: php -r \"phpinfo();\" | grep FTP";
+            throw new \Exception(
+                <<<EOD
+FTP functions not available in your PHP installation.
+Image upload not possible (remove -i switch).
+Ensure PHP was installed with --enable-ftp
+Ensure php.ini does not list ftp_* functions in 'disable_functions'
+In shell run: php -r \"phpinfo();\" | grep -i FTP"
+EOD
+            );
         }
         if (!$configFritz['fonpix']) {
-            return "ERROR: config.php missing fritzbox/fonpix setting.".PHP_EOL.
-                    "       Image upload not possible (remove -i switch).";
+            throw new \Exception(
+                <<<EOD
+config.php missing fritzbox/fonpix setting.
+Image upload not possible (remove -i switch).
+EOD
+            );
         }
         if (!$configPhonebook['imagepath']) {
-            return "ERROR: config.php missing phonebook/imagepath setting.".PHP_EOL.
-                    "       Image upload not possible (remove -i switch).";
+            throw new \Exception(
+                <<<EOD
+config.php missing phonebook/imagepath setting.
+Image upload not possible (remove -i switch).
+EOD
+            );
         }
         if ($configFritz['user'] == 'dslf-conf') {
-            return "ERROR: TR-064 default user dslf-conf has no permission for ftp access.".PHP_EOL.
-                    "       Image upload not possible (remove -i switch).";
+            throw new \Exception(
+                <<<EOD
+TR-064 default user dslf-conf has no permission for ftp access.
+Image upload not possible (remove -i switch).
+EOD
+            );
         }
-        return true;
     }
-
 }

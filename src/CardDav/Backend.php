@@ -4,6 +4,7 @@ namespace Andig\CardDav;
 
 use Andig\Http\ClientTrait;
 use Andig\Vcard\Parser;
+use \stdClass;
 
 /**
  * @author Christian Putzke <christian.putzke@graviox.de>
@@ -72,11 +73,7 @@ class Backend
      */
     public function setUrl(string $url)
     {
-        $this->url = $url;
-
-        if (substr($this->url, -1, 1) !== '/') {
-            $this->url = $this->url . '/';
-        }
+        $this->url = rtrim($url, '/') . '/';
 
         // workaround for providers that don't use the default .vcf extension
         if (strpos($this->url, "google.com")) {
@@ -87,18 +84,17 @@ class Backend
     /**
      * Set progress callback
      */
-    public function setProgress($callback = null)
+    public function setProgress(callable $callback=null)
     {
         $this->callback = $callback;
     }
 
-
     /**
      * Gets all vCards including additional information from the CardDAV server
      *
-     * @return  array   All parsed Vcards from backend
+     * @return  stdClass[]   All parsed Vcards from backend
      */
-    public function getVcards()
+    public function getVcards(): array
     {
         $response = $this->getClient()->request('PROPFIND', $this->url);
         $body = (string)$response->getBody();
@@ -109,25 +105,27 @@ class Backend
      * If elements are declared as to be substituted,
      * the data from possibly linked sources are embedded directly into the vCard
      *
-     * @param   array $vcard                single parsed vCard
+     * @param   stdClass $vcard             single parsed vCard
      * @param   string $substituteID        the property whose value is to be replaced ('logo', 'key', 'photo' or 'sound')
-     * @param   string $server              the current CardDAV server adress
-     * @return  array                       single vCard with embedded value
+     * @return  stdClass                    single vCard with embedded value
      */
-    private function embedBase64(array $vcard, $substituteID, $server)
+    private function embedBase64(stdClass $vcard, string $substituteID): stdClass
     {
-        if (!array_key_exists($substituteID, $vcard)) {
+        if (!property_exists($vcard, $substituteID)) {
             return $vcard;
         }
-        if (!preg_match("/http/", $vcard->{$substituteID})) {    // no external URL set -> must be already base64 or local
+
+        if (!preg_match("/^http/", $vcard->{$substituteID})) {    // no external URL set -> must be already base64 or local
             return $vcard;
         }
+
         // check if mime is linked onto the same server
-        $serv = explode('/', $server, 4);                      // get the beginning of the current server adress
+        $serv = explode('/', $this->url, 4);                   // get the beginning of the current server adress
         $link = explode('/', $vcard->{$substituteID}, 4);      // get the beginning of the linked adress
         if (strcasecmp($serv[2], $link[2]) !== 0) {            // if they aren´t equal authorisation will fail!
             return $vcard;
         }
+
         $embedded = $this->getLinkedData($vcard->{$substituteID});   // get the data from the external URL
         $types = '';
         switch ($vcard->version) {                             // the different vCard versions must be considered
@@ -138,10 +136,12 @@ class Backend
                 $types = "data:" . $embedded['mimetype'] . ";base64";
                 break;
         }
+
         $rawField  = "raw" . ucfirst($substituteID);
         $dataField = $substituteID . "Data";
         $vcard->$rawField  = $embedded['data'];
         $vcard->$dataField = $types;
+
         return $vcard;
     }
 
@@ -157,7 +157,7 @@ class Backend
      *                  'data']        the base64 encoded data
      * @throws \Exception
      */
-    public function getLinkedData($uri)
+    public function getLinkedData(string $uri): array
     {
         $response = $this->getClient()->request('GET', $uri);
         $contentType = $response->getHeader('Content-Type');
@@ -179,11 +179,11 @@ class Backend
      * Gets a clean vCard from the CardDAV server
      *
      * @param    string  $vcard_id   vCard id on the CardDAV server
-     * @return   array               vCard (text/vcard)
+     * @return   stdClass              vCard (text/vcard)
      */
-    public function getVcard($vcard_id)
+    public function getVcard(string $vcard_id): stdClass
     {
-        $vcard_id = str_replace($this->url_vcard_extension, null, $vcard_id);
+        $vcard_id = str_replace($this->url_vcard_extension, '', $vcard_id);
         $response = $this->getClient()->request('GET', $this->url . $vcard_id . $this->url_vcard_extension);
 
         $body = (string)$response->getBody();
@@ -193,7 +193,7 @@ class Backend
 
         if (isset($this->substitutes)) {
             foreach ($this->substitutes as $substitute) {
-                $vcard = $this->embedBase64($vcard, $substitute, $this->url);
+                $vcard = $this->embedBase64($vcard, $substitute);
             }
         }
         if (is_callable($this->callback)) {
@@ -207,7 +207,7 @@ class Backend
      * Process CardDAV XML response
      *
      * @param   string  $response           CardDAV XML response
-     * @return  array                       Parsed Vcards from CardDAV XML response
+     * @return  stdClass[]                  Parsed Vcards from CardDAV XML response
      */
     private function processPropFindResponse(string $response): array
     {
@@ -220,7 +220,7 @@ class Backend
             if ((preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) &&
               !$response->propstat->prop->resourcetype->collection) {
                 $id = basename($response->href);
-                $id = str_replace($this->url_vcard_extension, null, $id);
+                $id = str_replace($this->url_vcard_extension, '', $id);
 
                 $cards[] = $this->getVcard($id);
             }
@@ -233,15 +233,15 @@ class Backend
      * Cleans CardDAV XML response
      *
      * @param   string  $response   CardDAV XML response
-     * @return  string  $response   Cleaned CardDAV XML response
+     * @return  string              Cleaned CardDAV XML response
      */
     private function cleanResponse($response)
     {
         $response = utf8_encode($response);
-        $response = str_replace('D:', null, $response);
-        $response = str_replace('d:', null, $response);
-        $response = str_replace('C:', null, $response);
-        $response = str_replace('c:', null, $response);
+        $response = str_replace('D:', '', $response);
+        $response = str_replace('d:', '', $response);
+        $response = str_replace('C:', '', $response);
+        $response = str_replace('c:', '', $response);
 
         return $response;
     }

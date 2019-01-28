@@ -7,6 +7,7 @@ use Andig\Vcard\Parser;
 use Andig\FritzBox\Converter;
 use Andig\FritzBox\Api;
 use \SimpleXMLElement;
+use \stdClass;
 
 define("MAX_IMAGE_COUNT", 150); // see: https://avm.de/service/fritzbox/fritzbox-7490/wissensdatenbank/publication/show/300_Hintergrund-und-Anruferbilder-in-FRITZ-Fon-einrichten/
 
@@ -44,7 +45,7 @@ function download(Backend $backend, $substitutes, callable $callback=null): arra
 /**
  * upload image files via ftp to the fritzbox fonpix directory
  *
- * @param array $vcards downloaded vCards
+ * @param stdClass[] $vcards downloaded vCards
  * @param array $config
  * @param array $phonebook
  * @param callable $callback
@@ -56,16 +57,15 @@ function uploadImages(array $vcards, array $config, array $phonebook, callable $
     $countAllImages = 0;
     $mapFTPUIDtoFTPImageName = [];                      // "9e40f1f9-33df-495d-90fe-3a1e23374762" => "9e40f1f9-33df-495d-90fe-3a1e23374762_190106123906.jpg"
     $timestampPostfix = substr(date("YmdHis"), 2);      // timestamp, e.g., 190106123906
-    $imgPath = $phonebook['imagepath'] ?? NULL;
-    if (!$imgPath) {
-        error_log(PHP_EOL."ERROR: No image upload possible. Missing phonebook/imagepath in config.");
-        return false;
+
+    if (null == ($imgPath = @$phonebook['imagepath'])) {
+        throw new \Exception('Missing phonebook/imagepath in config. Image upload not possible.');
     }
     $imgPath = rtrim($imgPath, '/') . '/';  // ensure one slash at end
 
     // Prepare FTP connection
     $ftpserver = parse_url($config['url'], PHP_URL_HOST) ? parse_url($config['url'], PHP_URL_HOST) : $config['url'];
-    $connectFunc = ($config['plainFTP'] ?? false) ? 'ftp_connect' : 'ftp_ssl_connect';
+    $connectFunc = (@$config['plainFTP']) ? 'ftp_connect' : 'ftp_ssl_connect';
 
     if ($connectFunc == 'ftp_ssl_connect' && !function_exists('ftp_ssl_connect')) {
         throw new \Exception("PHP lacks support for 'ftp_ssl_connect', please use `plainFTP` to switch to unencrypted FTP.");
@@ -137,8 +137,8 @@ function uploadImages(array $vcards, array $config, array $phonebook, callable $
 
     if ($countAllImages > MAX_IMAGE_COUNT) {
         error_log(sprintf(<<<EOD
-"WARNING: You have %d contact images on FritzBox. FritzFon may handle only up to %d images.
-          Some images may not display properly, see: https://github.com/andig/carddav2fb/issues/92.
+WARNING: You have %d contact images on FritzBox. FritzFon may handle only up to %d images.
+         Some images may not display properly, see: https://github.com/andig/carddav2fb/issues/92.
 EOD
         , $countAllImages, MAX_IMAGE_COUNT));
     }
@@ -149,14 +149,15 @@ EOD
 /**
  * Dissolve the groups of iCloud contacts
  *
- * @param array $vcards
- * @return array
+ * @param stdClass[] $vcards
+ * @return stdClass[]
  */
 function dissolveGroups(array $vcards): array
 {
     $groups = [];
 
-    foreach ($vcards as $key => $vcard) {          // separate iCloud groups
+    // separate iCloud groups
+    foreach ($vcards as $key => $vcard) {
         if (isset($vcard->xabsmember)) {
             if (array_key_exists($vcard->fullname, $groups)) {
                 $groups[$vcard->fullname] = array_merge($groups[$vcard->fullname], $vcard->xabsmember);
@@ -167,30 +168,33 @@ function dissolveGroups(array $vcards): array
             continue;
         }
     }
+
     $vcards = array_values($vcards);
+
     // assign group memberships
     foreach ($vcards as $vcard) {
         foreach ($groups as $group => $members) {
             if (in_array($vcard->uid, $members)) {
                 if (!isset($vcard->group)) {
-                    $vcard->group = array();
+                    $vcard->group = [];
                 }
                 $vcard->group = $group;
                 break;
             }
         }
     }
+
     return $vcards;
 }
 
 /**
  * Filter included/excluded vcards
  *
- * @param array $cards
+ * @param stdClass[] $vcards
  * @param array $filters
- * @return array
+ * @return stdClass[]
  */
-function filter(array $cards, array $filters): array
+function filter(array $vcards, array $filters): array
 {
     // include selected
     $includeFilter = $filters['include'] ?? [];
@@ -198,19 +202,19 @@ function filter(array $cards, array $filters): array
     if (countFilters($includeFilter)) {
         $step1 = [];
 
-        foreach ($cards as $card) {
-            if (filtersMatch($card, $includeFilter)) {
-                $step1[] = $card;
+        foreach ($vcards as $vcard) {
+            if (filtersMatch($vcard, $includeFilter)) {
+                $step1[] = $vcard;
             }
         }
     } else {
         // filter defined but empty sub-rules?
         if (count($includeFilter)) {
-            error_log('Include filter empty- including all cards');
+            error_log('Include filter empty- including all vcards');
         }
 
         // include all by default
-        $step1 = $cards;
+        $step1 = $vcards;
     }
 
     $excludeFilter = $filters['exclude'] ?? [];
@@ -219,9 +223,9 @@ function filter(array $cards, array $filters): array
     }
 
     $step2 = [];
-    foreach ($step1 as $card) {
-        if (!filtersMatch($card, $excludeFilter)) {
-            $step2[] = $card;
+    foreach ($step1 as $vcard) {
+        if (!filtersMatch($vcard, $excludeFilter)) {
+            $step2[] = $vcard;
         }
     }
 
@@ -250,15 +254,15 @@ function countFilters(array $filters): int
 /**
  * Check a list of filters against a card
  *
- * @param mixed $card
+ * @param stdClass $vcard
  * @param array $filters
  * @return bool
  */
-function filtersMatch($card, array $filters): bool
+function filtersMatch(stdClass $vcard, array $filters): bool
 {
     foreach ($filters as $attribute => $values) {
-        if (isset($card->$attribute)) {
-            if (filterMatches($card->$attribute, $values)) {
+        if (isset($vcard->$attribute)) {
+            if (filterMatches($vcard->$attribute, $values)) {
                 return true;
             }
         }
@@ -277,7 +281,7 @@ function filtersMatch($card, array $filters): bool
 function filterMatches($attribute, $filterValues): bool
 {
     if (!is_array($filterValues)) {
-        $filterValues = array($filterValues);
+        $filterValues = [$filterValues];
     }
 
     foreach ($filterValues as $filter) {
@@ -362,17 +366,17 @@ function upload(string $xml, $config)
     $fritz->setClientOptions($options['http'] ?? []);
     $fritz->login();
 
-    $formfields = array(
+    $formfields = [
         'PhonebookId' => $config['phonebook']['id']
-    );
+    ];
 
-    $filefields = array(
-        'PhonebookImportFile' => array(
+    $filefields = [
+        'PhonebookImportFile' => [
             'type' => 'text/xml',
             'filename' => 'updatepb.xml',
             'content' => $xml,
-        )
-    );
+        ]
+    ];
 
     $result = $fritz->postFile($formfields, $filefields); // send the command
 
