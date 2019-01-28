@@ -96,7 +96,7 @@ class Api
      *
      * @throws Exception
      */
-    protected function login()
+    public function login()
     {
         $url = $this->url . '/login_sid.lua';
 
