@@ -14,7 +14,10 @@ $config = [
             'url' => 'https://...',
             'user' => '',
             'password' => '',
-            // 'authentication' => 'digest' // uncomment for digest auth
+            'http' => [           // http client options are directly passed to Guzzle http client
+                // 'verify' => false, // uncomment to disable certificate check
+                // 'auth' => 'digest', // uncomment for digest auth
+            ]
         ],
 /* add as many as you need
         [
@@ -31,6 +34,9 @@ $config = [
         'user' => '',
         'password' => '',
         'fonpix'   => '/[YOURUSBSTICK]/FRITZ/fonpix',   // the storage on your usb stick for uploading images
+        'http' => [           // http client options are directly passed to Guzzle http client
+            // 'verify' => false, // uncomment to disable certificate check
+        ]
     ],
 
     'filters' => [

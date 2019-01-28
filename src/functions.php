@@ -18,12 +18,11 @@ define("MAX_IMAGE_COUNT", 150); // see: https://avm.de/service/fritzbox/fritzbox
  */
 function backendProvider(array $config): Backend
 {
-    $server = $config['server'] ?? $config;
-    $authentication = $server['authentication'] ?? null;
+    $options = $config['server'] ?? $config;
 
-    $backend = new Backend();
-    $backend->setUrl($server['url']);
-    $backend->setAuth($server['user'], $server['password'], $authentication);
+    $backend = new Backend($options['url']);
+    $backend->setAuth($options['user'], $options['password']);
+    $backend->setClientOptions($options['http'] ?? []);
 
     return $backend;
 }
@@ -354,9 +353,12 @@ function xml_adopt(SimpleXMLElement $to, SimpleXMLElement $from)
  */
 function upload(string $xml, $config)
 {
-    $fritzbox = $config['fritzbox'];
+    $options = $config['fritzbox'];
 
-    $fritz = new Api($fritzbox['url'], $fritzbox['user'], $fritzbox['password']);
+    $fritz = new Api($options['url']);
+    $fritz->setAuth($options['user'], $options['password']);
+    $fritz->setClientOptions($options['http'] ?? []);
+    $fritz->login();
 
     $formfields = array(
         'PhonebookId' => $config['phonebook']['id']
