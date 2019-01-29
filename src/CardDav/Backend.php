@@ -8,6 +8,7 @@ use \stdClass;
 
 /**
  * @author Christian Putzke <christian.putzke@graviox.de>
+ * @author Andreas Goetz <cpuidle@gmx.de>
  * @copyright Christian Putzke
  * @license http://www.gnu.org/licenses/agpl.html GNU AGPL v3 or later
  */

@@ -54,7 +54,7 @@ class DownloadCommand extends Command
                 $progress->finish();
 
                 $vcards = array_merge($vcards, $downloaded);
-                error_log(sprintf("Downloaded %d vCard(s)", count($vcards)));
+                error_log(sprintf("\nDownloaded %d vCard(s)", count($vcards)));
             }
 
             if ($file = $input->getOption('raw')) {

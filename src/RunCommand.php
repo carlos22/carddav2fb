@@ -50,7 +50,7 @@ class RunCommand extends Command
 
             $vcards = array_merge($vcards, $xcards);
             $quantity += count($vcards);
-            error_log(sprintf("Downloaded %d vCard(s)", $quantity));
+            error_log(sprintf("\nDownloaded %d vCard(s)", $quantity));
         }
 
         // dissolve
@@ -86,6 +86,11 @@ class RunCommand extends Command
         // fritzbox format
         $xml = export($filtered, $this->config);
         error_log(sprintf(PHP_EOL."Converted %d vCard(s)", count($filtered)));
+
+        if (!count($filtered)) {
+            error_log("Phonebook empty - skipping upload");
+            return null;
+        }
 
         // upload
         error_log("Uploading");
