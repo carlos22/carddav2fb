@@ -77,6 +77,9 @@ function uploadImages(array $vcards, array $config, array $phonebook, callable $
     if (!ftp_login($ftp_conn, $config['user'], $config['password'])) {
         throw new \Exception("Could not log in ".$config['user']." to ftp server ".$ftpserver." for image upload.");
     }
+    if (!ftp_pasv($ftp_conn, true)) {
+        throw new \Exception("Could not switch to passive mode on ftp server ".$ftpserver." for image upload.");
+    }
     if (!ftp_chdir($ftp_conn, $config['fonpix'])) {
         throw new \Exception("Could not change to dir ".$config['fonpix']." on ftp server ".$ftpserver." for image upload.");
     }
