@@ -21,9 +21,6 @@ trait ClientTrait
     /** @var array */
     protected $clientOptions = [];
 
-    /** @var Client|null */
-    private $client;
-
     /**
      * Set credentials
      */
@@ -40,11 +37,7 @@ trait ClientTrait
      */
     protected function getClient(): Client
     {
-        if (!$this->client) {
-            $this->client = new Client($this->getClientOptions());
-        }
-
-        return $this->client;
+        return new Client($this->getClientOptions());
     }
 
     /**
@@ -52,10 +45,19 @@ trait ClientTrait
      *
      * @param array $options
      */
-
-    public function setClientOptions(array $options = [])
+    protected function setClientOptions(array $options = [])
     {
         $this->clientOptions = $options;
+    }
+
+    /**
+     * Merge additional HTTP client options
+     *
+     * @param array $options
+     */
+    public function mergeClientOptions(array $options = [])
+    {
+        $this->clientOptions = array_merge($this->clientOptions, $options);
     }
 
     /**

@@ -52,6 +52,12 @@ class Backend
         if ($url) {
             $this->setUrl($url);
         }
+
+        $this->setClientOptions([
+            'headers' => [
+                'Depth' => 1
+            ]
+        ]);
     }
 
     /**

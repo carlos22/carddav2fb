@@ -23,7 +23,7 @@ function backendProvider(array $config): Backend
 
     $backend = new Backend($options['url']);
     $backend->setAuth($options['user'], $options['password']);
-    $backend->setClientOptions($options['http'] ?? []);
+    $backend->mergeClientOptions($options['http'] ?? []);
 
     return $backend;
 }
@@ -366,7 +366,7 @@ function upload(string $xml, $config)
 
     $fritz = new Api($options['url']);
     $fritz->setAuth($options['user'], $options['password']);
-    $fritz->setClientOptions($options['http'] ?? []);
+    $fritz->mergeClientOptions($options['http'] ?? []);
     $fritz->login();
 
     $formfields = [
