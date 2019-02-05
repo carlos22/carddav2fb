@@ -29,7 +29,7 @@ class Backend
      *
      * @var string
      */
-    private $url_vcard_extension = '.vcf';
+    private $vcard_extension = '.vcf';
 
     /**
      * Progress callback
@@ -84,7 +84,7 @@ class Backend
 
         // workaround for providers that don't use the default .vcf extension
         if (strpos($this->url, "google.com")) {
-            $this->url_vcard_extension = '';
+            $this->vcard_extension = '';
         }
     }
 
@@ -186,12 +186,12 @@ class Backend
      * Gets a clean vCard from the CardDAV server
      *
      * @param    string  $vcard_id   vCard id on the CardDAV server
-     * @return   stdClass              vCard (text/vcard)
+     * @return   stdClass            vCard (text/vcard)
      */
     public function getVcard(string $vcard_id): stdClass
     {
-        $vcard_id = str_replace($this->url_vcard_extension, '', $vcard_id);
-        $response = $this->getClient()->request('GET', $this->url . $vcard_id . $this->url_vcard_extension);
+        $id = rtrim($vcard_id, $this->vcard_extension) . $this->vcard_extension;
+        $response = $this->getClient()->request('GET', $this->url . $id);
 
         $body = (string)$response->getBody();
 
@@ -227,7 +227,7 @@ class Backend
             if ((preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) &&
               !$response->propstat->prop->resourcetype->collection) {
                 $id = basename($response->href);
-                $id = str_replace($this->url_vcard_extension, '', $id);
+                $id = str_replace($this->vcard_extension, '', $id);
 
                 $cards[] = $this->getVcard($id);
             }
