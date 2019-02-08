@@ -4,6 +4,7 @@ namespace Andig\CardDav;
 
 use Andig\Http\ClientTrait;
 use Andig\Vcard\Parser;
+use GuzzleHttp\Client;
 use \stdClass;
 
 /**
@@ -19,27 +20,33 @@ class Backend
 
     /**
      * CardDAV server url
-     *
-     * @var     string
+     * @var string
      */
     private $url;
 
     /**
      * VCard File URL Extension
-     *
      * @var string
      */
     private $vcard_extension = '.vcf';
 
     /**
      * Progress callback
+     * @var callable
      */
     private $callback;
 
     /**
      * Set substitutions of links to embedded data
+     * @var array
      */
     private $substitutes = [];
+
+    /**
+     * Cached http client
+     * @var Client|null
+     */
+    private $client;
 
     /**
      * Constructor
@@ -97,13 +104,26 @@ class Backend
     }
 
     /**
+     * Get initialized http client. Improves download performance by up to x7
+     *
+     * @return Client
+     */
+    private function getCachedClient(): Client
+    {
+        if (!$this->client) {
+            $this->client = $this->getClient();
+        }
+        return $this->client;
+    }
+
+    /**
      * Gets all vCards including additional information from the CardDAV server
      *
      * @return  stdClass[]   All parsed Vcards from backend
      */
     public function getVcards(): array
     {
-        $response = $this->getClient()->request('PROPFIND', $this->url);
+        $response = $this->getCachedClient()->request('PROPFIND', $this->url);
         $body = (string)$response->getBody();
         return $this->processPropFindResponse($body);
     }
@@ -166,7 +186,7 @@ class Backend
      */
     public function getLinkedData(string $uri): array
     {
-        $response = $this->getClient()->request('GET', $uri);
+        $response = $this->getCachedClient()->request('GET', $uri);
         $contentType = $response->getHeader('Content-Type');
 
         @list($mimeType, $parameters) = explode(';', $contentType[0], 2);
@@ -191,7 +211,7 @@ class Backend
     public function getVcard(string $vcard_id): stdClass
     {
         $vcard_id = str_replace($this->vcard_extension, '', $vcard_id) . $this->vcard_extension;
-        $response = $this->getClient()->request('GET', $this->url . $vcard_id);
+        $response = $this->getCachedClient()->request('GET', $this->url . $vcard_id);
 
         $body = (string)$response->getBody();
 
