@@ -448,6 +448,10 @@ class CardDAV2FB
                     $quickdial = $value;
                   }
                 }
+		      
+                foreach($t['type'] as $k=>$v) {
+                  $t['type'][$k] = str_replace('"','',$v);
+                }
 
                 $typearr_lower = unserialize(strtolower(serialize($t['type'])));
 
