@@ -330,8 +330,8 @@ EOT
     $converter = new Converter($conversions);
 
     foreach ($cards as $card) {
-        $contact = $converter->convert($card);
-        if ($contact) {
+        $contacts = $converter->convert($card);
+        foreach ($contacts as $contact) {
             xml_adopt($root, $contact);
         }
     }

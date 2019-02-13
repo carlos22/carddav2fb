@@ -82,7 +82,8 @@ $config = [
         'phoneTypes' => [
             'WORK' => 'work',
             'HOME' => 'home',
-            'CELL' => 'mobile'
+            'CELL' => 'mobile',
+            'FAX' => 'fax_work' // NOTE: actual mapping is ignored but order counts, so fac is put last
         ],
         'emailTypes' => [
             'WORK' => 'work',

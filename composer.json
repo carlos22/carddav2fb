@@ -16,8 +16,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Andig\\": "src/"
+            "Andig\\": "src/",
+            "Test\\": "tests/"
         },
         "files": ["src/functions.php"]
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6"
     }
 }
