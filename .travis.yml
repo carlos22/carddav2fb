@@ -14,7 +14,11 @@ matrix:
 
 jobs:
   include:
-    - stage: StaticAnalysis
+    - stage: Test
+      php: 7.1
+      script:
+        phpunit
+    - stage: Static Analysis
       php: 7.1
       install:
         - rm -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini
@@ -22,7 +26,7 @@ jobs:
       script:
         # Static analyzer check
         - ./vendor/bin/phpstan analyze --level=5 --no-progress src
-    - stage: CodeStyle
+    - stage: Code Style
       php: 7.1
       install:
         - rm -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini
