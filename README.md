@@ -15,7 +15,7 @@ This is an entirely simplified version of https://github.com/jens-maus/carddav2f
 
 ## Requirements
 
-  * PHP 7.0 (`apt-get install php7.0 php7.0-curl php7.0-mbstring php7.0-xml`)
+  * PHP >7.0 (`apt-get install php php-curl php-mbstring php-xml`)
   * Composer (follow the installation guide at https://getcomposer.org/download/)
 
 ## Installation
@@ -24,7 +24,7 @@ Install requirements
 
     git clone https://github.com/andig/carddav2fb.git
     cd carddav2fb
-    composer install
+    composer install --no-dev
 
 edit `config.example.php` and save as `config.php`
 
@@ -52,4 +52,4 @@ Get help for a command:
 This script is released under Public Domain, some parts under GNU AGPL or MIT license. Make sure you understand which parts are which.
 
 ## Authors
-Copyright (c) 2012-2019 Karl Glatz, Christian Putzke, Martin Rost, Jens Maus, Johannes Freiburger, Andreas Götz, Volker Püschel
+Copyright (c) 2012-2019 Andreas Götz, Volker Püschel, Karl Glatz, Christian Putzke, Martin Rost, Jens Maus, Johannes Freiburger
