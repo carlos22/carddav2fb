@@ -245,11 +245,15 @@ class Backend
 
         foreach ($xml->response as $response) {
             if ((preg_match('/vcard/', $response->propstat->prop->getcontenttype) || preg_match('/vcf/', $response->href)) &&
-              !$response->propstat->prop->resourcetype->collection) {
+            !$response->propstat->prop->resourcetype->collection) {
                 $id = basename($response->href);
                 $id = str_replace($this->vcard_extension, '', $id);
 
-                $cards[] = $this->getVcard($id);
+                try {
+                    $cards[] = $this->getVcard($id);
+                } catch (\OutOfBoundsException $e) {
+                    error_log(sprintf(PHP_EOL . 'Error retrieving %s, ignoring.', $id));
+                }
             }
         }
 
