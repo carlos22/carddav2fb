@@ -1,4 +1,4 @@
-FROM resin/rpi-raspbian:stretch
+FROM rpi-debian:stretch
 MAINTAINER docker@intrepid.de
 
 
@@ -6,10 +6,10 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get -y install \
-      php7.0-cli \
-      php7.0-curl \
-      php7.0-xml \
-      php7.0-mbstring \
+      php7.2-cli \
+      php7.2-curl \
+      php7.2-xml \
+      php7.2-mbstring \
       git \
       cron && \
     cd /opt && \
