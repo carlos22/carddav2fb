@@ -1,4 +1,4 @@
-FROM balenalib/rpi-debian:stretch
+FROM balenalib/rpi-debian:buster
 MAINTAINER docker@intrepid.de
 
 
