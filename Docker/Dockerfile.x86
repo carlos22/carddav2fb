@@ -3,7 +3,8 @@ MAINTAINER docker@intrepid.de
 
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update -y && \
+RUN passwd -l root ; \
+    apt-get update -y && \
     apt-get upgrade -y && \
     apt-get -y install \
       php7.0-cli \
