@@ -18,7 +18,7 @@ RUN apk --update --upgrade --no-cache add \
       php7-fpm \
       bash \
       git && \
-    mkdir /opt && \
+    mkdir -p /opt && \
     cd /opt && \
     git clone --branch FoxRomeo-patch-1 --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
     addgroup -S carddav2fb && \
