@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# -v <path_to_your>/crontab:/etc/periodic/hourly/carddav2fb:ro
+# or 
+# -v <path_to_your>/crontab:/etc/periodic/daily/carddav2fb:ro
+# file must be executable (755) and must start with "#!/bin/sh"
+
+su carddav2fb -c /usr/bin/php /opt/carddav2fb/carddav2fb.php
+

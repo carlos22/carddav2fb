@@ -1,27 +1,30 @@
-FROM balenalib/rpi-debian:buster
+FROM arm32v6/alpine:latest
 MAINTAINER docker@intrepid.de
 
-
-ENV DEBIAN_FRONTEND noninteractive
-RUN passwd -l root ; \
-    apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get -y install \
-      php7.2-cli \
-      php7.2-curl \
-      php7.2-xml \
-      php7.2-mbstring \
-      git \
-      cron && \
+# Install dependencies
+RUN apk --update --upgrade --no-cache add \
+      php7-session \
+      php7-mysqli \
+      php7-mbstring \
+      php7-xml \
+      php7-gd \
+      php7-zip \
+      php7-bz2 \
+      php7-openssl \
+      php7-curl \
+      php7-opcache \
+      php7-json \
+      php7-ctype \
+      php7-fpm \
+      bash \
+      git && \
+    mkdir /opt && \
     cd /opt && \
-#    git clone https://github.com/FoxRomeo/carddav2fb.git && \
     git clone --branch FoxRomeo-patch-1 --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
-    groupadd -r carddav2fb && \
-    useradd --no-log-init -r -g carddav2fb carddav2fb && \
+    addgroup -S carddav2fb && \
+    adduser -S -G carddav2fb carddav2fb && \
     mkdir /opt/carddav2fb/share && \
-    chown carddav2fb:carddav2fb /opt/carddav2fb/share && \
-    rm -rf /var/lib/apt/lists/*
-
+    chown carddav2fb:carddav2fb /opt/carddav2fb/share
 
 # set outputfile to "/opt/carddav2fb/share/phonebook.xml"
 # $config['output_file'] = '/opt/carddav2fb/share/phonebook.xml';
