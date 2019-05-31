@@ -179,7 +179,7 @@ class CardDAV2FB
     }
   }
 
-  public function base64_to_jpeg($inputfile, $outputfile)
+  public function base64_to_picture($inputfile, $outputfile)
   {
     // read data (binary)
     $ifp = fopen($inputfile, "rb");
@@ -593,22 +593,36 @@ class CardDAV2FB
         // we have to extract ['value'] and friends.
         if(is_array($entry['photo_data'][0]) and (array_key_exists('value', $entry['photo_data'][0])))
         {
-          // check if photo_data really contains JPEG data
+          // check if photo_data really contains JPEG or PNG data
           if((array_key_exists('type', $entry['photo_data'][0])) and (is_array($entry['photo_data'][0]['type'])) and
-             ($entry['photo_data'][0]['type'][0] == 'jpeg' or $entry['photo_data'][0]['type'][0] == 'jpg' or $entry['photo_data'][0]['type'][0] == 'image/jpeg'))
+		  ($entry['photo_data'][0]['type'][0] == 'jpeg' or $entry['photo_data'][0]['type'][0] == 'jpg' or $entry['photo_data'][0]['type'][0] == 'image/jpeg') or
+		  ($entry['photo_data'][0]['type'][0] == 'png' or $entry['photo_data'][0]['type'][0] == 'image/png'))
           {
             // get photo, rename, base64 convert and save as jpg
             $photo_data = $entry['photo_data'][0]['value'];
             $photo_version = substr(sha1($photo_data), 0, 5);
-            $photo_file = $this->tmpdir . '/' . "{$entry['photo']}_{$photo_version}.jpg";
+            $photo_file = $this->tmpdir . '/' . "{$entry['photo']}_{$photo_version}";
 
             // check for base64 encoding of the photo data and convert it
             // accordingly.
             if(((array_key_exists('encoding', $entry['photo_data'][0])) and ($entry['photo_data'][0]['encoding'] == 'b')) or $this->is_base64($photo_data))
             {
               file_put_contents($photo_file . ".b64", $photo_data);
-              $this->base64_to_jpeg($photo_file . ".b64", $photo_file);
+              $this->base64_to_picture($photo_file . ".b64", $photo_file);
               unlink($photo_file . ".b64");
+              if($entry['photo_data'][0]['type'][0] == 'jpeg' or $entry['photo_data'][0]['type'][0] == 'jpg' or $entry['photo_data'][0]['type'][0] == 'image/jpeg')
+              {
+                rename($photo_file, $photo_file . ".jpg");
+                $photo_file .= ".jpg";
+              }
+              if($entry['photo_data'][0]['type'][0] == 'png' or $entry['photo_data'][0]['type'][0] == 'image/png')
+              {
+                print "  Convert photo from png to jpg" . PHP_EOL;
+                $image = imagecreatefrompng($photo_file);
+                $photo_file .= ".jpg";
+                imagejpeg($image, $photo_file, 100); // full quality
+                imagedestroy($image);
+              }
             }
             else
             {
@@ -622,7 +636,7 @@ class CardDAV2FB
             print "  Added photo: " . basename($photo_file) . PHP_EOL;
           }
           else
-           print "  WARNING: Only jpg contact photos are currently supported." . PHP_EOL;
+            print "  WARNING: Only jpg and png contact photos are currently supported." . PHP_EOL;
         }
         elseif(substr($entry['photo_data'][0], 0, 4) == 'http')
         {
