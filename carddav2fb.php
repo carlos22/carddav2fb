@@ -468,12 +468,15 @@ class CardDAV2FB
                   $type = "fax_work";
                 elseif(in_array("work", $typearr_lower))
                   $type = "work";
+                elseif(in_array("main", $typearr_lower))
+                  $type = "work";
                 elseif(in_array("other", $typearr_lower))
                   $type = "other";
                 elseif(in_array("dom", $typearr_lower))
                   $type = "other";
                 elseif(in_array("voice", $typearr_lower))
                   $type = "other";
+
                 else
                   continue;
               }
