@@ -448,6 +448,10 @@ class CardDAV2FB
                     $quickdial = $value;
                   }
                 }
+		      
+                foreach($t['type'] as $k=>$v) {
+                  $t['type'][$k] = str_replace('"','',$v);
+                }
 
                 $typearr_lower = unserialize(strtolower(serialize($t['type'])));
 
@@ -467,6 +471,8 @@ class CardDAV2FB
                 elseif(in_array("other", $typearr_lower))
                   $type = "other";
                 elseif(in_array("dom", $typearr_lower))
+                  $type = "other";
+                elseif(in_array("voice", $typearr_lower))
                   $type = "other";
                 else
                   continue;
