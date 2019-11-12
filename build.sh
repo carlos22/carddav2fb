@@ -58,7 +58,7 @@ docker push ${REGISTRY}/${NAME}:latest && \
 docker tag  ${REGISTRY}/${NAME}:latest ${REGISTRY}/${NAME}:${TARGETVERSION} && \
 docker push ${REGISTRY}/${NAME}:${TARGETVERSION}
 
-if [ -n "${SECONDARYREPOSITORY}" ]; then
+if [ -n "${SECONDARYREGISTRY}" ]; then
   if [ -n "${SECONDARYNAME}" ]; then
     docker tag  ${REGISTRY}/${NAME}:latest ${SECONDARYREGISTRY}/${SECONDARYNAME}:latest && \
     docker push ${SECONDARYREGISTRY}/${SECONDARYNAME}:latest

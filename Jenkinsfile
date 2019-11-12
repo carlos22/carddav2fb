@@ -19,7 +19,7 @@ pipeline {
 	    environment {
 		NAME = "carddav2fb"
 		TARGETVERSION = "master"
-		SECONDARYREPOSITORY = "intrepidde"
+		SECONDARYREGISTRY = "intrepidde"
 		SECONDARYNAME = "rpi-carddav2fb"
 	    }
 	    steps {
