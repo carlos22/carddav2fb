@@ -1,5 +1,6 @@
 # CardDAV contacts import for AVM FRITZ!Box
 
+[![Build Status](https://jenkins.midgards-todesengel.de/buildStatus/icon?job=FoxRomeo-GitHub%2Fcarddav2fb%2Fmaster)](https://jenkins.midgards-todesengel.de/job/FoxRomeo-GitHub/job/carddav2fb/job/master/)
 
 Features:
 
