@@ -4,7 +4,6 @@ pipeline {
 	cron('H H(2-7) * * 3')
     }
     options {
-//		skipStagesAfterUnstable()
 	disableResume()
 	timestamps()
     }
@@ -21,11 +20,12 @@ pipeline {
 		    environment {
 			NAME = "rpi-carddav2fb"
 			TARGETVERSION = "master"
+			ACTION = "all"
 		    }
 		    steps {
 			checkout scm
 			sh 'cp Docker/Dockerfile.rpi ./Dockerfile'
-			sh './build.sh'
+			sh './action.sh'
 		    }
 		}
 		stage('x86') {
@@ -35,11 +35,12 @@ pipeline {
 		    environment {
 			NAME = "carddav2fb"
 			TARGETVERSION = "master"
+			ACTION = "all"
 		    }
 		    steps {
 			checkout scm
 			sh 'cp Docker/Dockerfile.x86 ./Dockerfile'
-			sh './build.sh'
+			sh './action.sh'
 		    }
 		}
 	    }
