@@ -1,7 +1,7 @@
 pipeline {
     agent none
     triggers {
-	cron('H H(2-7) * * 3')
+	cron('H H(4-12) * * 3')
     }
     options {
 	disableResume()
