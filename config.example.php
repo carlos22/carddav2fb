@@ -35,6 +35,9 @@ $config['orgname'] = false; // include organisation (company) in fullname if exi
 // Quickdial starting keyword in notes
 //$config['quickdial_keyword'] = 'Quickdial:'; // once activated you may add 'Quickdial:+49030123456:**709' to the contact note field and the number will set as quickdialnumber. You may add more quickdials for a single contact each in a new line
 
+// Fallback type (default is 'other')
+//$config[fallback_type] = 'home'; // Some Fritz!Boxes don't have type other like 6591, then use 'home', 'work', or 'mobile'
+
 // optional: write output to file of sending it to the Fritz!Box
 //$config['output_file'] = '/media/usbdisk/share/phonebook.xml';
 // optional: once activated phonebook will also be upload to FRITZ!Box if changes are detectet (output_file must be set)

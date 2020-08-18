@@ -2,14 +2,22 @@
 
 # Errors:
 #  1 REGISTRY not set
-#  2 TARGETVERSION AND STRING AND COMMAND not set (one must be set)
+#  2 TARGETVERSION AND STRING AND COMMAND not set AND OVERRIDE still set to latest (one must be set)
 #  3 TARGETVERSION not found (must be found with inspect with TARGETSTRING)
 #  4 BASECONTAINER set, but not BASETYPE
 #  5 "Dockerfile.${BASETYPE}" not found
 #  6 TARGETBATCH result was empty
-#  7 no ACTION type is set
+#  7 additional docker run failed
+#  8 BASESCRIPT did run with error
+#  9 docker build failed
 
-set -x
+if [ -n "${DEBUG}" ]; then
+ set -x
+fi
+
+if [ -n "${OVERRIDE}" ]; then
+  echo ":${OVERRIDE}:"
+fi
 
 if [ -z "${NAME}" ]; then
   NAME="${PWD##*/}"
@@ -19,17 +27,27 @@ if [ -z "${REGISTRY}" ]; then
   exit 1
 fi
 
-if [ -z "${TARGETVERSION}" ]; then
- if [ -z "${TARGETSTRING}" ]; then
-   if [ -z "${TARGETRUNVERSION}" ]; then
-    exit 2
-   fi
- fi
+if [ "${OVERRIDE}" != "latest" ] && [ -n "${OVERRIDE}" ] && [ -n "${SOFTWARESTRING}" ]; then
+  SOFTWAREVERSION="${OVERRIDE}"
 fi
+
+if [ "${OVERRIDE}" != "latest" ] && [ -n "${OVERRIDE}" ]; then
+  TARGETVERSION="${OVERRIDE}"
+fi
+
+###
+# adding tagsuffix to tag "latest" before build
+# will be added to TARGETVERSION tag during push phase
+if [ -n "${TAGSUFFIX}" ]; then
+ LATEST="latest${TAGSUFFIX}"
+else
+ LATEST="latest"
+fi
+###
 
 if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "all" ]; then
 # Start of action "build"
-  if [ -n "${BASECONTAINER}" ]; then
+  if [ -n "${BASECONTAINER}" ] && [ -z "${BASESCRIPT}" ]; then
     if [ -z "${BASETYPE}" ]; then
       exit 4
     else
@@ -40,6 +58,11 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "all" ]; then
       else
         exit 5
       fi
+    fi
+  elif [ -n "${BASESCRIPT}" ]; then
+    DOCKERFILE="`/bin/bash ${BASESCRIPT}`"
+    if [ $? -ne 0 ]; then
+      exit 8
     fi
   else
     DOCKERFILE="Dockerfile"
@@ -54,14 +77,32 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "all" ]; then
     sed -i s~"${SOFTWARESTRING}"~"${SOFTWAREVERSION}"~g "${DOCKERFILE}"
   fi
 
-  docker pull `grep "^FROM " "${DOCKERFILE}" | cut -d" " -f2` && \
-  docker build --no-cache --rm -t ${REGISTRY}/${NAME}:latest --file "${DOCKERFILE}" .
+  if [ -n "${SECONDARYSOFTWAREVERSION}" ] && [ -n "${SECONDARYSOFTWARESTRING}" ]; then
+    sed -i s~"${SECONDARYSOFTWARESTRING}"~"${SECONDARYSOFTWAREVERSION}"~g "${DOCKERFILE}"
+  fi
 
+  for pull in $(grep "^FROM " "${DOCKERFILE}" | cut -d" " -f2)
+  do
+    docker pull $pull
+  done
+
+  if [ -n "${ADDITIONALCONTAINER}" ] && [ -n "${ADDITIONALCONTAINERSTRING}" ]; then
+    sed -i s~"^FROM ${ADDITIONALCONTAINERSTRING}"~"FROM ${ADDITIONALCONTAINER} AS ${NAME}-transfer"~g "${DOCKERFILE}"
+    sed -i s~"--from=${ADDITIONALCONTAINERSTRING}"~"--from=${NAME}-transfer"~g "${DOCKERFILE}"
+  fi
+
+  docker build --no-cache --rm -t ${REGISTRY}/${NAME}:${LATEST} --file "./${DOCKERFILE}" . || exit 9
+
+fi
 # End of action "build"
-elif [ "${ACTION}" == "push" ] || [ "${ACTION}" == "all" ]; then
-# Start of action "push"
 
-  if [ -n "${TARGETRUNVERSION}" ]; then
+# Start of action "push"
+if [ "${ACTION}" == "push" ] || [ "${ACTION}" == "all" ]; then
+  if [ -z "${TARGETVERSION}" ] && [ -z "${TARGETSTRING}" ] && [ -z "${TARGETRUNVERSION}" ]; then
+    exit 2
+  fi
+
+  if [ -n "${TARGETRUNVERSION}" ] && [ -z "${TARGETVERSION}" ]; then
     TARGETVERSION=`${TARGETRUNVERSION} ${REGISTRY}/${NAME}:latest`
     if [ -z "${TARGETVERSION}" ]; then
       exit 6
@@ -75,27 +116,32 @@ elif [ "${ACTION}" == "push" ] || [ "${ACTION}" == "all" ]; then
     fi
   fi
 
-  docker push ${REGISTRY}/${NAME}:latest && \
-  docker tag  ${REGISTRY}/${NAME}:latest ${REGISTRY}/${NAME}:${TARGETVERSION} && \
-  docker push ${REGISTRY}/${NAME}:${TARGETVERSION}
+  docker tag  ${REGISTRY}/${NAME}:${LATEST} ${REGISTRY}/${NAME}:${TARGETVERSION}${TAGSUFFIX}
+  if [ "${NOLATEST}" != "true" ]; then
+    docker push ${REGISTRY}/${NAME}:${LATEST}
+  else
+    docker rmi ${REGISTRY}/${NAME}:${LATEST}
+  fi
+  docker push ${REGISTRY}/${NAME}:${TARGETVERSION}${TAGSUFFIX}
 
   if [ -n "${SECONDARYREGISTRY}" ]; then
     if [ -n "${SECONDARYNAME}" ]; then
-      docker tag  ${REGISTRY}/${NAME}:latest ${SECONDARYREGISTRY}/${SECONDARYNAME}:latest && \
-      docker push ${SECONDARYREGISTRY}/${SECONDARYNAME}:latest
-      docker tag  ${REGISTRY}/${NAME}:${TARGETVERSION} ${SECONDARYREGISTRY}/${SECONDARYNAME}:${TARGETVERSION} && \
-      docker push ${SECONDARYREGISTRY}/${SECONDARYNAME}:${TARGETVERSION}
+      if [ "${NOLATEST}" != "true" ]; then
+        docker tag  ${REGISTRY}/${NAME}:${LATEST} ${SECONDARYREGISTRY}/${SECONDARYNAME}:${LATEST} && \
+        docker push ${SECONDARYREGISTRY}/${SECONDARYNAME}:${LATEST}
+      fi
+      docker tag  ${REGISTRY}/${NAME}:${TARGETVERSION}${TAGSUFFIX} ${SECONDARYREGISTRY}/${SECONDARYNAME}:${TARGETVERSION}${TAGSUFFIX} && \
+      docker push ${SECONDARYREGISTRY}/${SECONDARYNAME}:${TARGETVERSION}${TAGSUFFIX}
     else
-      docker tag  ${REGISTRY}/${NAME}:latest ${SECONDARYREGISTRY}/${NAME}:latest && \
-      docker push ${SECONDARYREGISTRY}/${NAME}:latest
-      docker tag  ${REGISTRY}/${NAME}:${TARGETVERSION} ${SECONDARYREGISTRY}/${NAME}:${TARGETVERSION} && \
-      docker push ${SECONDARYREGISTRY}/${NAME}:${TARGETVERSION}
+      if [ "${NOLATEST}" != "true" ]; then
+        docker tag  ${REGISTRY}/${NAME}:${LATEST} ${SECONDARYREGISTRY}/${NAME}:${LATEST} && \
+        docker push ${SECONDARYREGISTRY}/${NAME}:${LATEST}
+      fi
+      docker tag  ${REGISTRY}/${NAME}:${TARGETVERSION}${TAGSUFFIX} ${SECONDARYREGISTRY}/${NAME}:${TARGETVERSION}${TAGSUFFIX} && \
+      docker push ${SECONDARYREGISTRY}/${NAME}:${TARGETVERSION}${TAGSUFFIX}
     fi
   fi
 # End of action "push"
-else
-  # Error if no valid action was found
-  exit 7
 fi
 
 exit 0

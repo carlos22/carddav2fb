@@ -58,6 +58,7 @@ $config['addnames'] = false;
 $config['orgname'] = false;
 $config['build_photos'] = true;
 $config['quickdial_keyword'] = 'Quickdial:';
+$config['fallback_type'] = 'other';
 
 if(is_file($config_file_name))
   require($config_file_name);
@@ -469,11 +470,11 @@ class CardDAV2FB
                 elseif(in_array("work", $typearr_lower))
                   $type = "work";
                 elseif(in_array("other", $typearr_lower))
-                  $type = "other";
+                  $type = $conf['fallback_type'];
                 elseif(in_array("dom", $typearr_lower))
-                  $type = "other";
+                  $type = $conf['fallback_type'];
                 elseif(in_array("voice", $typearr_lower))
-                  $type = "other";
+                  $type = $conf['fallback_type'];
                 else
                   continue;
               }
