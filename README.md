@@ -14,7 +14,7 @@ Features:
 
 ## Requirements
 
-* PHP-version 5.3.6 or higher
+* PHP-version 5.3.6 or higher (currently working with php7.0)
 * PHP-curl module
 * PHP-ftp module
 * PHP-mbstring module
