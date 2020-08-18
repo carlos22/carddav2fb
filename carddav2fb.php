@@ -4,8 +4,8 @@
  * inspired by http://www.wehavemorefun.de/fritzbox/Hochladen_eines_MySQL-Telefonbuchs
  * 
  * Requirements: 
- *   php5, php5-curl, php5-ftp
- * 
+ *   php7, php7-curl, php7-ftp (for alpine some more, check Dockerfile.rpi)
+ *
  * used libraries: 
  *  *  vCard-parser <https://github.com/nuovo/vCard-parser> (LICNECE: unknown)
  *  *  CardDAV-PHP <https://github.com/graviox/CardDAV-PHP>(LICENCE: AGPLv3)
@@ -17,6 +17,7 @@
  *         Martin Rost
  *         Jens Maus <mail@jens-maus.de>
  *         Johannes Freiburger
+ *         Oliver Faßbender
  *
  */
 error_reporting(E_ALL);
@@ -71,7 +72,7 @@ else
 // ---------------------------------------------
 // MAIN
 print "carddav2fb.php " . $carddav2fb_version . " - CardDAV to FRITZ!Box phonebook conversion tool" . PHP_EOL;
-print "Copyright (c) 2012-2016 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger" . PHP_EOL . PHP_EOL;
+print "Copyright (c) 2012-2020 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger, Oliver Faßbender" . PHP_EOL . PHP_EOL;
 
 $client = new CardDAV2FB($config);
 

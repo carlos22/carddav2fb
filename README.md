@@ -14,7 +14,7 @@ Features:
 
 ## Requirements
 
-* PHP-version 5.3.6 or higher (currently working with php7.0)
+* PHP-version 5.3.6 or higher (docker container are build and running with PHP7.3)
 * PHP-curl module
 * PHP-ftp module
 * PHP-mbstring module
@@ -97,4 +97,4 @@ This script is using third-party libraries for downloading VCards from CardDAV s
 This script is released under Public Domain.
 
 ## Authors
-Copyright (c) 2012-2016 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger
+Copyright (c) 2012-2020 Karl Glatz, Martin Rost, Jens Maus, Johannes Freiburger, Oliver Faßbender

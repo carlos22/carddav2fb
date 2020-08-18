@@ -3,6 +3,7 @@ MAINTAINER docker@intrepid.de
 
 # Install dependencies
 RUN apk --update --upgrade --no-cache add \
+      php7-cli \
       php7-session \
       php7-mysqli \
       php7-mbstring \
@@ -20,7 +21,6 @@ RUN apk --update --upgrade --no-cache add \
       git && \
     mkdir -p /opt && \
     cd /opt && \
-#    git clone --branch dev --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
     git clone --branch master --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
     addgroup -S carddav2fb && \
     adduser -S -G carddav2fb carddav2fb && \

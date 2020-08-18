@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:buster
 MAINTAINER docker@intrepid.de
 
 
@@ -7,14 +7,13 @@ RUN passwd -l root ; \
     apt-get update -y && \
     apt-get upgrade -y && \
     apt-get -y install \
-      php7.0-cli \
-      php7.0-curl \
-      php7.0-xml \
-      php7.0-mbstring \
+      php7.3-cli \
+      php7.3-curl \
+      php7.3-xml \
+      php7.3-mbstring \
       git \
       cron && \
     cd /opt && \
-#    git clone --branch dev --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
     git clone --branch master --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
     groupadd -r carddav2fb && \
     useradd --no-log-init -r -g carddav2fb carddav2fb && \
