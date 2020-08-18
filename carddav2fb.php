@@ -425,16 +425,16 @@ class CardDAV2FB
             {
               $prio = 0;
               $quickdial = null;
-              
+
               if(!is_array($t) || empty($t['type']))
               {
-                $type = "mobile";
+                $type = $conf['fallback_type'];
                 $phone_number = $t;
               }
               else
               {
                 $phone_number = $t['value'];
-                
+
                 $phone_number_clean = preg_replace("/[^0-9+]/", "", $phone_number);
                 foreach($quick_dial_arr as $qd_phone_nr => $value)
                 {
@@ -449,7 +449,7 @@ class CardDAV2FB
                     $quickdial = $value;
                   }
                 }
-		      
+
                 foreach($t['type'] as $k=>$v) {
                   $t['type'][$k] = str_replace('"','',$v);
                 }
@@ -463,12 +463,12 @@ class CardDAV2FB
                 // set the proper type
                 if(in_array("cell", $typearr_lower))
                   $type = "mobile";
-                elseif(in_array("home", $typearr_lower))
-                  $type = "home";
                 elseif(in_array("fax", $typearr_lower))
                   $type = "fax_work";
                 elseif(in_array("work", $typearr_lower))
                   $type = "work";
+                elseif(in_array("home", $typearr_lower))
+                  $type = "home";
                 elseif(in_array("other", $typearr_lower))
                   $type = $conf['fallback_type'];
                 elseif(in_array("dom", $typearr_lower))

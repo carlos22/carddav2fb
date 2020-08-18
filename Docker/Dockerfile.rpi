@@ -20,7 +20,8 @@ RUN apk --update --upgrade --no-cache add \
       git && \
     mkdir -p /opt && \
     cd /opt && \
-    git clone --branch FoxRomeo-patch-1 --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
+#    git clone --branch dev --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
+    git clone --branch master --single-branch https://github.com/FoxRomeo/carddav2fb.git && \
     addgroup -S carddav2fb && \
     adduser -S -G carddav2fb carddav2fb && \
     mkdir /opt/carddav2fb/share && \
