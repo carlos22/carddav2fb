@@ -24,10 +24,10 @@ error_reporting(E_ALL);
 setlocale(LC_ALL, 'de_DE.UTF8');
 
 // Version identifier for CardDAV2FB
-$carddav2fb_version = '1.11 (2016-05-12)';
+$carddav2fb_version = '1.11a (2020-08-19)';
 
 // check for the minimum php version
-$php_min_version = '5.3.6';
+$php_min_version = '7.0.0';
 if(version_compare(PHP_VERSION, $php_min_version) < 0)
 {
   print 'ERROR: PHP version ' . $php_min_version . ' is required. Found version: ' . PHP_VERSION . PHP_EOL;
