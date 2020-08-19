@@ -394,7 +394,7 @@ class CardDAV2FB
               if($found > 0)
               {
                 $pos_qd_start = strrpos($linecontent, ":**7");
-                $quick_dial_for_nr = preg_replace("/[^0-9+]/", "", substr($linecontent, 0, $pos_qd_start));
+                $quick_dial_for_nr = preg_replace("/[^0-9+*#]/", "", substr($linecontent, 0, $pos_qd_start));
                 $quick_dial_nr = intval(substr($linecontent, $pos_qd_start + 4, 3));
                 $quick_dial_arr[$quick_dial_for_nr] = $quick_dial_nr;
               }
@@ -436,7 +436,7 @@ class CardDAV2FB
               {
                 $phone_number = $t['value'];
 
-                $phone_number_clean = preg_replace("/[^0-9+]/", "", $phone_number);
+                $phone_number_clean = preg_replace("/[^0-9+*#]/", "", $phone_number);
                 foreach($quick_dial_arr as $qd_phone_nr => $value)
                 {
                   if($qd_phone_nr == $phone_number_clean)
@@ -525,7 +525,7 @@ class CardDAV2FB
 
   private function _clear_phone_number($number)
   {
-    return preg_replace("/[^0-9+]/", "", $number);
+    return preg_replace("/[^0-9+*#]/", "", $number);
   }
 
   public function build_fb_xml()
