@@ -9,6 +9,7 @@ pipeline {
     }
     environment {
 	REGISTRY = "intrepidde"
+	SECONDARYREGISTRY = "nexus.intrepid.local:4000"
     }
     stages {
 	stage('Build') {
@@ -19,6 +20,7 @@ pipeline {
 		    }
 		    environment {
 			NAME = "rpi-carddav2fb"
+			SECONDARYNAME = "${NAME}"
 			TARGETVERSION = "master"
 			ACTION = "all"
 		    }
@@ -34,6 +36,7 @@ pipeline {
 		    }
 		    environment {
 			NAME = "carddav2fb"
+			SECONDARYNAME = "${NAME}"
 			TARGETVERSION = "master"
 			ACTION = "all"
 		    }
