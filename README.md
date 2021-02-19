@@ -1,6 +1,8 @@
 # CardDAV contacts import for AVM FRITZ!Box
 
-[![Build Status](https://jenkins.midgards-todesengel.de/buildStatus/icon?job=FoxRomeo-GitHub%2Fcarddav2fb%2Fmaster)](https://jenkins.midgards-todesengel.de/job/FoxRomeo-GitHub/job/carddav2fb/job/master/)
+<a href="https://hub.docker.com/r/intrepidde/carddav2fb"><img src="https://img.shields.io/docker/pulls/intrepidde/carddav2fb.svg?style=plastic&logo=appveyor" alt="Docker pulls"/></a> x86<br>
+<a href="https://hub.docker.com/r/intrepidde/rpi-carddav2fb"><img src="https://img.shields.io/docker/pulls/intrepidde/carddav2fb.svg?style=plastic&logo=appveyor" alt="Docker pulls"/></a> RPi<br>
+
 
 Features:
 
