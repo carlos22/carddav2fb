@@ -9,6 +9,8 @@ RUN apk --update --upgrade --no-cache add \
       php7-mysqli \
       php7-mbstring \
       php7-xml \
+      php7-xmlwriter \
+      php7-simplexml \
       php7-gd \
       php7-zip \
       php7-bz2 \
