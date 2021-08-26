@@ -4,7 +4,7 @@
 <a href="https://hub.docker.com/r/intrepidde/rpi-carddav2fb"><img src="https://img.shields.io/docker/pulls/intrepidde/carddav2fb.svg?style=plastic&logo=appveyor" alt="Docker pulls"/></a> RPi<br>
 
 **PREPARING CHANGE RUNUSER FROM USER root TO cron**
-**THIS CHANGES crontab FORMAT on RPI (to "normal" crontab format)**
+**THIS CHANGES crontab FORMAT (to "normal" crontab user format)**
 
 
 Features:
