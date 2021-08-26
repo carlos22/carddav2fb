@@ -1,8 +1,8 @@
-FROM arm32v6/alpine:3.12
-#FROM arm32v6/alpine:latest
+FROM <<BASEIMAGE>>
 MAINTAINER docker@intrepid.de
 
 # Install dependencies
+USER root
 RUN apk --update --upgrade --no-cache add \
       php7-cli \
       php7-session \
@@ -35,5 +35,6 @@ RUN apk --update --upgrade --no-cache add \
 # -v <path_to_your>/crontab:/etc/cron.d/carddav2fb:ro
 # --add-host=fritz.box:<IP_OF_YOUR_FRITZBOX>
 
+USER cron
 WORKDIR /opt/carddav2fb
-CMD ["cron", "-f"]
+CMD ["/usr/local/bin/supercronic", "/etc/cron.d/carddav2fb"]
