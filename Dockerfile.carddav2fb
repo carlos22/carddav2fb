@@ -21,6 +21,7 @@ RUN apk --update --upgrade --no-cache add \
       php7-ctype \
       php7-fpm \
       php7-iconv \
+      php7-ftp \
       bash \
       git && \
     mkdir -p /opt && \
