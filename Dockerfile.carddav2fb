@@ -1,4 +1,4 @@
-FROM <<BASEIMAGE>>
+FROM <<BASECONTAINER>>
 MAINTAINER docker@intrepid.de
 
 # Install dependencies
