@@ -38,6 +38,6 @@ RUN apk --update --upgrade --no-cache add \
 # -v <path_to_your>/crontab:/etc/cron.d/carddav2fb:ro
 # --add-host=fritz.box:<IP_OF_YOUR_FRITZBOX>
 
-USER cron
+USER carddav2fb
 WORKDIR /opt/carddav2fb
 CMD ["/usr/local/bin/supercronic", "/etc/cron.d/carddav2fb"]
