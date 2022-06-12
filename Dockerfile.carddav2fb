@@ -1,6 +1,9 @@
 FROM <<BASECONTAINER>>
 MAINTAINER docker@intrepid.de
 
+# Architecture depending ENV PHP_VERSION provided by Jenkinsfile
+# <<ENV>>
+
 # Install dependencies
 USER root
 RUN apk --update --upgrade --no-cache add \
