@@ -4,24 +4,24 @@ MAINTAINER docker@intrepid.de
 # Install dependencies
 USER root
 RUN apk --update --upgrade --no-cache add \
-      php7-cli \
-      php7-session \
-      php7-mysqli \
-      php7-mbstring \
-      php7-xml \
-      php7-xmlwriter \
-      php7-simplexml \
-      php7-gd \
-      php7-zip \
-      php7-bz2 \
-      php7-openssl \
-      php7-curl \
-      php7-opcache \
-      php7-json \
-      php7-ctype \
-      php7-fpm \
-      php7-iconv \
-      php7-ftp \
+      ${PHP_VERSION}-cli \
+      ${PHP_VERSION}-session \
+      ${PHP_VERSION}-mysqli \
+      ${PHP_VERSION}-mbstring \
+      ${PHP_VERSION}-xml \
+      ${PHP_VERSION}-xmlwriter \
+      ${PHP_VERSION}-simplexml \
+      ${PHP_VERSION}-gd \
+      ${PHP_VERSION}-zip \
+      ${PHP_VERSION}-bz2 \
+      ${PHP_VERSION}-openssl \
+      ${PHP_VERSION}-curl \
+      ${PHP_VERSION}-opcache \
+      ${PHP_VERSION}-json \
+      ${PHP_VERSION}-ctype \
+      ${PHP_VERSION}-fpm \
+      ${PHP_VERSION}-iconv \
+      ${PHP_VERSION}-ftp \
       bash \
       git && \
     mkdir -p /opt && \
