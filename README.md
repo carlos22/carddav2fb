@@ -1,3 +1,5 @@
+The most active fork AFAIK is this one: https://github.com/andig/carddav2fb (with PHP8 support).
+
 # CardDAV contacts import for AVM FRITZ!Box
 
 [![Build Status](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/badges/build.png?b=master)](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/build-status/master) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jens-maus/carddav2fb/?branch=master)
