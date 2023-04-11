@@ -128,7 +128,9 @@ class fritzbox_api {
   public function doPostForm($formfields = array())
   {
     $ch = curl_init();
-
+    //curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     if ( isset($formfields['getpage']) && strpos($formfields['getpage'], '.lua') > 0 )
     {
       curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . $formfields['getpage'] . '?sid=' . $this->sid);
@@ -156,8 +158,8 @@ class fritzbox_api {
 		}
 
 		// set SSL-options and path to certificate
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 2);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($ch, CURLOPT_CAPATH, '/etc/ssl/certs');
 
 		// support for pre FRITZ!OS 5.50 remote config
@@ -189,7 +191,9 @@ class fritzbox_api {
     // enable for debugging:
     //curl_setopt($ch, CURLOPT_VERBOSE, TRUE); 
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
     // if filefileds not specified ('@/path/to/file.xml;type=text/xml' works fine)
     if(empty( $filefileds )) {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $formfields); // http_build_query
@@ -300,6 +304,7 @@ class fritzbox_api {
     curl_setopt($ch, CURLOPT_URL, $this->config->getItem('fritzbox_url') . $getpage . http_build_query($params));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HTTPGET, 1);
+    //curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
     if ( $this->config->getItem('enable_remote_config') )
     {
       curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -338,7 +343,7 @@ class fritzbox_api {
     
     // read the current status
     $session_status_simplexml = simplexml_load_string($this->doGetRequest(array('getpage' => $loginpage)));
-    
+
     if ( !is_object($session_status_simplexml) || get_class($session_status_simplexml) != 'SimpleXMLElement' )
     {
       $this->error('Response of initialization call ' . $loginpage . ' in ' . __FUNCTION__ . ' was not xml-formatted.');
