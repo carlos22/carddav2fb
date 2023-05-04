@@ -435,8 +435,7 @@ class CardDAV2FB
               else
               {
                 $phone_number = $t['value'];
-
-                $phone_number_clean = preg_replace("/[^0-9+*#]/", "", $phone_number);
+                $phone_number_clean = preg_replace("/[^0-9\*\#+]/", "", $phone_number);
                 foreach($quick_dial_arr as $qd_phone_nr => $value)
                 {
                   if($qd_phone_nr == $phone_number_clean)
@@ -525,7 +524,7 @@ class CardDAV2FB
 
   private function _clear_phone_number($number)
   {
-    return preg_replace("/[^0-9+*#]/", "", $number);
+    return preg_replace("/[^0-9\*\#+]/", "", $number);
   }
 
   public function build_fb_xml()
@@ -616,7 +615,7 @@ class CardDAV2FB
             }
 
             // add contact photo to xml
-            $person->addChild("imageURL", $this->config['fritzbox_path'] . $this->config['usb_disk'] . "FRITZ/fonpix/" . basename($photo_file));
+            $person->addChild("imageURL", $this->config['fritzbox_path'] . $this->config['usb_disk'] . "/FRITZ/fonpix/" . basename($photo_file));
 
             print "  Added photo: " . basename($photo_file) . PHP_EOL;
           }
